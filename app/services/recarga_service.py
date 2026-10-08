@@ -3,19 +3,30 @@
 Los mensajes de las excepciones están en español y pueden mostrarse al cliente.
 """
 
+import asyncio
 import logging
 import re
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from app.models import Paquete, Pedido, PedidoEvento
 from app.services import ledger
 from app.services.codigos import codigo_pedido
 from app.services.estados import Estado, validar_transicion
-from app.services.ventasff_client import ClienteVentasFF, ErrorVentasFF
+from app.services.limitador import LimitadorTasa
+from app.services.ventasff_client import (
+    Clasificacion,
+    ClienteVentasFF,
+    ErrorAPI,
+    ErrorPrevioAlEnvio,
+    ErrorVentasFF,
+    RecargaRealizada,
+    ResultadoIncierto,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -231,3 +242,154 @@ async def crear_pedido(
     await sesion.refresh(pedido)
     logger.info("Pedido %s creado y reservado", pedido.codigo)
     return PedidoCreado(pedido, nuevo=True)
+
+
+# --- Fase B: llamada al proveedor (plan 4.2) ---
+
+# Clave del candado global de recargas: solo una recarga a la vez hacia VentasFF (RN-05).
+CANDADO_RECARGAS = 7_461_003
+SEGUNDOS_REINTENTO_BUSY = 3.0  # RN-06
+
+ERRORES_DE_CUENTA = frozenset({"MISSING_KEY", "INVALID_KEY", "INACTIVE", "API_DISABLED"})
+
+MENSAJE_SERVICIO_NO_DISPONIBLE = "Servicio no disponible. Intenta más tarde."
+MENSAJE_SIN_DISPONIBILIDAD = "Sin disponibilidad del proveedor. Intenta más tarde."
+MENSAJE_PROVEEDOR_OCUPADO = "Proveedor ocupado. Intenta más tarde."
+MENSAJE_SIN_CONEXION = "No se pudo contactar al proveedor. Intenta más tarde."
+MENSAJE_ERROR_RECARGA = "No se pudo completar la recarga."
+
+# Tipos de alerta para el admin (RN-08, T-049).
+ALERTA_CREDITO = "credito"
+ALERTA_CUENTA = "cuenta"
+
+
+@dataclass(frozen=True)
+class ResultadoProveedor:
+    """Resultado de la Fase B, ya clasificado para la Fase C (RF-24)."""
+
+    clasificacion: Clasificacion
+    recarga: RecargaRealizada | None = None
+    # Motivo para el cliente y código, si el pedido falla.
+    motivo: str | None = None
+    error_code: str | None = None
+    # Alerta para el admin, si corresponde.
+    alerta: str | None = None
+    # Detalle interno para el historial del pedido (sin secretos).
+    detalle: str | None = None
+
+
+def _resultado_de_error(
+    error: ErrorVentasFF, *, codigo_previo: str | None = None
+) -> ResultadoProveedor:
+    if isinstance(error, ErrorAPI):
+        if error.code in ERRORES_DE_CUENTA:
+            # Errores de cuenta: alerta crítica y mensaje genérico al cliente (plan 4.2).
+            return ResultadoProveedor(
+                Clasificacion.ERROR_API,
+                motivo=MENSAJE_SERVICIO_NO_DISPONIBLE,
+                error_code=error.code,
+                alerta=ALERTA_CUENTA,
+                detalle=f"{error.code}: {error.mensaje}",
+            )
+        if error.code == "INSUFFICIENT_CREDIT":
+            return ResultadoProveedor(
+                Clasificacion.ERROR_API,
+                motivo=MENSAJE_SIN_DISPONIBILIDAD,
+                error_code=error.code,
+                alerta=ALERTA_CREDITO,
+                detalle=f"{error.code}: {error.mensaje}",
+            )
+        if error.code in ("BUSY", "RATE_LIMITED"):
+            motivo = MENSAJE_PROVEEDOR_OCUPADO
+        elif error.code == "PURCHASE_FAILED" and error.mensaje:
+            # El texto del proveedor dice el motivo (ej. "Paquete no disponible").
+            motivo = error.mensaje
+        else:
+            motivo = MENSAJE_ERROR_RECARGA
+        return ResultadoProveedor(
+            Clasificacion.ERROR_API,
+            motivo=motivo,
+            error_code=error.code,
+            detalle=f"{error.code}: {error.mensaje}",
+        )
+    if isinstance(error, ErrorPrevioAlEnvio):
+        return ResultadoProveedor(
+            Clasificacion.ERROR_PREVIO,
+            motivo=MENSAJE_SIN_CONEXION,
+            error_code=codigo_previo or "SIN_CONEXION",
+            detalle=str(error),
+        )
+    # ResultadoIncierto u otro: no se sabe si se cobró (RN-04).
+    return ResultadoProveedor(Clasificacion.INCIERTO, detalle=str(error))
+
+
+async def _verificar_credito(cliente: ClienteVentasFF, precio_costo) -> ResultadoProveedor | None:
+    """RF-23: None si el crédito cubre el costo; si no, el resultado FALLIDO.
+
+    Si `saldo.php` falla no se llegó a pedir la recarga, así que es seguro fallar.
+    """
+    try:
+        saldo = await cliente.saldo()
+    except ErrorAPI as error:
+        return _resultado_de_error(error)
+    except (ErrorPrevioAlEnvio, ResultadoIncierto) as error:
+        return ResultadoProveedor(
+            Clasificacion.ERROR_PREVIO,
+            motivo=MENSAJE_SIN_CONEXION,
+            error_code="SALDO_NO_VERIFICADO",
+            detalle=f"saldo.php: {error}",
+        )
+    if saldo.credito < precio_costo:
+        logger.warning("Crédito del proveedor insuficiente para la recarga")
+        return ResultadoProveedor(
+            Clasificacion.ERROR_PREVIO,
+            motivo=MENSAJE_SIN_DISPONIBILIDAD,
+            error_code="SIN_CREDITO_PROVEEDOR",
+            alerta=ALERTA_CREDITO,
+            detalle="Crédito del proveedor menor que el costo",
+        )
+    return None
+
+
+async def llamar_proveedor(
+    motor: AsyncEngine,
+    cliente: ClienteVentasFF,
+    limitador: LimitadorTasa,
+    *,
+    paquete_id: int,
+    player_id: str,
+    precio_costo,
+    dormir: Callable[[float], Awaitable[None]] = asyncio.sleep,
+) -> ResultadoProveedor:
+    """Fase B (plan 4.2), fuera de la transacción de saldo.
+
+    Candado global en una conexión dedicada (RN-05), limitador propio (RN-07),
+    verificación de crédito (RF-23) y `recargar.php` con un reintento ante BUSY
+    (RN-06). Nunca lanza `ErrorVentasFF`: devuelve el resultado clasificado.
+    """
+    async with motor.connect() as conexion:
+        await conexion.execute(text("SELECT pg_advisory_lock(:clave)"), {"clave": CANDADO_RECARGAS})
+        await conexion.commit()
+        try:
+            await limitador.adquirir()
+            fallo_credito = await _verificar_credito(cliente, precio_costo)
+            if fallo_credito is not None:
+                return fallo_credito
+            for intento in (1, 2):
+                try:
+                    recarga = await cliente.recargar(paquete_id, player_id)
+                except ErrorAPI as error:
+                    if error.code == "BUSY" and intento == 1:
+                        logger.info("VentasFF BUSY: reintento en %.0fs", SEGUNDOS_REINTENTO_BUSY)
+                        await dormir(SEGUNDOS_REINTENTO_BUSY)
+                        continue
+                    return _resultado_de_error(error)
+                except ErrorVentasFF as error:
+                    return _resultado_de_error(error)
+                return ResultadoProveedor(Clasificacion.EXITO, recarga=recarga)
+            raise AssertionError("inalcanzable")  # pragma: no cover
+        finally:
+            await conexion.execute(
+                text("SELECT pg_advisory_unlock(:clave)"), {"clave": CANDADO_RECARGAS}
+            )
+            await conexion.commit()

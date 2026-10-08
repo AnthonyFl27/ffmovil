@@ -148,7 +148,7 @@ Antes de la Fase A (y sin bloqueos de BD) el backend vuelve a validar el ID con 
 7. Commit.
 
 **Fase B — llamada al proveedor (fuera de la transacción de saldo):**
-1. Adquiere candado global (`pg_advisory_lock`, conexión dedicada) y pasa por el limitador de tasa propio (≤ 10 recargas/min; margen de seguridad configurable).
+1. Adquiere candado global (`pg_advisory_lock`, conexión dedicada) y pasa por el limitador de tasa propio (ventana deslizante en `limitador.py`: 8 recargas/min, por debajo de las 10 del proveedor).
 2. `GET saldo.php`: si `data.credito` < `precio_costo` → resultado FALLIDO ("sin disponibilidad del proveedor"), alerta al admin (RN-08).
 3. `POST recargar.php`. Si `BUSY` → espera 3 s, reintenta una vez (RN-06).
 4. Libera el candado.
