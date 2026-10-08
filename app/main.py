@@ -7,6 +7,8 @@ from fastapi.responses import JSONResponse
 from app.config import obtener_configuracion
 from app.db import ErrorConexionBD, crear_fabrica_sesiones, crear_motor, verificar_conexion
 from app.logs import configurar_logs
+from app.routers import auth
+from app.services.limitador_login import LimitadorLogin
 from app.services.recuperacion import recuperar_pedidos_huerfanos
 from app.services.tareas import crear_programador
 from app.services.ventasff_client import ClienteVentasFF
@@ -26,6 +28,8 @@ async def lifespan(app: FastAPI):
         raise
     app.state.motor = motor
     app.state.sesiones = crear_fabrica_sesiones(motor)
+    app.state.cookie_secure = config.cookie_secure
+    app.state.limitador_login = LimitadorLogin()
     # RN-09: pedidos que quedaron en PROCESANDO por un reinicio pasan a revisión.
     async with app.state.sesiones() as sesion:
         await recuperar_pedidos_huerfanos(sesion)
@@ -42,6 +46,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="ffmovil", lifespan=lifespan)
+app.include_router(auth.router)
 
 
 @app.get("/health")

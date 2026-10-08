@@ -79,3 +79,18 @@ async def test_usuario_duplicado_no_rompe_la_transaccion(sesion_bd):
 async def test_datos_invalidos(sesion_bd, nombre, rol):
     with pytest.raises(DatosUsuarioInvalidos):
         await auth_service.crear_usuario(sesion_bd, nombre, rol=rol)
+
+
+@pytest.mark.parametrize(
+    ("entrada", "esperado"),
+    [("  Juan.Perez_1 ", "juan.perez_1"), ("abc", "abc"), ("a-b", "a-b"), ("x" * 30, "x" * 30)],
+)
+def test_nombre_usuario_valido_se_normaliza(entrada, esperado):
+    # RF-07: se guarda en minúsculas.
+    assert auth_service.normalizar_nombre_usuario(entrada) == esperado
+
+
+@pytest.mark.parametrize("entrada", ["ab", "x" * 31, "juan perez", "juan@x", "ñandú", "", None])
+def test_nombre_usuario_invalido(entrada):
+    with pytest.raises(DatosUsuarioInvalidos):
+        auth_service.normalizar_nombre_usuario(entrada)

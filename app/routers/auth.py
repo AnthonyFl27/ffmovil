@@ -1,0 +1,77 @@
+"""Login, logout y sesión actual (RF-01, RF-04, RF-05, RF-06)."""
+
+from fastapi import APIRouter, HTTPException, Request, Response, status
+from sqlalchemy import func
+
+from app.models import Usuario
+from app.routers.dependencias import (
+    COOKIE_SESION,
+    Bd,
+    EnSesion,
+    ip_cliente,
+)
+from app.schemas.auth import InfoSesion, Login
+from app.services import auth_service, sesiones
+from app.services.auth_service import UsuarioBloqueado
+
+router = APIRouter(prefix="/auth", tags=["auth"])
+
+MENSAJE_CREDENCIALES = "Usuario o contraseña incorrectos."
+MENSAJE_DEMASIADOS_INTENTOS = "Demasiados intentos fallidos. Intenta de nuevo en 15 minutos."
+
+
+def info_sesion(usuario: Usuario, csrf: str) -> InfoSesion:
+    return InfoSesion(
+        usuario=usuario.usuario,
+        rol=usuario.rol,
+        debe_cambiar_clave=usuario.debe_cambiar_clave,
+        csrf=csrf,
+    )
+
+
+def poner_cookie(request: Request, response: Response, token: str) -> None:
+    response.set_cookie(
+        COOKIE_SESION,
+        token,
+        httponly=True,
+        samesite="lax",
+        secure=request.app.state.cookie_secure,
+        path="/",
+    )
+
+
+@router.post("/login", response_model=InfoSesion)
+async def login(datos: Login, request: Request, response: Response, bd: Bd):
+    limitador = request.app.state.limitador_login
+    ip = ip_cliente(request) or "desconocida"
+    # RF-05: con el tope superado no se verifica la clave.
+    if limitador.bloqueado(datos.usuario, ip):
+        raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, MENSAJE_DEMASIADOS_INTENTOS)
+    try:
+        usuario = await auth_service.autenticar(bd, datos.usuario, datos.clave)
+    except UsuarioBloqueado as error:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, str(error)) from None
+    if usuario is None:
+        limitador.registrar_fallo(datos.usuario, ip)
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, MENSAJE_CREDENCIALES)
+    limitador.registrar_exito(datos.usuario, ip)
+
+    usuario.ultimo_login = func.now()
+    await sesiones.limpiar_vencidas(bd)
+    creada = await sesiones.crear_sesion(bd, usuario.id, ip_cliente(request))
+    await bd.commit()
+    await bd.refresh(usuario)
+    poner_cookie(request, response, creada.token)
+    return info_sesion(usuario, creada.csrf)
+
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+async def logout(response: Response, actual: EnSesion, bd: Bd):
+    await sesiones.cerrar_sesion(bd, actual.token_hash)
+    await bd.commit()
+    response.delete_cookie(COOKIE_SESION, path="/")
+
+
+@router.get("/sesion", response_model=InfoSesion)
+async def sesion_actual(actual: EnSesion):
+    return info_sesion(actual.usuario, actual.csrf)

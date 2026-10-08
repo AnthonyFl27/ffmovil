@@ -89,3 +89,32 @@ async def admin_id(sesion_bd):
     usuario = await crear_usuario(sesion_bd, rol="admin")
     await sesion_bd.commit()
     return usuario.id
+
+
+@pytest.fixture
+async def api(motor_bd):
+    """Fábrica de clientes HTTP contra la app, con la BD del esquema `test`.
+
+    Cada cliente tiene su propio tarro de cookies (una sesión por cliente). El
+    limitador de login es nuevo en cada prueba. `ip` fija la IP del cliente.
+    """
+    import httpx
+
+    from app.main import app
+    from app.services.limitador_login import LimitadorLogin
+
+    app.state.motor = motor_bd
+    app.state.sesiones = crear_fabrica_sesiones(motor_bd)
+    app.state.cookie_secure = False
+    app.state.limitador_login = LimitadorLogin()
+    clientes = []
+
+    def nuevo(ip: str = "127.0.0.1") -> httpx.AsyncClient:
+        transporte = httpx.ASGITransport(app=app, client=(ip, 50000))
+        cliente = httpx.AsyncClient(transport=transporte, base_url="http://test")
+        clientes.append(cliente)
+        return cliente
+
+    yield nuevo
+    for cliente in clientes:
+        await cliente.aclose()
