@@ -236,6 +236,8 @@ Esquemas de respuesta del cliente: modelos Pydantic dedicados que **no declaran*
 ### Docker Compose (servicios)
 - `app`: FastAPI (uvicorn), lee `.env`, se conecta a la BD externa. Publica un puerto (ej. 8000).
 - No hay servicio `db`.
+- Red: `app` se une a la red Docker externa `ffmovil_net` (`external: true`), que crea el dueño y comparte con el Compose de PostgreSQL. En el VPS, `DATABASE_URL` usa como host el nombre del contenedor de PostgreSQL (ej. `@postgres:5432`); PostgreSQL no publica puertos a internet.
+- Desarrollo local: acceso a la BD del VPS por túnel SSH (`localhost:5433`); solo cambia el valor de `DATABASE_URL`.
 - `caddy` (diferido hasta tener dominio): único con puertos publicados, reverse proxy a `app`, volúmenes para certificados.
 - Acceso actual: `http://localhost:8000` o `http://IP_DEL_VPS:8000`.
 
