@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block titulo %}Cambiar contraseña{% endblock %}
+{% block contenido %}
+<article class="angosto">
+  <h1>Cambiar contraseña</h1>
+  {% if obligatorio %}
+  <p>Debes cambiar tu contraseña temporal antes de continuar.</p>
+  {% endif %}
+  <form hx-post="/clave" hx-target="#mensaje" hx-disabled-elt="find button">
+    <label>Contraseña actual
+      <input name="clave_actual" type="password" autocomplete="current-password" required>
+    </label>
+    <label>Contraseña nueva
+      <input name="clave_nueva" type="password" autocomplete="new-password" minlength="8" maxlength="128" required>
+      <small>De 8 a 128 caracteres y distinta de la actual.</small>
+    </label>
+    <div id="mensaje"></div>
+    <button type="submit">Guardar</button>
+  </form>
+  {% if not obligatorio %}<a href="/">Volver</a>{% endif %}
+</article>
+{% endblock %}

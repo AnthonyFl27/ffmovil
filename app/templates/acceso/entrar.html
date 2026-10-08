@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block titulo %}Entrar{% endblock %}
+{% block contenido %}
+<article class="angosto">
+  <h1>Iniciar sesión</h1>
+  <form hx-post="/entrar" hx-target="#mensaje" hx-disabled-elt="find button">
+    <label>Usuario
+      <input name="usuario" autocomplete="username" required autofocus>
+    </label>
+    <label>Contraseña
+      <input name="clave" type="password" autocomplete="current-password" required>
+    </label>
+    <div id="mensaje"></div>
+    <button type="submit">Entrar</button>
+  </form>
+</article>
+{% endblock %}

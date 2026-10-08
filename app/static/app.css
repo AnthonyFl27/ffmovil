@@ -1,0 +1,16 @@
+.angosto { max-width: 28rem; margin-inline: auto; }
+.mensaje.error { color: var(--pico-del-color); }
+.mensaje.exito { color: var(--pico-ins-color); }
+nav button.salir { padding: 0.25rem 0.75rem; margin: 0; }
+.estado { font-weight: 600; white-space: nowrap; }
+.estado-EXITOSO { color: var(--pico-ins-color); }
+.estado-FALLIDO { color: var(--pico-del-color); }
+.estado-PENDIENTE_VERIFICAR { color: #c27c0e; }
+.cifras { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 1rem; }
+.cifras article { margin: 0; text-align: center; }
+.cifras strong { display: block; font-size: 1.5rem; }
+.acciones { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.acciones > * { margin: 0; }
+.bajo-costo { color: var(--pico-del-color); font-weight: 600; }
+.htmx-indicator { display: none; }
+.htmx-request .htmx-indicator, .htmx-request.htmx-indicator { display: inline; }

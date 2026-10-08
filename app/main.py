@@ -14,6 +14,7 @@ from app.services.limitador_login import LimitadorLogin
 from app.services.recuperacion import recuperar_pedidos_huerfanos
 from app.services.tareas import crear_programador
 from app.services.ventasff_client import ClienteVentasFF
+from app.web import montar as montar_web
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +73,7 @@ app.include_router(me.router)
 app.include_router(paquetes.router)
 app.include_router(recargas.router)
 app.include_router(admin.router)
+montar_web(app)
 
 
 @app.get("/health")

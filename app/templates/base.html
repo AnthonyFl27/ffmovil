@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="htmx-config" content='{"responseHandling":[{"code":"204","swap":false},{"code":"[23]..","swap":true},{"code":"4..","swap":true,"error":false},{"code":"502","swap":true,"error":false},{"code":"...","swap":false,"error":true}]}'>
+  <title>{% block titulo %}Recargas{% endblock %} · ffmovil</title>
+  <link rel="stylesheet" href="/static/pico.min.css">
+  <link rel="stylesheet" href="/static/app.css">
+  <script src="/static/htmx.min.js" defer></script>
+  <script src="/static/app.js" defer></script>
+</head>
+<body{% if csrf %} hx-headers='{{ {"X-CSRF-Token": csrf} | tojson }}'{% endif %}>
+  <header class="container">
+    <nav>
+      <ul><li><strong>ffmovil</strong></li></ul>
+      {% if rol == "cliente" %}
+      <ul>
+        <li><a href="/inicio">Inicio</a></li>
+        <li><a href="/recargar">Recargar</a></li>
+        <li><a href="/historial">Historial</a></li>
+        <li><a href="/fondos">Fondos</a></li>
+        <li><button class="outline secondary salir" hx-post="/salir">Salir</button></li>
+      </ul>
+      {% elif rol == "admin" %}
+      <ul>
+        <li><a href="/gestion">Panel</a></li>
+        <li><a href="/gestion/pedidos">Pedidos</a></li>
+        <li><a href="/gestion/usuarios">Usuarios</a></li>
+        <li><a href="/gestion/paquetes">Paquetes</a></li>
+        <li><a href="/gestion/config">Configuración</a></li>
+        <li><a href="/gestion/auditoria">Auditoría</a></li>
+        <li><button class="outline secondary salir" hx-post="/salir">Salir</button></li>
+      </ul>
+      {% elif csrf %}
+      <ul><li><button class="outline secondary salir" hx-post="/salir">Salir</button></li></ul>
+      {% endif %}
+    </nav>
+  </header>
+  <main class="container">
+    <div id="aviso-global" role="alert"></div>
+    {% block contenido %}{% endblock %}
+  </main>
+</body>
+</html>
