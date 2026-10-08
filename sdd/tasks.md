@@ -1,6 +1,6 @@
 # Tareas
 
-- **Spec:** `sdd/spec.md` v0.7.0 · **Plan:** `sdd/plan.md`
+- **Spec:** `sdd/spec.md` v0.7.1 · **Plan:** `sdd/plan.md`
 - **Formato:** `- [ ] T-XXX descripción (refs) → criterio de hecho`
 - **Estados:** `[ ]` pendiente · `[~]` en curso · `[x]` hecha · `[!]` bloqueada
 - Cada tarea referencia requisitos (RF/RN/RNF/CA). Una tarea sin referencia no debería existir: o falta un requisito en la spec, o sobra la tarea.
@@ -74,7 +74,7 @@
 
 ## Fase 7 — Frontend
 
-- [ ] T-070 Resolver Q-05 (Jinja2 + HTMX o SPA) y registrar decisión en `changelog.md` → decisión registrada.
+- [x] T-070 Resolver Q-05 (Jinja2 + HTMX o SPA) y registrar decisión en `changelog.md` → decisión registrada.
 - [ ] T-071 Login y cambio de contraseña.
 - [ ] T-072 Inicio del cliente: saldo, gasto total, nº de recargas, botones (RF-33).
 - [ ] T-073 Pantalla Recargar: Player ID → nickname → paquete → confirmación, con token de idempotencia y botón deshabilitado tras el primer clic (RF-20, RF-21, RF-25).

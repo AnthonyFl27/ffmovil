@@ -1,6 +1,6 @@
 # Especificación: Plataforma de recargas Free Fire (prepago)
 
-- **Versión:** 0.7.0
+- **Versión:** 0.7.1
 - **Estado:** Borrador aprobado para iniciar desarrollo
 - **Fuente de verdad:** este archivo. El código y el plan se derivan de aquí.
 
@@ -183,7 +183,7 @@ Limitaciones: sin endpoint de estado de pedido; `recargar.php` no acepta otros c
 | Q-02 | Redondeo de `precio_venta`. | Retirada (CHG-002) |
 | Q-03 | Moneda mostrada al cliente. | Resuelta (CHG-007): USD (RF-36) |
 | Q-04 | Expiración de sesión. | Resuelta (CHG-007): 8 h de inactividad (RF-06) |
-| Q-05 | Frontend: Jinja2 + HTMX (propuesta) o SPA aparte. | Abierta |
+| Q-05 | Frontend: Jinja2 + HTMX (propuesta) o SPA aparte. | Resuelta (CHG-008): Jinja2 + HTMX servidos por FastAPI |
 | Q-06 | Umbral de alerta de crédito bajo en VentasFF. | Resuelta (CHG-006): 10 USD, editable (RN-11) |
 
 ## 12. Registro de cambios

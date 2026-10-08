@@ -79,10 +79,19 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.6.0 → 0.7.0
 - **Motivo:** la fase 6 necesitaba la expiración de sesión, los topes del limitador de login, las reglas de usuario y contraseña, qué cuenta en el resumen y qué muestra Fondos.
 
+### CHG-008 · 2026-10-08 · Frontend con Jinja2 + HTMX
+- **Origen:** pregunta abierta resuelta (Q-05)
+- **Spec:** Q-05 resuelta; sin cambios en requisitos
+- **Plan:** stack (Jinja2 + HTMX + Pico.css servidos desde `app/static`); sec. 6.1 nueva (páginas web); sec. 7 (CSRF de los formularios por cabecera con `hx-headers`)
+- **Tareas:** sin cambios (T-071 a T-077 siguen este diseño)
+- **Versión spec:** 0.7.0 → 0.7.1
+- **Motivo:** el dueño elige páginas renderizadas por FastAPI que reutilizan las rutas y esquemas ya construidos: sin paso de build ni otro contenedor.
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |
 |---|---|---|---|
+| Q-05 | Frontend: Jinja2 + HTMX servidos por FastAPI; Pico.css como estilo | 2026-10-08 | CHG-008 |
 | Q-03 | Moneda mostrada al cliente: USD con 2 decimales (RF-36) | 2026-10-08 | CHG-007 |
 | Q-04 | Sesión: expira tras 8 h sin actividad, guardada en BD (RF-06) | 2026-10-08 | CHG-007 |
 | Q-06 | Umbral de crédito bajo en VentasFF: 10 USD, editable por el admin en `config.alerta_credito_min` | 2026-10-08 | CHG-006 |

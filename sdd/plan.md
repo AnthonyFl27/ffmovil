@@ -1,6 +1,6 @@
 # Plan técnico
 
-- **Spec de referencia:** `sdd/spec.md` v0.7.0
+- **Spec de referencia:** `sdd/spec.md` v0.7.1
 - **Regla:** este plan implementa la spec. Si el plan contradice la spec, gana la spec.
 
 ---
@@ -12,7 +12,7 @@
 | Backend | Python 3.12, FastAPI, SQLAlchemy 2.x async con psycopg 3, Alembic |
 | Dependencias | uv (`pyproject.toml` + `uv.lock`) |
 | Base de datos | PostgreSQL 18, externo (servidor propio en el VPS), acceso solo por `DATABASE_URL` |
-| Frontend (propuesta Q-05) | Jinja2 + HTMX servidos por FastAPI |
+| Frontend (Q-05, CHG-008) | Jinja2 + HTMX 2 servidos por FastAPI; Pico.css 2. HTMX y Pico se sirven desde `app/static` (sin CDN ni build) |
 | HTTP cliente | httpx |
 | Hash | argon2-cffi |
 | Tareas programadas | APScheduler (sincronización diaria) |
@@ -45,6 +45,7 @@ Monorepo: la API y la web viven en el mismo repositorio.
 │   │   ├── paquetes.py
 │   │   ├── recargas.py
 │   │   └── admin/             # usuarios, saldos, pedidos, config
+│   ├── web/                   # páginas HTML (sec. 6.1)
 │   ├── cli.py                 # python -m app.cli crear-admin <usuario>
 │   ├── logs.py                # enmascarado de secretos (RNF-05)
 │   ├── services/
@@ -273,11 +274,38 @@ Las rutas `/me/*`, `/paquetes` y `/recargas*` son solo para clientes (un admin r
 
 Esquemas de respuesta del cliente: modelos Pydantic dedicados que **no declaran** `precio_costo` (CA-03). Los montos se serializan como texto con 2 decimales (`"0.91"`) y las respuestas de montos incluyen `moneda: "USD"` (RF-36). Las fechas van en ISO 8601 UTC (RNF-09: el frontend las muestra en la zona del usuario). Errores: `{"detail": "mensaje en español"}`.
 
+### 6.1 Páginas web (Q-05, CHG-008)
+
+Paquete `app/web/`: rutas HTML (sin `include_in_schema`) que llaman a las funciones de las rutas JSON de la sección 6 y renderizan su resultado con Jinja2 (`app/templates/`). Así la web reutiliza validaciones, transacciones y auditoría, y las plantillas del cliente solo reciben esquemas de cliente, que no tienen `precio_costo` (CA-03).
+
+| Ruta | Pantalla | Usa |
+|---|---|---|
+| `/` | Redirige según rol (`/inicio` o `/gestion`) o a `/entrar` | — |
+| `/entrar` (GET/POST) | Login | `/auth/login` |
+| `/clave` (GET/POST) | Cambio de contraseña (obligatorio si `debe_cambiar_clave`) | `/auth/cambiar-clave` |
+| `/salir` (POST) | Cierra sesión | `/auth/logout` |
+| `/inicio` | Inicio del cliente (RF-33) | `/me/resumen` |
+| `/recargar`, `/recargar/validar`, `/recargar/confirmar` | Player ID → nickname → paquete → confirmación (RF-20, RF-21, RF-25) | `/paquetes`, `/recargas/validar`, `/recargas` |
+| `/historial`, `/historial/{codigo}` | Historial con filtros y detalle (RF-31, RF-32) | `/me/pedidos` |
+| `/fondos` | Fondos (RF-34) | `/me/fondos` |
+| `/gestion` | Panel: crédito vs saldos, pendientes, ganancia, alertas (RF-53, RN-10, RN-11) | `/admin/panel`, `/admin/alertas/{id}/atender` |
+| `/gestion/usuarios`, `/gestion/usuarios/{id}` | Usuarios, abonos y ajustes (RF-03, RF-40, RF-41) | `/admin/usuarios*`, `/admin/saldos/*` |
+| `/gestion/pedidos`, `/gestion/pedidos/{id}` | Pedidos con filtros, detalle y resolución (RF-50 a RF-52, RF-54) | `/admin/pedidos*` |
+| `/gestion/paquetes` | Catálogo: precio, activación, sincronizar (RF-12, RF-14) | `/admin/paquetes`, `/admin/catalogo/sincronizar` |
+| `/gestion/config` | Umbral de crédito bajo (RN-11) | `/admin/config` |
+| `/gestion/auditoria` | Registro de acciones (RF-55) | `/admin/auditoria` |
+
+- **Sesión:** las páginas usan las mismas dependencias que la API; sin sesión redirigen a `/entrar`, con `debe_cambiar_clave` a `/clave` y con el rol equivocado al inicio del rol. A una petición HTMX la redirección se le indica con la cabecera `HX-Redirect`.
+- **Formularios:** se envían con HTMX (`hx-post`), que agrega `X-CSRF-Token` desde `hx-headers` del `<body>`. La respuesta es un fragmento HTML; los errores 4xx también traen un fragmento con el mensaje y HTMX los muestra (`htmx-config` con `responseHandling`).
+- **Recarga:** `/recargar/validar` muestra nickname, paquete y precio y genera el `token_idempotencia` (UUID) en el fragmento de confirmación. El botón se deshabilita tras el primer clic (`hx-disabled-elt`); un reenvío con el mismo token devuelve el mismo pedido (CA-02). Si la API pide confirmación (`no_disponible`/validador caído), el fragmento exige marcar la casilla de continuar sin verificar. Un pedido en `Procesando` se consulta cada 3 s hasta su estado final.
+- **Fechas (RNF-09):** se renderizan como `<time datetime="ISO UTC">` y `app/static/app.js` las muestra en la zona del navegador. Los filtros de fecha usan `<input type="date">` y envían el desfase del navegador (`tz`, minutos); la ruta convierte el día local a UTC (`desde` inclusivo, `hasta` hasta el final de ese día).
+- **Montos:** filtro `usd` → `"0.75 USD"` (RF-36).
+
 ## 7. Seguridad (RNF-01 a RNF-06)
 
 - Configuración por variables de entorno: `VENTASFF_API_KEY`, `DATABASE_URL`, `TEST_DATABASE_URL`, `SECRET_KEY`, `COOKIE_SECURE`; opcional `VENTASFF_URL`.
 - Sesión (RF-06, CHG-007): token aleatorio (`secrets.token_urlsafe(32)`) en la cookie `sesion`, `HttpOnly; SameSite=Lax; Path=/`, `Secure` según `COOKIE_SECURE`. En la tabla `sesiones` se guarda solo su SHA-256. Cada petición busca la sesión junto con el usuario: si no existe, venció (8 h desde `ultima_actividad`) o el usuario está inactivo → 401 (y la fila se borra). `ultima_actividad` se actualiza como mucho una vez por minuto. Logout borra la fila; bloquear, resetear o cambiar la clave borran todas las del usuario (al cambiarla, el usuario recibe una sesión nueva). El login borra además las sesiones vencidas.
-- CSRF: cada sesión tiene un token propio que el login y `GET /auth/sesion` devuelven; las peticiones `POST`/`PUT`/`PATCH`/`DELETE` con sesión deben enviarlo en la cabecera `X-CSRF-Token` (comparación en tiempo constante) o reciben 403. Los formularios de la fase 7 lo envían como campo oculto.
+- CSRF: cada sesión tiene un token propio que el login y `GET /auth/sesion` devuelven; las peticiones `POST`/`PUT`/`PATCH`/`DELETE` con sesión deben enviarlo en la cabecera `X-CSRF-Token` (comparación en tiempo constante) o reciben 403. Las páginas web lo ponen en `<body hx-headers=…>`, de modo que HTMX lo envía en cada formulario (sec. 6.1).
 - Limitador de login (RF-05) en memoria (un solo worker): ventana deslizante de 15 min por par usuario+IP (5 fallos) y por IP (20 fallos); superado el tope responde 429 durante 15 min con el mismo mensaje genérico. Un login correcto limpia el contador del par.
 - Usuario (RF-07): `^[a-z0-9._-]{3,30}$` tras pasar a minúsculas; el login compara en minúsculas. Contraseña nueva (RF-08): 8 a 128 caracteres y distinta de la actual.
 - Dependencias de FastAPI (equivalen al middleware): `usuario_en_sesion` (cualquier sesión válida; solo la usan `/auth/logout`, `/auth/sesion` y `/auth/cambiar-clave`), `usuario_actual` (además rechaza con 403 `debe_cambiar_clave`, RF-02) y `require_admin` (además rol admin) para `/admin/*`.
