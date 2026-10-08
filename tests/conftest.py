@@ -122,6 +122,9 @@ async def api(motor_bd, simulador):
         simulador.api_key, "http://simulador/api/reseller", transport=simulador.transporte()
     )
     app.state.limitador_recargas = LimitadorTasa(1000)
+    app.state.crear_cliente_ventasff = lambda: ClienteVentasFF(
+        simulador.api_key, "http://simulador/api/reseller", transport=simulador.transporte()
+    )
     app.state.tareas_recarga = set()
     clientes = []
 

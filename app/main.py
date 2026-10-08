@@ -49,6 +49,8 @@ async def lifespan(app: FastAPI):
         limitador=LimitadorTasa(PETICIONES_POR_MINUTO),
     )
     app.state.limitador_recargas = LimitadorTasa(RECARGAS_POR_MINUTO)
+    # Para "sincronizar ahora" desde el panel (cada sincronización abre y cierra su cliente).
+    app.state.crear_cliente_ventasff = crear_cliente
     app.state.tareas_recarga = set()
 
     # Sincronización diaria del catálogo (RF-10); la app corre con un solo worker.

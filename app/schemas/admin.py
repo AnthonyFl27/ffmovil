@@ -145,3 +145,31 @@ class ConfigAdmin(BaseModel):
     # RN-11: umbral de alerta de crédito bajo en USD.
     alerta_credito_min: Annotated[Decimal, Field(ge=0, max_digits=12, decimal_places=2)]
 
+
+class PaqueteAdmin(BaseModel):
+    """Paquete con costo y marcador de precio bajo costo (RF-12, RF-14)."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    paquete_id: int
+    juego: str
+    nombre: str
+    diamantes: int | None
+    precio_costo: Monto
+    precio_venta: Monto | None
+    activo: bool
+    actualizado_en: datetime
+    # precio_venta <= precio_costo (RF-12, RF-14).
+    bajo_costo: bool = False
+
+
+class CambioPaquete(BaseModel):
+    precio_venta: Decimal | None = None
+    activo: bool | None = None
+
+
+class Catalogo(BaseModel):
+    paquetes: list[PaqueteAdmin]
+    # Resultado de la última sincronización (fecha, contadores o error), si hubo.
+    ultima_sincronizacion: dict | None
+
