@@ -81,7 +81,7 @@
 - [x] T-074 Historial con filtros y estados visibles, incluidos fallidos y "En revisión" (RF-31, RF-32, CA-05).
 - [x] T-075 Pantalla Fondos (RF-34).
 - [x] T-076 Pantallas admin: usuarios, abonos, pedidos con filtros, resolución de pendientes, panel, configuración (RF-50 a RF-53).
-- [ ] T-077 Verificar que ninguna plantilla muestra `precio_costo` al cliente (CA-03).
+- [x] T-077 Verificar que ninguna plantilla muestra `precio_costo` al cliente (CA-03).
 
 ## Fase 8 — Endurecimiento y pruebas
 
