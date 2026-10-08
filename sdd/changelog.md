@@ -63,9 +63,18 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.4.0 → 0.5.0
 - **Motivo:** la sección 9 no definía los campos de respuesta; el cliente y el simulador no deben inventarlos. No se incorporan los precios reales (RNF-06), `dato_extra` en la recarga (Mobile Legends, fuera de alcance) ni el reintento como formulario ante `MISSING_FIELD`.
 
+### CHG-006 · 2026-10-08 · Alertas al admin y umbral de crédito bajo
+- **Origen:** pregunta abierta resuelta (Q-06) y vacío detectado en T-049 (no había dónde guardar las alertas)
+- **Spec:** RN-11 añadido; Q-06 resuelta
+- **Plan:** modelo `alertas` y valor inicial de `alerta_credito_min`; sec. 4.2.1 nueva
+- **Tareas:** T-049 modificada
+- **Versión spec:** 0.5.0 → 0.6.0
+- **Motivo:** RN-08 pide una alerta visible en el panel; el umbral de crédito bajo lo fija el dueño en 10 USD.
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |
 |---|---|---|---|
+| Q-06 | Umbral de crédito bajo en VentasFF: 10 USD, editable por el admin en `config.alerta_credito_min` | 2026-10-08 | CHG-006 |
 | Q-01 | Retirada: no hay margen global; precio de venta manual por paquete | 2026-10-07 | CHG-002 |
 | Q-02 | Retirada: sin cálculo, no aplica redondeo | 2026-10-07 | CHG-002 |

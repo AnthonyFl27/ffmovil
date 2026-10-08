@@ -1,6 +1,6 @@
 # Plan técnico
 
-- **Spec de referencia:** `sdd/spec.md` v0.5.0
+- **Spec de referencia:** `sdd/spec.md` v0.6.0
 - **Regla:** este plan implementa la spec. Si el plan contradice la spec, gana la spec.
 
 ---
@@ -92,7 +92,14 @@ paquetes(
   CHECK (precio_venta IS NULL OR precio_venta > 0), CHECK (precio_costo >= 0)
 )
 
-config(clave TEXT PK, valor TEXT)   -- alerta_credito_min, ...
+config(clave TEXT PK, valor TEXT)   -- alerta_credito_min (inicial '10.00'), ...
+
+alertas(                                 -- RN-08, RN-11
+  id BIGSERIAL PK,
+  tipo TEXT CHECK (tipo IN ('credito_bajo','sin_credito','cuenta')),
+  mensaje TEXT NOT NULL, creada_en,
+  atendida_en TIMESTAMPTZ NULL, atendida_por NULL REFERENCES usuarios
+)  -- índice único parcial (tipo) WHERE atendida_en IS NULL: una activa por tipo
 
 pedidos(
   id BIGSERIAL PK,
@@ -164,6 +171,11 @@ Antes de la Fase A (y sin bloqueos de BD) el backend vuelve a validar el ID con 
 - Errores de cuenta (`INVALID_KEY`, `INACTIVE`, `API_DISABLED`, `MISSING_KEY`) generan además alerta crítica al admin y no se muestran literalmente al cliente (mensaje genérico: "Servicio no disponible").
 - Error de conexión **antes** de enviar la petición (DNS, connect refused) puede tratarse como FALLIDO; cualquier fallo después del envío es PENDIENTE_VERIFICAR.
 - `nickname` se toma del pedido (de `validar.php`), no de la respuesta de `recargar.php`.
+
+### 4.2.1 Alertas al admin (RN-08, RN-11)
+- `sin_credito`: `INSUFFICIENT_CREDIT` o crédito menor que el costo en la Fase B. `cuenta`: errores de cuenta. `credito_bajo`: el crédito informado por `saldo.php` (Fase B) o por `recargar.php` (`data.saldo`) queda por debajo de `config.alerta_credito_min`.
+- Se registran tras resolver el pedido, en su propia transacción; si ya hay una activa del mismo tipo no se crea otra (`INSERT … ON CONFLICT DO NOTHING`).
+- El admin las ve en el panel y las marca como atendidas (queda en auditoría).
 
 ### 4.3 Recuperación (RN-09)
 Al iniciar la aplicación: pedidos en `PROCESANDO` → `PENDIENTE_VERIFICAR`, sin mover saldo ni reintentar. Con un solo worker, todo `PROCESANDO` al arrancar es huérfano (umbral de antigüedad 0, configurable). `CREADO` nunca queda guardado: la Fase A lo pasa a `PROCESANDO` en la misma transacción.

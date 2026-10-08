@@ -1,6 +1,6 @@
 # Especificación: Plataforma de recargas Free Fire (prepago)
 
-- **Versión:** 0.5.0
+- **Versión:** 0.6.0
 - **Estado:** Borrador aprobado para iniciar desarrollo
 - **Fuente de verdad:** este archivo. El código y el plan se derivan de aquí.
 
@@ -108,6 +108,7 @@ Web de recargas de diamantes de Free Fire para clientes revendedores con cuentas
 - **RN-08** Si la API responde `INSUFFICIENT_CREDIT` (crédito del dueño agotado), el pedido es `FALLIDO` y el admin recibe alerta visible en su panel.
 - **RN-09** Los pedidos que quedan en `PROCESANDO` tras un reinicio del servicio pasan a `PENDIENTE_VERIFICAR`.
 - **RN-10** La suma de saldos de clientes no debe superar el crédito real en VentasFF; el admin ve la diferencia.
+- **RN-11** El sistema genera una alerta visible para el admin cuando: (a) el crédito en VentasFF queda por debajo del umbral `alerta_credito_min` (valor inicial 10 USD, editable por el admin); (b) VentasFF responde `INSUFFICIENT_CREDIT` o el crédito no cubre el costo de una recarga; (c) VentasFF responde un error de cuenta (`MISSING_KEY`, `INVALID_KEY`, `INACTIVE`, `API_DISABLED`). La alerta sigue activa hasta que el admin la marca como atendida; no se crea otra activa del mismo tipo.
 
 ## 7. Estados del pedido
 
@@ -179,7 +180,7 @@ Limitaciones: sin endpoint de estado de pedido; `recargar.php` no acepta otros c
 | Q-03 | Moneda mostrada al cliente (propuesta: USD). | Abierta |
 | Q-04 | Expiración de sesión (propuesta: 8 h de inactividad). | Abierta |
 | Q-05 | Frontend: Jinja2 + HTMX (propuesta) o SPA aparte. | Abierta |
-| Q-06 | Umbral de alerta de crédito bajo en VentasFF. | Abierta |
+| Q-06 | Umbral de alerta de crédito bajo en VentasFF. | Resuelta (CHG-006): 10 USD, editable (RN-11) |
 
 ## 12. Registro de cambios
 

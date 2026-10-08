@@ -1,6 +1,6 @@
 # Tareas
 
-- **Spec:** `sdd/spec.md` v0.5.0 · **Plan:** `sdd/plan.md`
+- **Spec:** `sdd/spec.md` v0.6.0 · **Plan:** `sdd/plan.md`
 - **Formato:** `- [ ] T-XXX descripción (refs) → criterio de hecho`
 - **Estados:** `[ ]` pendiente · `[~]` en curso · `[x]` hecha · `[!]` bloqueada
 - Cada tarea referencia requisitos (RF/RN/RNF/CA). Una tarea sin referencia no debería existir: o falta un requisito en la spec, o sobra la tarea.
@@ -55,7 +55,7 @@
 - [x] T-046 Fase C: resolución según resultado, con contabilidad por caso (RF-24, RN-02) → un test por escenario del simulador.
 - [x] T-047 Recuperación al iniciar: `PROCESANDO` huérfanos → `PENDIENTE_VERIFICAR` (RN-09) → test.
 - [x] T-048 Resolución manual por admin de `PENDIENTE_VERIFICAR` (RF-52, RN-04) → tests de ambos resultados y rechazo de estados inválidos.
-- [ ] T-049 Alertas al admin: crédito bajo, `INSUFFICIENT_CREDIT`, errores de cuenta (RN-08, Q-06) → alerta visible en el panel.
+- [ ] T-049 Alertas al admin: tabla `alertas`, umbral `alerta_credito_min` = 10.00 en `config`, alertas de crédito bajo, `INSUFFICIENT_CREDIT`/sin crédito y errores de cuenta, sin duplicar activas, marcar como atendida (RN-08, RN-11; CHG-006) → tests; la pantalla del panel se hace en T-076.
 
 ## Fase 6 — API cliente y admin
 
