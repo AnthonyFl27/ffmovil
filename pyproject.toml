@@ -4,14 +4,28 @@ version = "0.1.0"
 description = "Plataforma de recargas Free Fire con cuentas prepago"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "alembic>=1.20.0",
+    "fastapi>=0.142.4",
+    "psycopg[binary]>=3.3.6",
     "pydantic-settings>=2.15.0",
+    "sqlalchemy[asyncio]>=2.1.4",
+    "uvicorn[standard]>=0.54.0",
 ]
 
 [dependency-groups]
 dev = [
     "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.16.10",
 ]
 
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+
+[tool.ruff.lint.per-file-ignores]
+# Alembic genera imports de op/sa aunque la migración no los use.
+"migrations/versions/*" = ["F401", "PIE790"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
