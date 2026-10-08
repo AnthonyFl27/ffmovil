@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 
 from app.config import obtener_configuracion
 from app.db import ErrorConexionBD, crear_fabrica_sesiones, crear_motor, verificar_conexion
+from app.logs import configurar_logs
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +14,7 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     config = obtener_configuracion()
+    configurar_logs(config)
     motor = crear_motor(config.database_url.get_secret_value())
     try:
         await verificar_conexion(motor)
