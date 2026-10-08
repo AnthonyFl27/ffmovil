@@ -66,7 +66,7 @@
 - [x] T-054 `/paquetes` y `/recargas` (RF-13, RF-21) → tests.
 - [x] T-055 Admin usuarios: crear cliente, bloquear, desbloquear, resetear clave; bloquear y resetear cierran sesiones (RF-03, RF-06, RF-07; CHG-007) → tests y auditoría.
 - [x] T-056 Admin saldos: abono y ajuste con nota obligatoria (RF-40, RF-41) → tests.
-- [ ] T-057 Admin pedidos: filtros y detalle con costo y ganancia (RF-50, RF-51, RF-54, CA-06) → tests.
+- [x] T-057 Admin pedidos: filtros y detalle con costo y ganancia (RF-50, RF-51, RF-54, CA-06) → tests.
 - [ ] T-058 Admin panel: saldo VentasFF vs suma de saldos de clientes, alertas activas y atenderlas, `/admin/config` (RF-53, RN-10, RN-11) → test contra simulador.
 - [ ] T-059 Admin catálogo: `precio_venta` por paquete, activar/desactivar, sincronizar ahora, marcador de precio bajo costo (RF-12, RF-14) → tests.
 - [ ] T-060 Auditoría de acciones admin (RF-55) → cada acción registra una fila.

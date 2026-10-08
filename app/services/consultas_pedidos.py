@@ -1,5 +1,7 @@
 """Filtros y paginación de listados de pedidos (RF-32, RF-50, CA-06).
 
+Los filtros del admin por usuario requieren que la consulta incluya `usuarios`.
+
 Solo arma consultas; no hace commit ni modifica datos.
 """
 
@@ -9,7 +11,7 @@ from datetime import UTC, datetime
 from sqlalchemy import Select, false, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Pedido
+from app.models import Pedido, Usuario
 from app.services.codigos import id_desde_codigo
 from app.services.estados import Estado
 
@@ -17,7 +19,7 @@ POR_PAGINA = 20
 POR_PAGINA_MAXIMO = 100
 
 
-def _utc(fecha: datetime) -> datetime:
+def utc(fecha: datetime) -> datetime:
     """Una fecha sin zona se toma como UTC (RNF-09)."""
     return fecha if fecha.tzinfo is not None else fecha.replace(tzinfo=UTC)
 
@@ -40,14 +42,33 @@ class FiltrosPedido:
             else:
                 consulta = consulta.where(Pedido.estado == self.estado)
         if self.desde is not None:
-            consulta = consulta.where(Pedido.creado_en >= _utc(self.desde))
+            consulta = consulta.where(Pedido.creado_en >= utc(self.desde))
         if self.hasta is not None:
-            consulta = consulta.where(Pedido.creado_en < _utc(self.hasta))
+            consulta = consulta.where(Pedido.creado_en < utc(self.hasta))
         if self.player_id:
             consulta = consulta.where(Pedido.player_id == self.player_id.strip())
         if self.codigo:
             pedido_id = id_desde_codigo(self.codigo)
             consulta = consulta.where(Pedido.id == pedido_id if pedido_id else false())
+        return consulta
+
+
+@dataclass(frozen=True)
+class FiltrosPedidoAdmin(FiltrosPedido):
+    """Filtros del admin (RF-50, CA-06): además usuario, referencia y solo pendientes."""
+
+    usuario: str | None = None
+    referencia: str | None = None
+    solo_pendientes: bool = False
+
+    def aplicar(self, consulta: Select) -> Select:
+        consulta = super().aplicar(consulta)
+        if self.usuario:
+            consulta = consulta.where(func.lower(Usuario.usuario) == self.usuario.strip().lower())
+        if self.referencia:
+            consulta = consulta.where(Pedido.referencia == self.referencia.strip())
+        if self.solo_pendientes:
+            consulta = consulta.where(Pedido.estado == Estado.PENDIENTE_VERIFICAR)
         return consulta
 
 
