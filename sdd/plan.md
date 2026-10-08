@@ -88,7 +88,8 @@ paquetes(
   precio_costo NUMERIC(12,2),
   precio_venta NUMERIC(12,2) NULL,   -- definido por el admin
   activo BOOL DEFAULT false, actualizado_en,
-  CHECK (activo = false OR precio_venta IS NOT NULL)
+  CHECK (activo = false OR precio_venta IS NOT NULL),
+  CHECK (precio_venta IS NULL OR precio_venta > 0), CHECK (precio_costo >= 0)
 )
 
 config(clave TEXT PK, valor TEXT)   -- alerta_credito_min, ...

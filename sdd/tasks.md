@@ -38,7 +38,7 @@
 
 ## Fase 4 — Catálogo y precios
 
-- [ ] T-030 Migración `paquetes` y `config` (RF-10 a RF-12) → aplicada.
+- [x] T-030 Migración `paquetes` y `config` (RF-10 a RF-12) → aplicada.
 - [ ] T-031 Validación de `precio_venta`: decimal > 0, advertencia si `precio_venta <= precio_costo`, no se activa sin precio (RF-11, RF-12, RNF-04) → tests con 0.81 / 0.91 y casos límite.
 - [ ] T-032 `sincronizar_catalogo()`: upsert de costo, filtro `free_fire`, nuevos inactivos sin precio, desactivar ausentes, sin tocar `precio_venta` (RF-10, RF-14) → test contra simulador.
 - [ ] T-033 Tarea programada diaria con APScheduler, un solo worker (RF-10) → ejecuta y registra resultado.
