@@ -120,7 +120,7 @@ movimientos(                             -- libro contable, solo INSERT
 auditoria(id, usuario_id, accion, detalle JSONB, ip, fecha)
 ```
 
-- `movimientos`: revocar `UPDATE`/`DELETE` al rol de la aplicación o proteger con trigger.
+- `movimientos`: protegida con triggers que rechazan `UPDATE`, `DELETE` y `TRUNCATE` (aplican aunque la app sea dueña de la tabla).
 - `movimientos.monto`: positivo en todos los tipos salvo `ajuste`, que lleva signo y no puede ser 0. Efecto: `abono` y `ajuste` suman al disponible; `reserva` pasa de disponible a reservado; `liberacion`, de reservado a disponible; `cargo` resta del reservado. Por eso CA-04 se verifica como `disponible = abonos + ajustes − reservas + liberaciones` y `reservado = reservas − liberaciones − cargos`. `abono` y `ajuste` exigen `nota` no vacía (CHECK).
 - La FK `movimientos.pedido_id → pedidos` se crea en la migración de `pedidos` (T-040).
 - Índices: `pedidos(usuario_id, creado_en DESC)`, `pedidos(estado)`, `pedidos(referencia)`, `pedidos(player_id)`, `pedidos(codigo)`.
