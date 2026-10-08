@@ -3,7 +3,7 @@
 from fastapi import APIRouter, FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from app.web import acceso
+from app.web import acceso, cliente
 from app.web.plantillas import (
     DIRECTORIO_ESTATICOS,
     ErrorWeb,
@@ -14,6 +14,7 @@ from app.web.plantillas import (
 
 router = APIRouter(include_in_schema=False)
 router.include_router(acceso.router)
+router.include_router(cliente.router)
 
 
 def montar(app: FastAPI) -> None:

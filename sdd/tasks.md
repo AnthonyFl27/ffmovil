@@ -76,7 +76,7 @@
 
 - [x] T-070 Resolver Q-05 (Jinja2 + HTMX o SPA) y registrar decisión en `changelog.md` → decisión registrada.
 - [x] T-071 Login y cambio de contraseña.
-- [ ] T-072 Inicio del cliente: saldo, gasto total, nº de recargas, botones (RF-33).
+- [x] T-072 Inicio del cliente: saldo, gasto total, nº de recargas, botones (RF-33).
 - [ ] T-073 Pantalla Recargar: Player ID → nickname → paquete → confirmación, con token de idempotencia y botón deshabilitado tras el primer clic (RF-20, RF-21, RF-25).
 - [ ] T-074 Historial con filtros y estados visibles, incluidos fallidos y "En revisión" (RF-31, RF-32, CA-05).
 - [ ] T-075 Pantalla Fondos (RF-34).

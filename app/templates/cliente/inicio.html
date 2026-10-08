@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block titulo %}Inicio{% endblock %}
+{% block contenido %}
+<h1>Hola, {{ usuario }}</h1>
+<section class="cifras">
+  <article><small>Saldo disponible</small><strong id="saldo-disponible">{{ resumen.saldo_disponible | usd }}</strong></article>
+  <article><small>Gasto total</small><strong id="gasto-total">{{ resumen.gasto_total | usd }}</strong></article>
+  <article><small>Recargas exitosas</small><strong id="recargas">{{ resumen.recargas }}</strong></article>
+</section>
+{% if resumen.saldo_reservado > 0 %}
+<p><small>Reservado en recargas en proceso o en revisión: {{ resumen.saldo_reservado | usd }}</small></p>
+{% endif %}
+<div class="acciones" style="margin-top: 1.5rem">
+  <a role="button" href="/recargar">Recargar</a>
+  <a role="button" class="secondary" href="/historial">Historial</a>
+</div>
+{% endblock %}
