@@ -25,7 +25,7 @@
 - [x] T-012 Servicio `ledger`: abono, ajuste, reserva, liberación, cargo, con `SELECT … FOR UPDATE` (RNF-02) → pruebas unitarias de cada operación.
 - [x] T-013 Prueba de invariante: saldo = suma de movimientos (CA-04) → test pasa tras secuencia aleatoria de operaciones.
 - [x] T-014 Prueba de concurrencia: dos reservas simultáneas con saldo para una (CA-01) → solo una prospera.
-- [ ] T-015 Servicio de autenticación: argon2, creación de usuario con clave temporal y `debe_cambiar_clave` (RF-01, RF-02, RNF-03) → tests.
+- [x] T-015 Servicio de autenticación: argon2, creación de usuario con clave temporal y `debe_cambiar_clave` (RF-01, RF-02, RNF-03) → tests.
 - [ ] T-016 Script/comando para crear el primer admin → admin creado por CLI.
 
 ## Fase 3 — Cliente VentasFF + simulador
