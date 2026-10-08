@@ -62,7 +62,7 @@
 - [x] T-050 Migración `sesiones`; login/logout, sesión por cookie (`Secure` según `COOKIE_SECURE`) con expiración de 8 h de inactividad, CSRF por cabecera, bloqueo de usuarios inactivos, limitador de intentos (RF-01, RF-04, RF-05, RF-06, RF-07; CHG-007) → tests.
 - [x] T-051 Cambio obligatorio de contraseña con política mínima y dependencia que restringe acceso; el cambio cierra las demás sesiones (RF-02, RF-06, RF-08; CHG-007) → tests.
 - [x] T-052 `/me/resumen`, `/me/fondos` (RF-33, RF-34, RF-36; CHG-007) → tests con datos de ejemplo.
-- [ ] T-053 `/me/pedidos` con filtros y paginación; `/me/pedidos/{codigo}` solo del propio usuario (RF-31, RF-32, CA-05) → tests, incluido acceso a pedido ajeno → 404.
+- [x] T-053 `/me/pedidos` con filtros y paginación; `/me/pedidos/{codigo}` solo del propio usuario (RF-31, RF-32, CA-05) → tests, incluido acceso a pedido ajeno → 404.
 - [ ] T-054 `/paquetes` y `/recargas` (RF-13, RF-21) → tests.
 - [ ] T-055 Admin usuarios: crear cliente, bloquear, desbloquear, resetear clave; bloquear y resetear cierran sesiones (RF-03, RF-06, RF-07; CHG-007) → tests y auditoría.
 - [ ] T-056 Admin saldos: abono y ajuste con nota obligatoria (RF-40, RF-41) → tests.

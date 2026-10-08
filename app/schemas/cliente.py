@@ -55,3 +55,30 @@ class Fondos(BaseModel):
     saldo_reservado: Monto
     moneda: Literal["USD"] = MONEDA
     movimientos: list[MovimientoFondos]
+
+
+class PedidoCliente(BaseModel):
+    """Pedido tal como lo ve su dueño (RF-30, RF-31, CA-05): sin costo ni detalles internos."""
+
+    codigo: str
+    fecha: datetime
+    paquete: str
+    diamantes: int | None
+    player_id: str
+    nickname: str | None
+    monto: Monto
+    moneda: Literal["USD"] = MONEDA
+    estado: str
+    # Etiqueta para el cliente (spec sec. 7): Procesando, Exitoso, Fallido, En revisión.
+    estado_etiqueta: str
+    referencia: str | None
+    # Motivo del fallo (solo en FALLIDO).
+    motivo: str | None
+
+
+class ListaPedidosCliente(BaseModel):
+    pedidos: list[PedidoCliente]
+    total: int
+    pagina: int
+    por_pagina: int
+
