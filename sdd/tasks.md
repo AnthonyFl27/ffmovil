@@ -70,7 +70,7 @@
 - [x] T-058 Admin panel: saldo VentasFF vs suma de saldos de clientes, alertas activas y atenderlas, `/admin/config` (RF-53, RN-10, RN-11) → test contra simulador.
 - [x] T-059 Admin catálogo: `precio_venta` por paquete, activar/desactivar, sincronizar ahora, marcador de precio bajo costo (RF-12, RF-14) → tests.
 - [x] T-060 Auditoría de acciones admin (RF-55) → cada acción registra una fila.
-- [ ] T-061 `require_admin` en `/admin/*` (RNF-03) → cliente recibe 403.
+- [x] T-061 `require_admin` en `/admin/*` (RNF-03) → cliente recibe 403.
 
 ## Fase 7 — Frontend
 
