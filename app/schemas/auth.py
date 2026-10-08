@@ -14,3 +14,8 @@ class InfoSesion(BaseModel):
     debe_cambiar_clave: bool
     # Token CSRF de la sesión: va en la cabecera X-CSRF-Token (plan sec. 7).
     csrf: str
+
+
+class CambioClave(BaseModel):
+    clave_actual: str
+    clave_nueva: str
