@@ -12,17 +12,14 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Movimiento, Saldo
-
-CENTAVO = Decimal("0.01")
-# Máximo de NUMERIC(12,2).
-MONTO_MAXIMO = Decimal("9999999999.99")
+from app.services import montos
 
 
 class ErrorLedger(Exception):
     """Operación contable rechazada; no se modificó ningún saldo."""
 
 
-class MontoInvalido(ErrorLedger):
+class MontoInvalido(ErrorLedger, montos.MontoInvalido):
     pass
 
 
@@ -43,18 +40,10 @@ class ReservaInsuficiente(ErrorLedger):
 
 
 def _validar_monto(monto: Decimal, *, con_signo: bool = False) -> Decimal:
-    # bool es subclase de int, no de Decimal; float e int se rechazan (RNF-04).
-    if not isinstance(monto, Decimal) or not monto.is_finite():
-        raise MontoInvalido("El monto debe ser un Decimal finito")
-    if monto != monto.quantize(CENTAVO):
-        raise MontoInvalido("El monto admite como máximo 2 decimales")
-    if abs(monto) > MONTO_MAXIMO:
-        raise MontoInvalido("El monto excede el máximo permitido")
-    if con_signo and monto == 0:
-        raise MontoInvalido("El ajuste no puede ser 0")
-    if not con_signo and monto <= 0:
-        raise MontoInvalido("El monto debe ser mayor que 0")
-    return monto.quantize(CENTAVO)
+    try:
+        return montos.normalizar_monto(monto, con_signo=con_signo)
+    except montos.MontoInvalido as error:
+        raise MontoInvalido(str(error)) from None
 
 
 def _validar_nota(nota: str | None) -> str:
