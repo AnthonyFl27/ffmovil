@@ -24,6 +24,7 @@ MENSAJE_SIN_SESION = "Sesión no válida o vencida. Inicia sesión de nuevo."
 MENSAJE_CSRF = "Token CSRF ausente o inválido."
 MENSAJE_CAMBIAR_CLAVE = "Debes cambiar tu contraseña antes de continuar."
 MENSAJE_SOLO_ADMIN = "Acceso solo para administradores."
+MENSAJE_SOLO_CLIENTE = "Acceso solo para clientes."
 
 
 async def obtener_bd(request: Request) -> AsyncIterator[AsyncSession]:
@@ -83,3 +84,13 @@ async def require_admin(actual: Actual) -> SesionActual:
 
 
 Admin = Annotated[SesionActual, Depends(require_admin)]
+
+
+async def require_cliente(actual: Actual) -> SesionActual:
+    """Rutas del cliente (`/me`, `/recargas`): los admins no tienen cuenta de saldo."""
+    if actual.usuario.rol != "cliente":
+        raise HTTPException(status.HTTP_403_FORBIDDEN, MENSAJE_SOLO_CLIENTE)
+    return actual
+
+
+Cliente = Annotated[SesionActual, Depends(require_cliente)]
