@@ -134,7 +134,9 @@ auditoria(id, usuario_id, accion, detalle JSONB, ip, fecha)
 3. Responde `{estado, nickname}`. Si `no_existe`, devuelve 422.
 
 ### 4.2 Confirmar — `POST /recargas`
-Cuerpo: `{paquete_id, player_id, nickname?, token_idempotencia}`.
+Cuerpo: `{paquete_id, player_id, token_idempotencia, confirmar_sin_verificar?}`.
+
+Antes de la Fase A (y sin bloqueos de BD) el backend vuelve a validar el ID con `validar.php` (RN-03): `no_existe` → 422 sin pedido; `ok` → el nickname se toma de esa respuesta (RF-26), nunca del cliente; `no_disponible` o fallo del validador → solo continúa si `confirmar_sin_verificar = true` (RF-20). Un reenvío con un token ya usado devuelve el pedido existente sin volver a validar.
 
 **Fase A — reserva (transacción 1):**
 1. Busca pedido por `(usuario_id, token_idempotencia)`; si existe, devuelve ese pedido.
