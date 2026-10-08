@@ -1,0 +1,24 @@
+{% if usuarios %}
+<div class="overflow-auto">
+<table>
+  <thead>
+    <tr><th>Usuario</th><th>Rol</th><th>Estado</th><th>Debe cambiar clave</th><th>Saldo disponible</th><th>Saldo reservado</th><th>Último login</th></tr>
+  </thead>
+  <tbody>
+  {% for u in usuarios %}
+    <tr>
+      <td><a href="/gestion/usuarios/{{ u.id }}">{{ u.usuario }}</a></td>
+      <td>{{ u.rol }}</td>
+      <td>{{ "Activo" if u.activo else "Bloqueado" }}</td>
+      <td>{{ "Sí" if u.debe_cambiar_clave else "No" }}</td>
+      <td>{{ u.saldo_disponible | usd }}</td>
+      <td>{{ u.saldo_reservado | usd }}</td>
+      <td>{{ u.ultimo_login | fecha }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p>No hay usuarios.</p>
+{% endif %}

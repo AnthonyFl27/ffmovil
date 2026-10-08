@@ -1,0 +1,4 @@
+<p class="mensaje exito">Cliente {{ creado.usuario.usuario }} creado.</p>
+<p>Clave temporal: <code id="clave-temporal">{{ creado.clave_temporal }}</code></p>
+<p><small>Cópiala ahora: no se volverá a mostrar.</small></p>
+<div id="tabla-usuarios" hx-swap-oob="true">{% include "admin/_tabla_usuarios.html" %}</div>

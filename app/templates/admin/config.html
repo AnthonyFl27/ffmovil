@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block titulo %}Configuración{% endblock %}
+{% block contenido %}
+<h1>Configuración</h1>
+<form hx-post="/gestion/config" hx-target="#mensaje-config" hx-disabled-elt="find button">
+  <label>Alerta de crédito bajo en VentasFF (USD)
+    <input name="alerta_credito_min" inputmode="decimal" required value="{{ '%.2f' | format(config.alerta_credito_min) }}">
+  </label>
+  <div id="mensaje-config"></div>
+  <button type="submit">Guardar</button>
+</form>
+{% endblock %}

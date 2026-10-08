@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block titulo %}Usuario {{ u.usuario }}{% endblock %}
+{% block contenido %}
+<h1>Usuario {{ u.usuario }}</h1>
+<div id="usuario">{% include "admin/_usuario.html" %}</div>
+{% if u.rol == "cliente" %}
+<h2>Movimientos de saldo</h2>
+<div class="grid">
+  <form hx-post="/gestion/usuarios/{{ u.id }}/saldo/abono" hx-target="#mensaje-saldo" hx-disabled-elt="find button">
+    <h3>Abono</h3>
+    <label>Monto (USD)
+      <input name="monto" inputmode="decimal" required>
+    </label>
+    <label>Nota
+      <input name="nota" required>
+    </label>
+    <small>Método de pago y referencia</small>
+    <div class="acciones">
+      <button type="submit">Registrar abono</button>
+    </div>
+  </form>
+  <form hx-post="/gestion/usuarios/{{ u.id }}/saldo/ajuste" hx-target="#mensaje-saldo" hx-disabled-elt="find button">
+    <h3>Ajuste</h3>
+    <label>Monto (USD)
+      <input name="monto" inputmode="decimal" required aria-describedby="ayuda-ajuste">
+    </label>
+    <small id="ayuda-ajuste">Positivo suma, negativo resta</small>
+    <label>Nota
+      <input name="nota" required>
+    </label>
+    <div class="acciones">
+      <button type="submit">Registrar ajuste</button>
+    </div>
+  </form>
+</div>
+<div id="mensaje-saldo"></div>
+{% endif %}
+<p><a href="/gestion/usuarios">Volver a usuarios</a></p>
+{% endblock %}

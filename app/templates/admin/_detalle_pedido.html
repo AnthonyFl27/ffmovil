@@ -1,0 +1,63 @@
+<dl>
+  <dt>Código</dt><dd>{{ pedido.codigo }}</dd>
+  <dt>Estado</dt><dd class="estado estado-{{ pedido.estado }}">{{ pedido.estado }}</dd>
+  <dt>Fecha</dt><dd>{{ pedido.fecha | fecha }}</dd>
+  <dt>Actualizado</dt><dd>{{ pedido.actualizado_en | fecha }}</dd>
+  <dt>Usuario</dt><dd><a href="/gestion/usuarios/{{ pedido.usuario_id }}">{{ pedido.usuario }}</a></dd>
+  <dt>Paquete</dt><dd>{{ pedido.paquete | texto }}</dd>
+  <dt>Player ID</dt><dd>{{ pedido.player_id | texto }}</dd>
+  <dt>Nickname</dt><dd>{{ pedido.nickname | texto }}</dd>
+  <dt>Precio de venta</dt><dd>{{ pedido.precio_venta | usd }}</dd>
+  <dt>Precio de costo</dt><dd>{{ pedido.precio_costo | usd }}</dd>
+  <dt>Ganancia</dt><dd>{{ pedido.ganancia | usd }}</dd>
+  <dt>Referencia</dt><dd>{{ pedido.referencia | texto }}</dd>
+  <dt>Error</dt><dd>{{ pedido.error | texto }}</dd>
+  <dt>Código de error</dt><dd>{{ pedido.error_code | texto }}</dd>
+</dl>
+
+<h2>Historial</h2>
+<div class="overflow-auto">
+<table>
+  <thead>
+    <tr><th>Fecha</th><th>Estado</th><th>Detalle</th></tr>
+  </thead>
+  <tbody>
+  {% for e in pedido.eventos %}
+    <tr>
+      <td>{{ e.fecha | fecha }}</td>
+      <td>{{ e.estado_anterior | texto }} → {{ e.estado_nuevo }}</td>
+      <td>{{ e.detalle | texto }}</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="3">Sin eventos.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% if pedido.estado == "PENDIENTE_VERIFICAR" %}
+<h2>Resolver</h2>
+<form hx-post="/gestion/pedidos/{{ pedido.id }}/resolver" hx-target="#detalle" hx-disabled-elt="find button">
+  <fieldset>
+    <label>
+      <input type="radio" name="resultado" value="exitoso" required>
+      Marcar exitoso: el proveedor cobró
+    </label>
+    <label>
+      <input type="radio" name="resultado" value="fallido">
+      Marcar fallido: libera la reserva
+    </label>
+  </fieldset>
+  <label>Referencia de VentasFF
+    <input name="referencia" placeholder="Referencia de VentasFF (si fue exitoso)">
+  </label>
+  <label>Nota
+    <textarea name="nota" required></textarea>
+  </label>
+  <div id="mensaje-resolucion"></div>
+  <div class="acciones">
+    <button type="submit" hx-confirm="¿Confirmas la resolución? No se puede deshacer.">Resolver</button>
+    <a role="button" class="secondary outline" href="/gestion/pedidos/{{ pedido.id }}">Recargar</a>
+  </div>
+</form>
+{% endif %}

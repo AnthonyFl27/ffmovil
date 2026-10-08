@@ -1,0 +1,32 @@
+{% if lista.registros %}
+<div class="overflow-auto">
+<table>
+  <thead>
+    <tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Detalle</th><th>IP</th></tr>
+  </thead>
+  <tbody>
+  {% for r in lista.registros %}
+    <tr>
+      <td>{{ r.fecha | fecha }}</td>
+      <td>{{ r.usuario | texto }}</td>
+      <td>{{ r.accion }}</td>
+      <td><code>{{ r.detalle | tojson }}</code></td>
+      <td>{{ r.ip | texto }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% set paginas = ((lista.total + lista.por_pagina - 1) // lista.por_pagina) %}
+<nav class="acciones" aria-label="Páginas">
+  <small>{{ lista.total }} registro{{ "s" if lista.total != 1 }} · página {{ lista.pagina }} de {{ paginas }}</small>
+  {% if lista.pagina > 1 %}
+  <a href="/gestion/auditoria?{{ consulta(filtros, pagina=lista.pagina - 1) }}" hx-get="/gestion/auditoria?{{ consulta(filtros, pagina=lista.pagina - 1) }}" hx-target="#registros" hx-push-url="true">Anterior</a>
+  {% endif %}
+  {% if lista.pagina < paginas %}
+  <a href="/gestion/auditoria?{{ consulta(filtros, pagina=lista.pagina + 1) }}" hx-get="/gestion/auditoria?{{ consulta(filtros, pagina=lista.pagina + 1) }}" hx-target="#registros" hx-push-url="true">Siguiente</a>
+  {% endif %}
+</nav>
+{% else %}
+<p>No hay registros.</p>
+{% endif %}

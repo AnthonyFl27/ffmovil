@@ -1,0 +1,21 @@
+{% if alertas %}
+<div class="overflow-auto">
+<table>
+  <thead>
+    <tr><th>Tipo</th><th>Mensaje</th><th>Creada</th><th></th></tr>
+  </thead>
+  <tbody>
+  {% for a in alertas %}
+    <tr>
+      <td>{{ a.tipo }}</td>
+      <td>{{ a.mensaje }}</td>
+      <td>{{ a.creada_en | fecha }}</td>
+      <td><button class="secondary outline" hx-post="/gestion/alertas/{{ a.id }}/atender" hx-target="#alertas" hx-disabled-elt="this">Marcar atendida</button></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p>No hay alertas activas.</p>
+{% endif %}

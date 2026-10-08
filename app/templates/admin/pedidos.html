@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block titulo %}Pedidos{% endblock %}
+{% block contenido %}
+<h1>Pedidos</h1>
+<form hx-get="/gestion/pedidos" hx-target="#pedidos" hx-push-url="true">
+  <input type="hidden" name="tz" value="{{ filtros.tz or '' }}">
+  <div class="grid">
+    <label>Estado
+      <select name="estado">
+        <option value="">Todos</option>
+        {% for valor, etiqueta in opciones_estado %}
+        <option value="{{ valor }}" {% if filtros.estado == valor %}selected{% endif %}>{{ etiqueta }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Desde <input type="date" name="desde" value="{{ filtros.desde or '' }}"></label>
+    <label>Hasta <input type="date" name="hasta" value="{{ filtros.hasta or '' }}"></label>
+  </div>
+  <div class="grid">
+    <label>Usuario <input name="usuario" value="{{ filtros.usuario or '' }}"></label>
+    <label>Player ID <input name="player_id" inputmode="numeric" value="{{ filtros.player_id or '' }}"></label>
+    <label>Código <input name="codigo" placeholder="FF-000123" value="{{ filtros.codigo or '' }}"></label>
+    <label>Referencia <input name="referencia" placeholder="EV-…" value="{{ filtros.referencia or '' }}"></label>
+  </div>
+  <label>
+    <input type="checkbox" name="solo_pendientes" value="1" {% if filtros.solo_pendientes %}checked{% endif %}>
+    Solo en revisión
+  </label>
+  <div class="acciones">
+    <button type="submit">Filtrar</button>
+    <a role="button" class="secondary outline" href="/gestion/pedidos">Limpiar</a>
+  </div>
+</form>
+<div id="pedidos">
+{% include "admin/_tabla_pedidos.html" %}
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+<section class="cifras">
+  <article><small>Exitosos</small><strong>{{ lista.totales.exitosos }}</strong></article>
+  <article><small>Venta</small><strong>{{ lista.totales.venta | usd }}</strong></article>
+  <article><small>Costo</small><strong>{{ lista.totales.costo | usd }}</strong></article>
+  <article><small>Ganancia</small><strong>{{ lista.totales.ganancia | usd }}</strong></article>
+</section>
+{% if lista.pedidos %}
+<div class="overflow-auto">
+<table>
+  <thead>
+    <tr><th>Fecha</th><th>Código</th><th>Usuario</th><th>Paquete</th><th>Player ID</th><th>Nickname</th><th>Venta</th><th>Costo</th><th>Ganancia</th><th>Estado</th><th>Referencia</th><th>Error</th></tr>
+  </thead>
+  <tbody>
+  {% for p in lista.pedidos %}
+    <tr>
+      <td>{{ p.fecha | fecha }}</td>
+      <td><a href="/gestion/pedidos/{{ p.id }}">{{ p.codigo }}</a></td>
+      <td>{{ p.usuario | texto }}</td>
+      <td>{{ p.paquete | texto }}</td>
+      <td>{{ p.player_id | texto }}</td>
+      <td>{{ p.nickname | texto }}</td>
+      <td>{{ p.precio_venta | usd }}</td>
+      <td>{{ p.precio_costo | usd }}</td>
+      <td>{{ p.ganancia | usd }}</td>
+      <td class="estado estado-{{ p.estado }}">{{ p.estado }}</td>
+      <td>{{ p.referencia | texto }}</td>
+      <td>{{ p.error | texto }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% set paginas = ((lista.total + lista.por_pagina - 1) // lista.por_pagina) %}
+<nav class="acciones" aria-label="Páginas">
+  <small>{{ lista.total }} pedido{{ "s" if lista.total != 1 }} · página {{ lista.pagina }} de {{ paginas }}</small>
+  {% if lista.pagina > 1 %}
+  <a href="/gestion/pedidos?{{ consulta(filtros, pagina=lista.pagina - 1) }}" hx-get="/gestion/pedidos?{{ consulta(filtros, pagina=lista.pagina - 1) }}" hx-target="#pedidos" hx-push-url="true">Anterior</a>
+  {% endif %}
+  {% if lista.pagina < paginas %}
+  <a href="/gestion/pedidos?{{ consulta(filtros, pagina=lista.pagina + 1) }}" hx-get="/gestion/pedidos?{{ consulta(filtros, pagina=lista.pagina + 1) }}" hx-target="#pedidos" hx-push-url="true">Siguiente</a>
+  {% endif %}
+</nav>
+{% else %}
+<p>No hay pedidos con estos filtros.</p>
+{% endif %}

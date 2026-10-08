@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block titulo %}Usuarios{% endblock %}
+{% block contenido %}
+<h1>Usuarios</h1>
+<h2>Nuevo cliente</h2>
+<form hx-post="/gestion/usuarios" hx-target="#nuevo-usuario" hx-disabled-elt="find button">
+  <label>Usuario
+    <input name="usuario" required autocomplete="off" aria-describedby="ayuda-usuario">
+  </label>
+  <small id="ayuda-usuario">3 a 30 caracteres: a-z, 0-9, punto, guion y guion bajo</small>
+  <div class="acciones">
+    <button type="submit">Crear cliente</button>
+  </div>
+</form>
+<div id="nuevo-usuario"></div>
+<h2>Listado</h2>
+<div id="tabla-usuarios">{% include "admin/_tabla_usuarios.html" %}</div>
+{% endblock %}

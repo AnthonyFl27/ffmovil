@@ -1,0 +1,21 @@
+<dl>
+  <dt>Rol</dt><dd>{{ u.rol }}</dd>
+  <dt>Estado</dt><dd>{{ "Activo" if u.activo else "Bloqueado" }}</dd>
+  <dt>Debe cambiar clave</dt><dd>{{ "Sí" if u.debe_cambiar_clave else "No" }}</dd>
+  <dt>Creado en</dt><dd>{{ u.creado_en | fecha }}</dd>
+  <dt>Último login</dt><dd>{{ u.ultimo_login | fecha }}</dd>
+</dl>
+{% if u.rol == "cliente" %}
+<p>Saldo disponible: <strong id="saldo-disponible">{{ u.saldo_disponible | usd }}</strong> · Reservado: <span id="saldo-reservado">{{ u.saldo_reservado | usd }}</span></p>
+{% endif %}
+<div class="acciones">
+  {% if u.activo %}
+  <button class="secondary" hx-post="/gestion/usuarios/{{ u.id }}/bloquear" hx-target="#usuario" hx-confirm="¿Bloquear a {{ u.usuario }}?" hx-disabled-elt="this">Bloquear</button>
+  {% else %}
+  <button class="secondary" hx-post="/gestion/usuarios/{{ u.id }}/desbloquear" hx-target="#usuario" hx-disabled-elt="this">Desbloquear</button>
+  {% endif %}
+  <button class="secondary outline" hx-post="/gestion/usuarios/{{ u.id }}/reset-clave" hx-target="#usuario" hx-confirm="¿Generar una clave temporal nueva? Se cerrarán sus sesiones." hx-disabled-elt="this">Resetear clave</button>
+</div>
+{% if clave_temporal %}
+<p class="mensaje exito">Nueva clave temporal: <code id="clave-temporal">{{ clave_temporal }}</code> (cópiala ahora: no se volverá a mostrar)</p>
+{% endif %}

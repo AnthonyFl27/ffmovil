@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block titulo %}Auditoría{% endblock %}
+{% block contenido %}
+<h1>Auditoría</h1>
+<form hx-get="/gestion/auditoria" hx-target="#registros" hx-push-url="true">
+  <input type="hidden" name="tz" value="{{ filtros.tz or '' }}">
+  <div class="grid">
+    <label>Acción <input name="accion" value="{{ filtros.accion or '' }}"></label>
+    <label>Desde <input type="date" name="desde" value="{{ filtros.desde or '' }}"></label>
+    <label>Hasta <input type="date" name="hasta" value="{{ filtros.hasta or '' }}"></label>
+  </div>
+  <div class="acciones">
+    <button type="submit">Filtrar</button>
+    <a role="button" class="secondary outline" href="/gestion/auditoria">Limpiar</a>
+  </div>
+</form>
+<div id="registros">
+{% include "admin/_tabla_auditoria.html" %}
+</div>
+{% endblock %}

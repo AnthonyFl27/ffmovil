@@ -1,0 +1,23 @@
+{% if sincronizado %}
+<p class="mensaje exito">Catálogo sincronizado.</p>
+{% endif %}
+<h2>Última sincronización</h2>
+{% if catalogo.ultima_sincronizacion %}
+<dl>
+  {% for clave, valor in catalogo.ultima_sincronizacion.items() %}
+  <dt>{{ clave }}</dt><dd>{{ valor }}</dd>
+  {% endfor %}
+</dl>
+{% else %}
+<p>Sin sincronizaciones todavía</p>
+{% endif %}
+<div class="overflow-auto">
+<table>
+  <thead>
+    <tr><th>ID</th><th>Nombre</th><th>Diamantes</th><th>Costo</th><th>Precio de venta</th><th>Activo</th><th>Acciones</th></tr>
+  </thead>
+  <tbody>
+  {% for p in catalogo.paquetes %}{% include "admin/_fila_paquete.html" %}{% endfor %}
+  </tbody>
+</table>
+</div>

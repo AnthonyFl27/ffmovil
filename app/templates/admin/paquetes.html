@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block titulo %}Paquetes{% endblock %}
+{% block contenido %}
+<h1>Paquetes</h1>
+<div class="acciones">
+  <button hx-post="/gestion/catalogo/sincronizar" hx-target="#catalogo" hx-disabled-elt="this">Sincronizar ahora</button>
+</div>
+<div id="mensaje-catalogo" aria-live="polite"></div>
+<div id="catalogo">{% include "admin/_catalogo.html" %}</div>
+{% endblock %}

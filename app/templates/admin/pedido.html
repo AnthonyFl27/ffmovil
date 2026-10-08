@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block titulo %}Pedido {{ pedido.codigo }}{% endblock %}
+{% block contenido %}
+<h1>Pedido {{ pedido.codigo }}</h1>
+<div id="detalle">{% include "admin/_detalle_pedido.html" %}</div>
+<p><a href="/gestion/pedidos">Volver a pedidos</a></p>
+{% endblock %}

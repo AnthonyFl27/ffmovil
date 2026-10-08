@@ -1,0 +1,2 @@
+<p class="mensaje exito">{{ "Abono" if movimiento.tipo == "abono" else "Ajuste" }} de {{ movimiento.monto | usd }} registrado. Saldo disponible: {{ movimiento.saldo_disponible_resultante | usd }}.</p>
+<div id="usuario" hx-swap-oob="true">{% set clave_temporal = None %}{% include "admin/_usuario.html" %}</div>
