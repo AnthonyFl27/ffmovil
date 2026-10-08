@@ -1,0 +1,22 @@
+# Nunca dentro de la imagen: secretos, datos ni respaldos (RNF-06).
+.env
+.env.*
+*.sql
+*.dump
+*.backup
+*.bak
+backups/
+data/
+*.log
+logs/
+
+# Innecesario para ejecutar la app
+.git/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+tests/
+sdd/
+*.md

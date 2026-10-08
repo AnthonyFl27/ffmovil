@@ -25,3 +25,14 @@ Copia `.env.example` a `.env` y completa los valores. El archivo `.env` nunca se
 ## Seguridad
 
 Repositorio público: no se incluyen secretos, precios de costo reales, datos ni respaldos.
+
+## Docker
+
+El Compose solo incluye `app` (sin base de datos): se une a la red externa `ffmovil_net`, compartida con el contenedor de PostgreSQL del VPS, y publica el puerto 8000.
+
+```bash
+docker compose up -d --build                         # levanta la app (lee .env)
+docker compose exec app alembic upgrade head         # aplica migraciones
+```
+
+En el VPS, `DATABASE_URL` usa como host `postgresql:5432`.

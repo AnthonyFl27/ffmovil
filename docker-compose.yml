@@ -1,0 +1,16 @@
+# PostgreSQL es externo (RNF-07): no hay servicio `db`. Caddy queda diferido hasta tener dominio.
+services:
+  app:
+    build: .
+    env_file: .env
+    ports:
+      - "8000:8000"
+    networks:
+      - ffmovil_net
+    restart: unless-stopped
+
+networks:
+  # La crea el dueño del VPS y la comparte con el Compose de PostgreSQL.
+  # En el VPS, DATABASE_URL usa como host `postgresql:5432`.
+  ffmovil_net:
+    external: true
