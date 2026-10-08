@@ -64,7 +64,7 @@
 - [x] T-052 `/me/resumen`, `/me/fondos` (RF-33, RF-34, RF-36; CHG-007) → tests con datos de ejemplo.
 - [x] T-053 `/me/pedidos` con filtros y paginación; `/me/pedidos/{codigo}` solo del propio usuario (RF-31, RF-32, CA-05) → tests, incluido acceso a pedido ajeno → 404.
 - [x] T-054 `/paquetes` y `/recargas` (RF-13, RF-21) → tests.
-- [ ] T-055 Admin usuarios: crear cliente, bloquear, desbloquear, resetear clave; bloquear y resetear cierran sesiones (RF-03, RF-06, RF-07; CHG-007) → tests y auditoría.
+- [x] T-055 Admin usuarios: crear cliente, bloquear, desbloquear, resetear clave; bloquear y resetear cierran sesiones (RF-03, RF-06, RF-07; CHG-007) → tests y auditoría.
 - [ ] T-056 Admin saldos: abono y ajuste con nota obligatoria (RF-40, RF-41) → tests.
 - [ ] T-057 Admin pedidos: filtros y detalle con costo y ganancia (RF-50, RF-51, RF-54, CA-06) → tests.
 - [ ] T-058 Admin panel: saldo VentasFF vs suma de saldos de clientes, alertas activas y atenderlas, `/admin/config` (RF-53, RN-10, RN-11) → test contra simulador.
