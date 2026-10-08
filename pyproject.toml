@@ -1,0 +1,6 @@
+[project]
+name = "ffmovil"
+version = "0.1.0"
+description = "Plataforma de recargas Free Fire con cuentas prepago"
+requires-python = ">=3.12,<3.13"
+dependencies = []
