@@ -195,7 +195,7 @@ Solo válido si el estado es `PENDIENTE_VERIFICAR`. Registra evento y auditoría
 - `precio_venta` nunca se modifica en la sincronización; el panel marca paquetes con `precio_venta <= precio_costo`.
 - Paquetes que desaparecen del proveedor → `activo = false`.
 - Evolución futura: cálculo por porcentaje (requiere cambio de spec).
-- Programada con APScheduler (1 vez al día) y botón en el admin.
+- Programada con APScheduler 3.x (`AsyncIOScheduler`) todos los días a las 08:00 UTC, y botón en el admin. El resultado (fecha, contadores, paquetes bajo costo o error) se guarda en `config` con clave `catalogo_ultima_sincronizacion` y se registra en el log.
 - Un solo worker de la aplicación ejecuta el scheduler (evitar duplicados con varios workers).
 
 ## 6. Endpoints

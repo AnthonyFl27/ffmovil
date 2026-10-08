@@ -7,6 +7,8 @@ from fastapi.responses import JSONResponse
 from app.config import obtener_configuracion
 from app.db import ErrorConexionBD, crear_fabrica_sesiones, crear_motor, verificar_conexion
 from app.logs import configurar_logs
+from app.services.tareas import crear_programador
+from app.services.ventasff_client import ClienteVentasFF
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +25,15 @@ async def lifespan(app: FastAPI):
         raise
     app.state.motor = motor
     app.state.sesiones = crear_fabrica_sesiones(motor)
+
+    def crear_cliente() -> ClienteVentasFF:
+        return ClienteVentasFF(config.ventasff_api_key.get_secret_value(), config.ventasff_url)
+
+    # Sincronización diaria del catálogo (RF-10); la app corre con un solo worker.
+    programador = crear_programador(app.state.sesiones, crear_cliente)
+    programador.start()
     yield
+    programador.shutdown(wait=False)
     await motor.dispose()
 
 
