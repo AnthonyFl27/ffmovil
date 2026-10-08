@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block titulo %}Historial{% endblock %}
+{% block contenido %}
+<h1>Historial</h1>
+<form hx-get="/historial" hx-target="#pedidos" hx-push-url="true">
+  <input type="hidden" name="tz" value="{{ filtros.tz or '' }}">
+  <div class="grid">
+    <label>Estado
+      <select name="estado">
+        <option value="">Todos</option>
+        {% for valor, etiqueta in opciones_estado %}
+        <option value="{{ valor }}" {% if filtros.estado == valor %}selected{% endif %}>{{ etiqueta }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Desde <input type="date" name="desde" value="{{ filtros.desde or '' }}"></label>
+    <label>Hasta <input type="date" name="hasta" value="{{ filtros.hasta or '' }}"></label>
+  </div>
+  <div class="grid">
+    <label>Player ID <input name="player_id" inputmode="numeric" value="{{ filtros.player_id or '' }}"></label>
+    <label>ID de pedido <input name="codigo" placeholder="FF-000123" value="{{ filtros.codigo or '' }}"></label>
+  </div>
+  <div class="acciones">
+    <button type="submit">Filtrar</button>
+    <a role="button" class="secondary outline" href="/historial">Limpiar</a>
+  </div>
+</form>
+<div id="pedidos">
+{% include "cliente/_tabla_pedidos.html" %}
+</div>
+{% endblock %}
