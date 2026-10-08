@@ -15,6 +15,7 @@ from app.services.ledger import (
     ReservaInsuficiente,
     SaldoInsuficiente,
 )
+from tests.utilidades import crear_paquete, crear_pedido
 
 D = Decimal
 
@@ -168,9 +169,11 @@ async def test_cuenta_inexistente(sesion_bd):
 
 
 async def test_guarda_pedido_id(sesion_bd, con_fondos):
-    mov = await ledger.reservar(sesion_bd, con_fondos, D("1.00"), pedido_id=123)
+    paquete = await crear_paquete(sesion_bd)
+    pedido = await crear_pedido(sesion_bd, con_fondos, paquete)
+    mov = await ledger.reservar(sesion_bd, con_fondos, D("1.00"), pedido_id=pedido.id)
     await sesion_bd.commit()
-    assert mov.pedido_id == 123
+    assert mov.pedido_id == pedido.id
 
 
 async def test_bloquea_la_fila_de_saldo(sesion_bd, motor_bd, con_fondos):

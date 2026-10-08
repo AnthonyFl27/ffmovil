@@ -46,7 +46,7 @@
 
 ## Fase 5 — Recarga transaccional
 
-- [ ] T-040 Migración `pedidos` y `pedido_eventos` con índices y `UNIQUE (usuario_id, token_idempotencia)` (RF-25, RF-30) → aplicada.
+- [x] T-040 Migración `pedidos` y `pedido_eventos` con índices y `UNIQUE (usuario_id, token_idempotencia)` (RF-25, RF-30) → aplicada.
 - [x] T-041 Generación de `codigo` (`FF-000123`) (RF-30) → único y legible.
 - [x] T-042 Máquina de estados con transiciones permitidas (sec. 7 de la spec) → transiciones inválidas lanzan error.
 - [ ] T-043 Endpoint de validación: formato de Player ID, `validar.php`, manejo de `no_existe`/`no_disponible` (RF-20, RF-27) → tests.

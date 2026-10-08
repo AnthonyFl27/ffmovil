@@ -50,8 +50,7 @@ class Movimiento(Base):
     monto: Mapped[Decimal]
     saldo_disponible_resultante: Mapped[Decimal]
     saldo_reservado_resultante: Mapped[Decimal]
-    # La FK hacia `pedidos` se agrega en la migración de T-040.
-    pedido_id: Mapped[int | None] = mapped_column(BigInteger)
+    pedido_id: Mapped[int | None] = mapped_column(ForeignKey("pedidos.id"))
     nota: Mapped[str | None] = mapped_column(Text)
     creado_por: Mapped[int | None] = mapped_column(ForeignKey("usuarios.id"))
     fecha: Mapped[datetime] = mapped_column(server_default=func.now())
