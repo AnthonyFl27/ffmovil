@@ -11,7 +11,7 @@
 ## Fase 1 — Fundación
 
 - [x] T-001 Crear repositorio con estructura del plan, `.gitignore` (`.env`, datos, respaldos, logs) y README (RNF-06) → `git status` limpio sin secretos.
-- [ ] T-002 `.env.example` con `VENTASFF_API_KEY`, `DATABASE_URL`, `TEST_DATABASE_URL`, `SECRET_KEY`, `COOKIE_SECURE` vacíos (RNF-01, RNF-06, RNF-07, RNF-11) → variables documentadas.
+- [x] T-002 `.env.example` con `VENTASFF_API_KEY`, `DATABASE_URL`, `TEST_DATABASE_URL`, `SECRET_KEY`, `COOKIE_SECURE` vacíos (RNF-01, RNF-06, RNF-07, RNF-11) → variables documentadas.
 - [ ] T-003 `Dockerfile` y `docker-compose.yml` con `app` (puerto publicado, ej. 8000), sin `caddy` ni `db` (RNF-07) → `docker compose up` levanta la app y conecta a la BD externa.
 - [ ] T-004 `config.py` con carga de variables de entorno y falla clara si falta alguna → la app no inicia sin configuración.
 - [ ] T-005 Conexión a la BD externa por `DATABASE_URL`, verificación al arrancar con error claro y Alembic configurado (RNF-07) → migración vacía aplicable.
