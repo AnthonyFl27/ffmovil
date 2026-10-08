@@ -1,6 +1,6 @@
 # Tareas
 
-- **Spec:** `sdd/spec.md` v0.6.0 · **Plan:** `sdd/plan.md`
+- **Spec:** `sdd/spec.md` v0.7.0 · **Plan:** `sdd/plan.md`
 - **Formato:** `- [ ] T-XXX descripción (refs) → criterio de hecho`
 - **Estados:** `[ ]` pendiente · `[~]` en curso · `[x]` hecha · `[!]` bloqueada
 - Cada tarea referencia requisitos (RF/RN/RNF/CA). Una tarea sin referencia no debería existir: o falta un requisito en la spec, o sobra la tarea.
@@ -59,15 +59,15 @@
 
 ## Fase 6 — API cliente y admin
 
-- [ ] T-050 Login/logout, sesión por cookie (`Secure` según `COOKIE_SECURE`), bloqueo de usuarios inactivos, limitador de intentos (RF-01, RF-04, RF-05) → tests.
-- [ ] T-051 Cambio obligatorio de contraseña y middleware que restringe acceso (RF-02) → tests.
-- [ ] T-052 `/me/resumen`, `/me/fondos` (RF-33, RF-34) → tests con datos de ejemplo.
+- [ ] T-050 Migración `sesiones`; login/logout, sesión por cookie (`Secure` según `COOKIE_SECURE`) con expiración de 8 h de inactividad, CSRF por cabecera, bloqueo de usuarios inactivos, limitador de intentos (RF-01, RF-04, RF-05, RF-06, RF-07; CHG-007) → tests.
+- [ ] T-051 Cambio obligatorio de contraseña con política mínima y dependencia que restringe acceso; el cambio cierra las demás sesiones (RF-02, RF-06, RF-08; CHG-007) → tests.
+- [ ] T-052 `/me/resumen`, `/me/fondos` (RF-33, RF-34, RF-36; CHG-007) → tests con datos de ejemplo.
 - [ ] T-053 `/me/pedidos` con filtros y paginación; `/me/pedidos/{codigo}` solo del propio usuario (RF-31, RF-32, CA-05) → tests, incluido acceso a pedido ajeno → 404.
 - [ ] T-054 `/paquetes` y `/recargas` (RF-13, RF-21) → tests.
-- [ ] T-055 Admin usuarios: crear, bloquear, desbloquear, resetear clave (RF-03) → tests y auditoría.
+- [ ] T-055 Admin usuarios: crear cliente, bloquear, desbloquear, resetear clave; bloquear y resetear cierran sesiones (RF-03, RF-06, RF-07; CHG-007) → tests y auditoría.
 - [ ] T-056 Admin saldos: abono y ajuste con nota obligatoria (RF-40, RF-41) → tests.
 - [ ] T-057 Admin pedidos: filtros y detalle con costo y ganancia (RF-50, RF-51, RF-54, CA-06) → tests.
-- [ ] T-058 Admin panel: saldo VentasFF vs suma de saldos de clientes (RF-53, RN-10) → test contra simulador.
+- [ ] T-058 Admin panel: saldo VentasFF vs suma de saldos de clientes, alertas activas y atenderlas, `/admin/config` (RF-53, RN-10, RN-11) → test contra simulador.
 - [ ] T-059 Admin catálogo: `precio_venta` por paquete, activar/desactivar, sincronizar ahora, marcador de precio bajo costo (RF-12, RF-14) → tests.
 - [ ] T-060 Auditoría de acciones admin (RF-55) → cada acción registra una fila.
 - [ ] T-061 `require_admin` en `/admin/*` (RNF-03) → cliente recibe 403.

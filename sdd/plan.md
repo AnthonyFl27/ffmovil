@@ -1,6 +1,6 @@
 # Plan técnico
 
-- **Spec de referencia:** `sdd/spec.md` v0.6.0
+- **Spec de referencia:** `sdd/spec.md` v0.7.0
 - **Regla:** este plan implementa la spec. Si el plan contradice la spec, gana la spec.
 
 ---
@@ -135,6 +135,12 @@ movimientos(                             -- libro contable, solo INSERT
 )
 
 auditoria(id, usuario_id, accion, detalle JSONB, ip, fecha)
+
+sesiones(                                -- RF-06 (CHG-007)
+  token_hash TEXT PK,                    -- SHA-256 del token de la cookie; el token no se guarda
+  usuario_id BIGINT NOT NULL REFERENCES usuarios ON DELETE CASCADE,
+  csrf TEXT NOT NULL, ip INET NULL, creada_en, ultima_actividad
+)  -- índice (usuario_id)
 ```
 
 - `movimientos`: protegida con triggers que rechazan `UPDATE`, `DELETE` y `TRUNCATE` (aplican aunque la app sea dueña de la tabla).
@@ -235,9 +241,10 @@ Solo válido si el estado es `PENDIENTE_VERIFICAR`. Registra evento y auditoría
 | POST | `/auth/login` | Inicia sesión |
 | POST | `/auth/logout` | Cierra sesión |
 | POST | `/auth/cambiar-clave` | Cambio de contraseña (obligatorio en primer acceso) |
+| GET | `/auth/sesion` | Usuario de la sesión, `debe_cambiar_clave` y token CSRF |
 | GET | `/me/resumen` | Saldo disponible, gasto total, nº recargas |
 | GET | `/me/fondos` | Saldo y abonos recibidos |
-| GET | `/me/pedidos` | Historial con filtros (`estado`, `desde`, `hasta`, `player_id`, `codigo`) y paginación |
+| GET | `/me/pedidos` | Historial con filtros (`estado`, `desde`, `hasta`, `player_id`, `codigo`) y paginación (`pagina`, `por_pagina` = 20, máx. 100) |
 | GET | `/me/pedidos/{codigo}` | Detalle de un pedido propio |
 | GET | `/paquetes` | Paquetes activos con `precio_venta` |
 | POST | `/recargas/validar` | Valida Player ID |
@@ -246,7 +253,7 @@ Solo válido si el estado es `PENDIENTE_VERIFICAR`. Registra evento y auditoría
 ### Admin (`/admin/*`, rol admin)
 | Método | Ruta | Descripción |
 |---|---|---|
-| GET/POST | `/admin/usuarios` | Listar / crear (clave temporal) |
+| GET/POST | `/admin/usuarios` | Listar / crear cliente (clave temporal) |
 | POST | `/admin/usuarios/{id}/bloquear` · `/desbloquear` · `/reset-clave` | Gestión |
 | POST | `/admin/saldos/{usuario_id}/abono` · `/ajuste` | Saldos con nota |
 | GET | `/admin/pedidos` | Filtros completos (RF-50) |
@@ -254,19 +261,23 @@ Solo válido si el estado es `PENDIENTE_VERIFICAR`. Registra evento y auditoría
 | POST | `/admin/pedidos/{id}/resolver` | Resolver `PENDIENTE_VERIFICAR` |
 | GET | `/admin/panel` | Saldo VentasFF vs suma de saldos, alertas, ganancia |
 | GET/PUT | `/admin/config` | Alertas (crédito bajo) |
+| GET | `/admin/alertas` | Alertas activas (RN-11) |
+| POST | `/admin/alertas/{id}/atender` | Marca una alerta como atendida |
 | PUT | `/admin/paquetes/{id}` | `precio_venta`, `activo` |
 | POST | `/admin/catalogo/sincronizar` | Sincroniza ahora |
 | GET | `/admin/auditoria` | Registro de acciones |
 
-Esquemas de respuesta del cliente: modelos Pydantic dedicados que **no declaran** `precio_costo` (CA-03).
+Esquemas de respuesta del cliente: modelos Pydantic dedicados que **no declaran** `precio_costo` (CA-03). Los montos se serializan como texto con 2 decimales (`"0.91"`) y las respuestas de montos incluyen `moneda: "USD"` (RF-36). Las fechas van en ISO 8601 UTC (RNF-09: el frontend las muestra en la zona del usuario). Errores: `{"detail": "mensaje en español"}`.
 
 ## 7. Seguridad (RNF-01 a RNF-06)
 
 - Configuración por variables de entorno: `VENTASFF_API_KEY`, `DATABASE_URL`, `TEST_DATABASE_URL`, `SECRET_KEY`, `COOKIE_SECURE`; opcional `VENTASFF_URL`.
-- Sesión con cookie firmada `HttpOnly; SameSite=Lax`; `Secure` según `COOKIE_SECURE` (`true` en producción con HTTPS); token CSRF en formularios.
-- Limitador de login (por usuario e IP).
-- Middleware que bloquea a usuarios con `debe_cambiar_clave` salvo en `/auth/cambiar-clave`.
-- Dependencia `require_admin` para `/admin/*`.
+- Sesión (RF-06, CHG-007): token aleatorio (`secrets.token_urlsafe(32)`) en la cookie `sesion`, `HttpOnly; SameSite=Lax; Path=/`, `Secure` según `COOKIE_SECURE`. En la tabla `sesiones` se guarda solo su SHA-256. Cada petición busca la sesión junto con el usuario: si no existe, venció (8 h desde `ultima_actividad`) o el usuario está inactivo → 401 (y la fila se borra). `ultima_actividad` se actualiza como mucho una vez por minuto. Logout borra la fila; bloquear, resetear o cambiar la clave borran todas las del usuario (al cambiarla, el usuario recibe una sesión nueva). El login borra además las sesiones vencidas.
+- CSRF: cada sesión tiene un token propio que el login y `GET /auth/sesion` devuelven; las peticiones `POST`/`PUT`/`PATCH`/`DELETE` con sesión deben enviarlo en la cabecera `X-CSRF-Token` (comparación en tiempo constante) o reciben 403. Los formularios de la fase 7 lo envían como campo oculto.
+- Limitador de login (RF-05) en memoria (un solo worker): ventana deslizante de 15 min por par usuario+IP (5 fallos) y por IP (20 fallos); superado el tope responde 429 durante 15 min con el mismo mensaje genérico. Un login correcto limpia el contador del par.
+- Usuario (RF-07): `^[a-z0-9._-]{3,30}$` tras pasar a minúsculas; el login compara en minúsculas. Contraseña nueva (RF-08): 8 a 128 caracteres y distinta de la actual.
+- Dependencias de FastAPI (equivalen al middleware): `usuario_en_sesion` (cualquier sesión válida; solo la usan `/auth/logout`, `/auth/sesion` y `/auth/cambiar-clave`), `usuario_actual` (además rechaza con 403 `debe_cambiar_clave`, RF-02) y `require_admin` (además rol admin) para `/admin/*`.
+- Auditoría (RF-55): cada acción admin que cambia datos inserta una fila en `auditoria` en la misma transacción, con la IP del cliente.
 - Log estructurado con enmascarado de secretos.
 - Docker: sin dominio, `app` publica un puerto (ej. 8000). Con dominio, solo Caddy expone 80/443.
 - La seguridad del servidor PostgreSQL (firewall, TLS, control de acceso) se gestiona fuera del repositorio. La app usa un usuario dedicado.

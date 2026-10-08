@@ -71,10 +71,20 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.5.0 → 0.6.0
 - **Motivo:** RN-08 pide una alerta visible en el panel; el umbral de crédito bajo lo fija el dueño en 10 USD.
 
+### CHG-007 · 2026-10-08 · Sesiones, credenciales y precisiones de la API del cliente
+- **Origen:** preguntas abiertas resueltas (Q-03, Q-04) y vacíos detectados antes de la fase 6
+- **Spec:** RF-03, RF-05, RF-33, RF-34 modificados; RF-06, RF-07, RF-08, RF-36 añadidos; Q-03 y Q-04 resueltas
+- **Plan:** modelo `sesiones`; sec. 6 (`/auth/sesion`, `/admin/alertas`, paginación, formato de montos); sec. 7 (sesión en BD, CSRF por cabecera, limitador de login, reglas de usuario y contraseña, dependencias)
+- **Tareas:** T-050, T-051, T-052, T-055, T-058 modificadas
+- **Versión spec:** 0.6.0 → 0.7.0
+- **Motivo:** la fase 6 necesitaba la expiración de sesión, los topes del limitador de login, las reglas de usuario y contraseña, qué cuenta en el resumen y qué muestra Fondos.
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |
 |---|---|---|---|
+| Q-03 | Moneda mostrada al cliente: USD con 2 decimales (RF-36) | 2026-10-08 | CHG-007 |
+| Q-04 | Sesión: expira tras 8 h sin actividad, guardada en BD (RF-06) | 2026-10-08 | CHG-007 |
 | Q-06 | Umbral de crédito bajo en VentasFF: 10 USD, editable por el admin en `config.alerta_credito_min` | 2026-10-08 | CHG-006 |
 | Q-01 | Retirada: no hay margen global; precio de venta manual por paquete | 2026-10-07 | CHG-002 |
 | Q-02 | Retirada: sin cálculo, no aplica redondeo | 2026-10-07 | CHG-002 |
