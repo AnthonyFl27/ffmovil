@@ -2,9 +2,9 @@
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas.cliente import Monto
 
@@ -111,4 +111,37 @@ class Resolucion(BaseModel):
     resultado: Literal["exitoso", "fallido"]
     nota: str
     referencia: str | None = None
+
+
+class AlertaAdmin(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    tipo: str
+    mensaje: str
+    creada_en: datetime
+    atendida_en: datetime | None
+    atendida_por: int | None
+
+
+class Panel(BaseModel):
+    """Crédito real en VentasFF frente a lo que se debe a los clientes (RF-53, RN-10)."""
+
+    # None si VentasFF no respondió (`error_proveedor` explica el motivo).
+    credito_ventasff: Monto | None
+    error_proveedor: str | None
+    # Suma de saldo disponible + reservado de todos los clientes.
+    saldos_clientes: Monto
+    # credito_ventasff − saldos_clientes; negativo si el crédito no cubre los saldos.
+    diferencia: Monto | None
+    cubierto: bool | None
+    pendientes_verificar: int
+    ganancia_total: Monto
+    alertas: list[AlertaAdmin]
+    moneda: Literal["USD"] = "USD"
+
+
+class ConfigAdmin(BaseModel):
+    # RN-11: umbral de alerta de crédito bajo en USD.
+    alerta_credito_min: Annotated[Decimal, Field(ge=0, max_digits=12, decimal_places=2)]
 
