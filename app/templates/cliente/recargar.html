@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block titulo %}Recargar{% endblock %}
+{% block contenido %}
+<h1>Recargar diamantes</h1>
+<p>Saldo disponible: <strong>{{ resumen.saldo_disponible | usd }}</strong></p>
+{% if paquetes %}
+<form hx-post="/recargar/validar" hx-target="#confirmacion" hx-disabled-elt="find button" data-limpia="#confirmacion">
+  <label>Player ID
+    <input name="player_id" inputmode="numeric" pattern="[0-9]{4,20}" maxlength="20" required
+           placeholder="Solo números" autocomplete="off">
+  </label>
+  <fieldset>
+    <legend>Paquete</legend>
+    {% for p in paquetes %}
+    <label>
+      <input type="radio" name="paquete_id" value="{{ p.paquete_id }}" required {% if loop.first %}checked{% endif %}>
+      {{ p.nombre }} — {{ p.precio_venta | usd }}
+    </label>
+    {% endfor %}
+  </fieldset>
+  <button type="submit">Verificar ID <span class="htmx-indicator">…</span></button>
+</form>
+<div id="confirmacion" aria-live="polite"></div>
+{% else %}
+<p>No hay paquetes disponibles en este momento.</p>
+{% endif %}
+{% endblock %}

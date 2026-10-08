@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block titulo %}Pedido {{ pedido.codigo }}{% endblock %}
+{% block contenido %}
+{% set en_proceso = pedido.estado in ("CREADO", "PROCESANDO") %}
+{% set intervalo = 3 %}
+{% include "cliente/_pedido.html" %}
+{% endblock %}

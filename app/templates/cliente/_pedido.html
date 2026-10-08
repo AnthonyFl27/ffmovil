@@ -1,0 +1,26 @@
+<article id="pedido-{{ pedido.codigo }}"
+  {% if en_proceso %}hx-get="/historial/{{ pedido.codigo }}" hx-trigger="every {{ intervalo }}s" hx-swap="outerHTML"{% endif %}>
+  <h2>Pedido {{ pedido.codigo }}</h2>
+  <p class="estado estado-{{ pedido.estado }}">{{ pedido.estado_etiqueta }}</p>
+  {% if pedido.estado == "EXITOSO" %}
+  <p>La recarga se realizó correctamente.</p>
+  {% elif pedido.estado == "FALLIDO" %}
+  <p>La recarga no se realizó y el monto volvió a tu saldo.{% if pedido.motivo %} Motivo: {{ pedido.motivo }}{% endif %}</p>
+  {% elif pedido.estado == "PENDIENTE_VERIFICAR" %}
+  <p>Estamos verificando la recarga con el proveedor. El monto queda retenido hasta resolverla.</p>
+  {% else %}
+  <p>Procesando la recarga…</p>
+  {% endif %}
+  <dl>
+    <dt>Fecha</dt><dd>{{ pedido.fecha | fecha }}</dd>
+    <dt>Paquete</dt><dd>{{ pedido.paquete }}</dd>
+    <dt>Player ID</dt><dd>{{ pedido.player_id }}</dd>
+    <dt>Jugador</dt><dd>{{ pedido.nickname | texto }}</dd>
+    <dt>Monto</dt><dd>{{ pedido.monto | usd }}</dd>
+    <dt>Referencia</dt><dd>{{ pedido.referencia | texto }}</dd>
+  </dl>
+  <div class="acciones">
+    <a role="button" href="/recargar">Nueva recarga</a>
+    <a role="button" class="secondary" href="/historial">Historial</a>
+  </div>
+</article>

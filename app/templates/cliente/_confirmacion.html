@@ -1,0 +1,24 @@
+<article>
+  <h2>Confirma la recarga</h2>
+  <dl>
+    <dt>Player ID</dt><dd>{{ player_id }}</dd>
+    <dt>Jugador</dt><dd>{{ validacion.nickname | texto }}</dd>
+    <dt>Paquete</dt><dd>{{ paquete.nombre }}</dd>
+    <dt>Precio</dt><dd><strong>{{ paquete.precio_venta | usd }}</strong></dd>
+    <dt>Saldo disponible</dt><dd>{{ resumen.saldo_disponible | usd }}</dd>
+  </dl>
+  <form hx-post="/recargar/confirmar" hx-target="#confirmacion" hx-disabled-elt="find button">
+    <input type="hidden" name="player_id" value="{{ player_id }}">
+    <input type="hidden" name="paquete_id" value="{{ paquete.paquete_id }}">
+    <input type="hidden" name="token_idempotencia" value="{{ token }}">
+    {% if validacion.advertencia %}
+    <p class="mensaje error">{{ validacion.advertencia }}</p>
+    <label>
+      <input type="checkbox" name="confirmar_sin_verificar" value="1" required>
+      Confirmo que el Player ID es correcto aunque no se pudo verificar.
+    </label>
+    {% endif %}
+    <p><small>La recarga es irreversible: revisa el ID y el jugador antes de confirmar.</small></p>
+    <button type="submit">Confirmar recarga <span class="htmx-indicator">(procesando…)</span></button>
+  </form>
+</article>
