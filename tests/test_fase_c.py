@@ -126,7 +126,7 @@ async def test_sin_credito_del_proveedor_falla_sin_recargar(sesion_bd, motor_bd,
     assert (pedido.estado, pedido.error_code, resultado.alerta) == (
         "FALLIDO",
         "SIN_CREDITO_PROVEEDOR",
-        "credito",
+        "sin_credito",
     )
     assert await estado_contable(sesion_bd, usuario_id, pedido.id) == LIBERADO[1:]
 

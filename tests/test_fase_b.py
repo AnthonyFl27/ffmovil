@@ -122,7 +122,7 @@ async def test_libera_el_candado_al_terminar(motor_bd):
     ("escenario", "clasificacion", "codigo", "alerta"),
     [
         ("PURCHASE_FAILED", Clasificacion.ERROR_API, "PURCHASE_FAILED", None),
-        ("INSUFFICIENT_CREDIT", Clasificacion.ERROR_API, "INSUFFICIENT_CREDIT", "credito"),
+        ("INSUFFICIENT_CREDIT", Clasificacion.ERROR_API, "INSUFFICIENT_CREDIT", "sin_credito"),
         ("INVALID_KEY", Clasificacion.ERROR_API, "INVALID_KEY", "cuenta"),
         ("RATE_LIMITED", Clasificacion.ERROR_API, "RATE_LIMITED", None),
         ("error_conexion", Clasificacion.ERROR_PREVIO, "SIN_CONEXION", None),

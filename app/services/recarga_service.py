@@ -7,14 +7,15 @@ import asyncio
 import logging
 import re
 from collections.abc import Awaitable, Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from decimal import Decimal
 
 from sqlalchemy import func, select, text
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from app.models import Auditoria, Paquete, Pedido, PedidoEvento, Usuario
-from app.services import ledger
+from app.services import alertas, ledger
 from app.services.codigos import codigo_pedido
 from app.services.estados import Estado, TransicionInvalida, validar_transicion
 from app.services.limitador import LimitadorTasa
@@ -258,8 +259,8 @@ MENSAJE_PROVEEDOR_OCUPADO = "Proveedor ocupado. Intenta más tarde."
 MENSAJE_SIN_CONEXION = "No se pudo contactar al proveedor. Intenta más tarde."
 MENSAJE_ERROR_RECARGA = "No se pudo completar la recarga."
 
-# Tipos de alerta para el admin (RN-08, T-049).
-ALERTA_CREDITO = "credito"
+# Tipos de alerta para el admin (RN-08, RN-11); coinciden con `alertas.tipo`.
+ALERTA_CREDITO = "sin_credito"
 ALERTA_CUENTA = "cuenta"
 
 
@@ -276,6 +277,8 @@ class ResultadoProveedor:
     alerta: str | None = None
     # Detalle interno para el historial del pedido (sin secretos).
     detalle: str | None = None
+    # Crédito del proveedor informado por saldo.php o recargar.php (RN-11).
+    credito_restante: Decimal | None = None
 
 
 def _resultado_de_error(
@@ -323,32 +326,37 @@ def _resultado_de_error(
     return ResultadoProveedor(Clasificacion.INCIERTO, detalle=str(error))
 
 
-async def _verificar_credito(cliente: ClienteVentasFF, precio_costo) -> ResultadoProveedor | None:
-    """RF-23: None si el crédito cubre el costo; si no, el resultado FALLIDO.
+async def _verificar_credito(
+    cliente: ClienteVentasFF, precio_costo
+) -> tuple[ResultadoProveedor | None, Decimal | None]:
+    """RF-23: (None, crédito) si el crédito cubre el costo; si no, el resultado FALLIDO.
 
     Si `saldo.php` falla no se llegó a pedir la recarga, así que es seguro fallar.
     """
     try:
         saldo = await cliente.saldo()
     except ErrorAPI as error:
-        return _resultado_de_error(error)
+        return _resultado_de_error(error), None
     except (ErrorPrevioAlEnvio, ResultadoIncierto) as error:
-        return ResultadoProveedor(
+        fallo = ResultadoProveedor(
             Clasificacion.ERROR_PREVIO,
             motivo=MENSAJE_SIN_CONEXION,
             error_code="SALDO_NO_VERIFICADO",
             detalle=f"saldo.php: {error}",
         )
+        return fallo, None
     if saldo.credito < precio_costo:
         logger.warning("Crédito del proveedor insuficiente para la recarga")
-        return ResultadoProveedor(
+        fallo = ResultadoProveedor(
             Clasificacion.ERROR_PREVIO,
             motivo=MENSAJE_SIN_DISPONIBILIDAD,
             error_code="SIN_CREDITO_PROVEEDOR",
             alerta=ALERTA_CREDITO,
             detalle="Crédito del proveedor menor que el costo",
+            credito_restante=saldo.credito,
         )
-    return None
+        return fallo, saldo.credito
+    return None, saldo.credito
 
 
 async def llamar_proveedor(
@@ -372,7 +380,7 @@ async def llamar_proveedor(
         await conexion.commit()
         try:
             await limitador.adquirir()
-            fallo_credito = await _verificar_credito(cliente, precio_costo)
+            fallo_credito, credito = await _verificar_credito(cliente, precio_costo)
             if fallo_credito is not None:
                 return fallo_credito
             for intento in (1, 2):
@@ -383,10 +391,12 @@ async def llamar_proveedor(
                         logger.info("VentasFF BUSY: reintento en %.0fs", SEGUNDOS_REINTENTO_BUSY)
                         await dormir(SEGUNDOS_REINTENTO_BUSY)
                         continue
-                    return _resultado_de_error(error)
+                    return replace(_resultado_de_error(error), credito_restante=credito)
                 except ErrorVentasFF as error:
-                    return _resultado_de_error(error)
-                return ResultadoProveedor(Clasificacion.EXITO, recarga=recarga)
+                    return replace(_resultado_de_error(error), credito_restante=credito)
+                return ResultadoProveedor(
+                    Clasificacion.EXITO, recarga=recarga, credito_restante=recarga.saldo
+                )
             raise AssertionError("inalcanzable")  # pragma: no cover
         finally:
             await conexion.execute(
@@ -501,11 +511,35 @@ async def procesar_pedido(
         precio_costo=precio_costo,
         dormir=dormir,
     )
-    if resultado.alerta:
-        logger.warning("Alerta para el admin (%s): %s", resultado.alerta, resultado.error_code)
     async with fabrica() as sesion:
         pedido = await resolver_pedido(sesion, pedido_id, resultado)
+    await registrar_alertas(fabrica, resultado)
     return pedido, resultado
+
+
+MENSAJES_ALERTA = {
+    ALERTA_CREDITO: "VentasFF sin crédito suficiente para recargar ({codigo}). Recarga crédito.",
+    ALERTA_CUENTA: "Error de cuenta en VentasFF ({codigo}). Revisa la API Key y la cuenta.",
+}
+
+
+async def registrar_alertas(fabrica: async_sessionmaker, resultado: ResultadoProveedor) -> None:
+    """Alertas al admin tras resolver un pedido (RN-08, RN-11), en su propia transacción.
+
+    Un fallo al guardarlas no afecta al pedido, ya resuelto: se registra en el log.
+    """
+    if resultado.alerta is None and resultado.credito_restante is None:
+        return
+    try:
+        async with fabrica() as sesion:
+            if resultado.alerta is not None:
+                mensaje = MENSAJES_ALERTA[resultado.alerta].format(codigo=resultado.error_code)
+                await alertas.registrar_alerta(sesion, resultado.alerta, mensaje)
+            if resultado.credito_restante is not None:
+                await alertas.comprobar_credito(sesion, resultado.credito_restante)
+            await sesion.commit()
+    except SQLAlchemyError:
+        logger.exception("No se pudo registrar la alerta %s", resultado.alerta)
 
 
 # --- Resolución manual de PENDIENTE_VERIFICAR (RF-52, plan 4.4) ---
