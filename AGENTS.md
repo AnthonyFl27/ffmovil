@@ -13,6 +13,23 @@ Web de recargas de diamantes de Free Fire con cuentas prepago. Backend FastAPI e
 
 Si hay conflicto: spec > plan > tasks > código.
 
+El avance real está en `sdd/tasks.md` (`[x]` hechas); revisarlo al empezar cada sesión.
+
+## Pedidos del usuario: significativos vs. menores
+
+Antes de actuar, clasificar cada pedido:
+
+- **Significativo** → se define y edita en `sdd/` **antes** del código. Es significativo si cambia o añade:
+  - comportamiento visible o reglas de negocio (flujos, estados, saldos, precios, permisos, validaciones, mensajes con efecto funcional);
+  - alcance (juegos, pantallas o endpoints nuevos);
+  - modelo de datos (tablas, columnas, restricciones);
+  - integración con VentasFF, seguridad, despliegue o infraestructura (red, Docker, BD).
+
+  Proceso: seguir "Cómo evoluciona el SDD". La petición del usuario cuenta como aprobación del objetivo; si el texto exacto de la spec implica decisiones que el usuario no tomó, confirmarlas antes de aplicar.
+- **Menor** → se hace directamente, **sin** tocar `sdd/`. Ejemplos: colores, estilos, espaciado, íconos, textos o erratas sin efecto funcional, renombres internos, refactor sin cambio de comportamiento, comentarios, ajustes de lint/formato.
+- **Decisión técnica sin efecto en la spec** (librería, versión, estructura interna, red entre contenedores): se anota en `plan.md` (y en `tasks.md` si cambia el criterio de una tarea), sin `CHG` ni subir versión de la spec.
+- En caso de duda, tratarlo como significativo y preguntar.
+
 ## Flujo de trabajo
 
 1. Leer `spec.md`, `plan.md` y la tarea asignada en `tasks.md` antes de escribir código.
@@ -63,11 +80,40 @@ El código nunca introduce comportamiento que no esté en la spec. Si durante la
 - Operaciones destructivas (`DROP`, `TRUNCATE`, `DELETE` masivo) fuera del esquema `test` requieren confirmación del usuario.
 - Producción usará otra base en el mismo VPS: el cambio es solo el valor de `DATABASE_URL`.
 
+## Entorno de desarrollo
+
+- **Stack fijado:** Python 3.12 (uv), FastAPI, SQLAlchemy 2 async + psycopg 3, Alembic, PostgreSQL 18, pytest + pytest-asyncio (`asyncio_mode = "auto"`), ruff fijado como dependencia de desarrollo.
+- **VPS:** acceso con `ssh ffmovil`. PostgreSQL corre en el contenedor `postgresql` (imagen `postgres:18`), con su propio Compose fuera de este repo (`/root/container/postgresql_testing/`). Publica el puerto solo en `127.0.0.1:5432` y está unido a la red Docker externa `ffmovil_net`.
+- **App ↔ BD en el VPS:** `app` se une a `ffmovil_net` y usa como host `postgresql:5432`.
+- **BD desde el equipo local:** túnel SSH `ssh -N -L 5433:localhost:5432 ffmovil`; el `.env` local apunta a `localhost:5433`. Sin túnel fallan Alembic, la app y las pruebas de BD. El túnel se abre al iniciar la sesión y se cierra al terminar.
+- **Cambios en el VPS:** solo con pedido explícito del usuario; nunca exponer puertos de PostgreSQL a internet.
+- **`.env` local:** lo crea el LLM o el usuario a partir de `.env.example`; permisos `600`; nunca mostrar su contenido.
+
+### Comandos
+
+```bash
+uv run pytest                      # pruebas (requiere túnel para las de BD)
+uv run ruff check . && uv run ruff format --check .
+uv run alembic upgrade head        # migra la BD de DATABASE_URL
+uv run alembic revision -m "..."   # nueva migración (luego editarla a mano)
+uv run uvicorn app.main:app --reload
+```
+
+### Piezas ya construidas
+
+- `app/config.py`: configuración por entorno (`SecretStr`); falla con mensaje claro sin exponer valores. `TEST_DATABASE_URL` es opcional para la app.
+- `app/db.py`: `crear_motor(url, esquema=None)`, `verificar_conexion()` (la app no arranca si la BD no responde).
+- `app/main.py`: `lifespan` con verificación de BD; `GET /health` (200 / 503 sin detalles).
+- `app/models/base.py`: `Base` con convención de nombres de restricciones.
+- `migrations/env.py`: toma la URL de la configuración (nunca de `alembic.ini`); acepta `config.attributes["url"]` y `["esquema"]` para migrar en el esquema `test`.
+- `tests/conftest.py`: fixtures `url_bd_test` (sesión: crea `test`, migra, elimina al final), `motor_bd` y `sesion_bd` (search_path = `test`).
+
 ## Convenciones
 
 - Código, identificadores y comentarios técnicos en **español** (mismos términos que la spec: `pedidos`, `saldos`, `movimientos`, `precio_venta`…). Se aceptan términos técnicos sin traducción habitual (`router`, `schema`, `fixture`).
 - Mensajes al usuario final en español.
-- Commits: `T-XXX <resumen> [RF-/RN-/RNF-...]`.
+- Commits: `T-XXX <resumen> [RF-/RN-/RNF-...]`. Cambios sin tarea: `Docs: …`, `Plan: …` o `Ajuste: …` (menores). Una tarea por commit.
+- Las excepciones se capturan por tipo concreto (ruff `BLE001`); nada de `except Exception` salvo para limpiar y relanzar.
 - Formato y lint: `ruff`.
 - Dependencias y Python 3.12 gestionados con `uv` (`pyproject.toml` + `uv.lock`). Pruebas: `uv run pytest`; lint: `uv run ruff check .`.
 
