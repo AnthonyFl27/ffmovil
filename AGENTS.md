@@ -99,6 +99,16 @@ uv run alembic revision -m "..."   # nueva migración (luego editarla a mano)
 uv run uvicorn app.main:app --reload
 ```
 
+**Probar la web en local sin la API real** (el usuario abre `http://127.0.0.1:8000`):
+
+```bash
+uv run python -m tests.fake_ventasff --port 8099          # simulador (crédito ficticio 100.00)
+VENTASFF_URL=http://127.0.0.1:8099/api/reseller VENTASFF_API_KEY=rv_c_simulador \
+  uv run uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+Las variables de entorno tienen prioridad sobre el `.env`: así la app nunca llama a VentasFF real. La BD de desarrollo ya tiene el admin `admin` (creado por CLI) y un cliente de prueba; el catálogo se llena con "Sincronizar ahora" desde `/gestion/paquetes` (3 paquetes ficticios del simulador, inactivos y sin precio).
+
 ### Piezas ya construidas (fases 1 a 7, spec v0.7.1)
 
 Detalle de diseño en `sdd/plan.md` (sec. 3 modelo, 4.2 fases A/B/C, 4.2.1 alertas, 4.5 cliente VentasFF, 4.6 transacciones y rutas de recarga, 6 endpoints, 7 seguridad). Migración head: `ea509abd049b` (`sesiones`, aplicada en desarrollo).
@@ -132,13 +142,13 @@ Detalle de diseño en `sdd/plan.md` (sec. 3 modelo, 4.2 fases A/B/C, 4.2.1 alert
 
 ### Pendientes y decisiones abiertas (al cerrar la fase 7)
 
-- Siguiente: **Fase 8** (T-080…).
+- **Próxima sesión:** el usuario quiere conversar sobre cosas que desea revisar y cambiar respecto al plan. Antes de tocar código, clasificar cada pedido (significativo / menor / técnico) y, si es significativo, proponer el texto exacto en `sdd/` y esperar aprobación. La fase 8 (T-080…) queda en espera hasta entonces.
 - Acordado con el usuario (2026-10-08): proponer un cambio de spec para que, si `productos.php` llega vacío, la sincronización no desactive todo el catálogo (p. ej. no desactivar nada y generar alerta). Presentar el texto exacto antes de aplicarlo.
 - Las pruebas ya usan precios ficticios (commit `Ajuste:` de 2026-10-08).
 - Un fallo inesperado (excepción) en la tarea de fases B/C deja el pedido en `PROCESANDO` hasta el siguiente arranque (RN-09); se registra en el log.
-- La web no se ha probado en un navegador real (solo con pruebas ASGI): revisar a mano antes de la fase 9.
+- El usuario probó la web en su navegador (2026-10-08): login, cambio de clave, alta de cliente y abono funcionaron; sin hallazgos. "No hay paquetes disponibles" se debía a que el catálogo no se había sincronizado (comportamiento esperado, RF-13).
 - Producción: usuario de BD dedicado con clave fuerte; rotar la API Key de VentasFF que se compartió en un chat; `--workers 1` (limitadores de login y de VentasFF en memoria).
-- Desde la sesión en segundo plano no hay credenciales para `git push`: el usuario sube los commits.
+- Las sesiones en segundo plano pueden no tener credenciales para `git push`; si falla, pedir al usuario `! git push origin main`.
 
 ## Convenciones
 
