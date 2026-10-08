@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block titulo %}Fondos{% endblock %}
+{% block contenido %}
+<h1>Fondos</h1>
+<section class="cifras">
+  <article><small>Saldo disponible</small><strong id="saldo-disponible">{{ fondos.saldo_disponible | usd }}</strong></article>
+  <article><small>Saldo reservado</small><strong id="saldo-reservado">{{ fondos.saldo_reservado | usd }}</strong></article>
+</section>
+<h2>Abonos y ajustes</h2>
+{% if fondos.movimientos %}
+<div class="overflow-auto">
+<table>
+  <thead><tr><th>Fecha</th><th>Tipo</th><th>Monto</th><th>Nota</th></tr></thead>
+  <tbody>
+  {% for m in fondos.movimientos %}
+    <tr>
+      <td>{{ m.fecha | fecha }}</td>
+      <td>{{ "Abono" if m.tipo == "abono" else "Ajuste" }}</td>
+      <td>{{ m.monto | usd }}</td>
+      <td>{{ m.nota | texto }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p>Todavía no tienes abonos.</p>
+{% endif %}
+{% endblock %}
