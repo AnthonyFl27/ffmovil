@@ -166,7 +166,7 @@ Antes de la Fase A (y sin bloqueos de BD) el backend vuelve a validar el ID con 
 - `nickname` se toma del pedido (de `validar.php`), no de la respuesta de `recargar.php`.
 
 ### 4.3 Recuperación (RN-09)
-Al iniciar la aplicación: pedidos en `CREADO`/`PROCESANDO` con antigüedad mayor a un umbral → `PENDIENTE_VERIFICAR`.
+Al iniciar la aplicación: pedidos en `PROCESANDO` → `PENDIENTE_VERIFICAR`, sin mover saldo ni reintentar. Con un solo worker, todo `PROCESANDO` al arrancar es huérfano (umbral de antigüedad 0, configurable). `CREADO` nunca queda guardado: la Fase A lo pasa a `PROCESANDO` en la misma transacción.
 
 ### 4.4 Resolución manual (RF-52)
 `POST /admin/pedidos/{id}/resolver` con `{resultado: exitoso|fallido, referencia?, nota}`:
