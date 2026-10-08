@@ -31,7 +31,7 @@
 ## Fase 3 — Cliente VentasFF + simulador
 
 - [x] T-020 `ventasff_client.py`: `saldo`, `productos`, `validar`, `recargar` con Bearer, timeouts 15/30/90 s, parseo de `success/error/code` (RNF-01) → tests con respx.
-- [ ] T-021 Clasificación de resultados: éxito / error de API / error previo al envío / incierto (timeout, ilegible) (RF-24, RN-04) → tabla de casos cubierta por tests.
+- [x] T-021 Clasificación de resultados: éxito / error de API / error previo al envío / incierto (timeout, ilegible) (RF-24, RN-04) → tabla de casos cubierta por tests.
 - [ ] T-022 Manejo de `Retry-After` y `RATE_LIMITED` (RN-07) → test.
 - [ ] T-023 `tests/fake_ventasff.py` con escenarios `ok`, `PURCHASE_FAILED`, `BUSY`, `INSUFFICIENT_CREDIT`, `INVALID_KEY`, timeout, ilegible, `nickname: null` (RNF-08) → usable desde pytest y como servidor local para desarrollo.
 - [x] T-024 Enmascarado de secretos en logs (RNF-05) → test que verifica que la key no aparece.

@@ -9,6 +9,7 @@ import logging
 import time
 from dataclasses import dataclass
 from decimal import Decimal
+from enum import StrEnum
 from typing import Any, Self
 
 import httpx
@@ -68,8 +69,51 @@ class ErrorAPI(ErrorVentasFF):
         self.estado_http = estado_http
 
 
-class RespuestaInvalida(ErrorVentasFF):
-    """Error de red o respuesta que no cumple el contrato."""
+class ErrorPrevioAlEnvio(ErrorVentasFF):
+    """La petición no llegó a enviarse (DNS, conexión rechazada, timeout de conexión).
+
+    El proveedor no recibió nada: es seguro dar la recarga por fallida.
+    """
+
+
+class ResultadoIncierto(ErrorVentasFF):
+    """La petición pudo procesarse pero no se sabe el resultado.
+
+    Timeout o corte tras enviar, respuesta ilegible o fuera de contrato. Una
+    recarga en este caso queda PENDIENTE_VERIFICAR y nunca se reintenta (RN-04).
+    """
+
+
+class Clasificacion(StrEnum):
+    """Resultado de una llamada, según decide la Fase C (RF-24, plan 4.5)."""
+
+    EXITO = "exito"
+    ERROR_API = "error_api"
+    ERROR_PREVIO = "error_previo"
+    INCIERTO = "incierto"
+
+
+# Fallos de transporte en los que la petición no salió del equipo.
+_ERRORES_PREVIOS = (
+    httpx.ConnectError,
+    httpx.ConnectTimeout,
+    httpx.PoolTimeout,
+    httpx.UnsupportedProtocol,
+)
+
+
+def clasificar(resultado: object) -> Clasificacion:
+    """Clasifica el valor devuelto o la excepción lanzada por el cliente."""
+    match resultado:
+        case ErrorAPI():
+            return Clasificacion.ERROR_API
+        case ErrorPrevioAlEnvio():
+            return Clasificacion.ERROR_PREVIO
+        case SaldoProveedor() | Validacion() | RecargaRealizada() | list():
+            return Clasificacion.EXITO
+        case _:
+            # Cualquier otra cosa (incluido ResultadoIncierto) no permite saber si se cobró.
+            return Clasificacion.INCIERTO
 
 
 def _texto(datos: dict, campo: str, *, nulo: bool = False) -> str | None:
@@ -77,7 +121,7 @@ def _texto(datos: dict, campo: str, *, nulo: bool = False) -> str | None:
     if valor is None and nulo:
         return None
     if not isinstance(valor, str):
-        raise RespuestaInvalida(f"Campo {campo!r} ausente o no es texto")
+        raise ResultadoIncierto(f"Campo {campo!r} ausente o no es texto")
     return valor
 
 
@@ -86,20 +130,20 @@ def _entero(datos: dict, campo: str, *, nulo: bool = False) -> int | None:
     if valor is None and nulo:
         return None
     if isinstance(valor, bool) or not isinstance(valor, int):
-        raise RespuestaInvalida(f"Campo {campo!r} ausente o no es entero")
+        raise ResultadoIncierto(f"Campo {campo!r} ausente o no es entero")
     return valor
 
 
 def _monto(datos: dict, campo: str) -> Decimal:
     valor = datos.get(campo)
     if isinstance(valor, bool) or not isinstance(valor, Decimal | int):
-        raise RespuestaInvalida(f"Campo {campo!r} ausente o no es numérico")
+        raise ResultadoIncierto(f"Campo {campo!r} ausente o no es numérico")
     return Decimal(valor)
 
 
 def _diccionario(data: Any) -> dict:
     if not isinstance(data, dict):
-        raise RespuestaInvalida("`data` no es un objeto")
+        raise ResultadoIncierto("`data` no es un objeto")
     return data
 
 
@@ -143,14 +187,18 @@ class ClienteVentasFF:
                 metodo, ruta, params=params, json=cuerpo, timeout=timeout
             )
         except httpx.HTTPError as error:
+            previo = isinstance(error, _ERRORES_PREVIOS)
             logger.warning(
-                "VentasFF %s %s falló: %s (%.2fs)",
+                "VentasFF %s %s falló %s del envío: %s (%.2fs)",
                 metodo,
                 ruta,
+                "antes" if previo else "después",
                 type(error).__name__,
                 time.monotonic() - inicio,
             )
-            raise RespuestaInvalida(f"Error de red: {type(error).__name__}") from error
+            if previo:
+                raise ErrorPrevioAlEnvio(f"No se pudo enviar: {type(error).__name__}") from error
+            raise ResultadoIncierto(f"Sin respuesta tras enviar: {type(error).__name__}") from error
         logger.info(
             "VentasFF %s %s -> %s (%.2fs)",
             metodo,
@@ -162,9 +210,9 @@ class ClienteVentasFF:
         try:
             cuerpo_json = json.loads(respuesta.content, parse_float=Decimal)
         except ValueError as error:
-            raise RespuestaInvalida(f"Respuesta ilegible (HTTP {respuesta.status_code})") from error
+            raise ResultadoIncierto(f"Respuesta ilegible (HTTP {respuesta.status_code})") from error
         if not isinstance(cuerpo_json, dict) or not isinstance(cuerpo_json.get("success"), bool):
-            raise RespuestaInvalida(f"Respuesta sin `success` (HTTP {respuesta.status_code})")
+            raise ResultadoIncierto(f"Respuesta sin `success` (HTTP {respuesta.status_code})")
 
         if not cuerpo_json["success"]:
             code = cuerpo_json.get("code")
@@ -187,7 +235,7 @@ class ClienteVentasFF:
     async def productos(self) -> list[Producto]:
         data = await self._peticion("GET", "productos.php")
         if not isinstance(data, list):
-            raise RespuestaInvalida("`data` de productos no es una lista")
+            raise ResultadoIncierto("`data` de productos no es una lista")
         productos = []
         for item in data:
             item = _diccionario(item)
@@ -212,7 +260,7 @@ class ClienteVentasFF:
         )
         valid = data.get("valid")
         if not isinstance(valid, bool):
-            raise RespuestaInvalida("Campo 'valid' ausente o no es booleano")
+            raise ResultadoIncierto("Campo 'valid' ausente o no es booleano")
         return Validacion(
             valid=valid,
             nickname=_texto(data, "nickname", nulo=True),
