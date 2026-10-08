@@ -50,7 +50,7 @@
 - [x] T-041 Generación de `codigo` (`FF-000123`) (RF-30) → único y legible.
 - [x] T-042 Máquina de estados con transiciones permitidas (sec. 7 de la spec) → transiciones inválidas lanzan error.
 - [x] T-043 Validación: formato de Player ID, `validar.php`, manejo de `no_existe`/`no_disponible` (RF-20, RF-27) → tests del servicio; la ruta `POST /recargas/validar` con sesión se expone en T-054.
-- [ ] T-044 Fase A: reserva e inserción de pedido en una transacción, con idempotencia (RF-22, RF-25) → tests, incluido reenvío con mismo token (CA-02).
+- [x] T-044 Fase A: reserva e inserción de pedido en una transacción, con idempotencia (RF-22, RF-25) → tests, incluido reenvío con mismo token (CA-02).
 - [ ] T-045 Fase B: candado global (`pg_advisory_lock`), limitador de tasa propio, verificación de `saldo.php`, `recargar.php` con un reintento ante `BUSY` (RF-23, RN-05 a RN-08) → tests contra simulador.
 - [ ] T-046 Fase C: resolución según resultado, con contabilidad por caso (RF-24, RN-02) → un test por escenario del simulador.
 - [ ] T-047 Recuperación al iniciar: `PROCESANDO` huérfanos → `PENDIENTE_VERIFICAR` (RN-09) → test.

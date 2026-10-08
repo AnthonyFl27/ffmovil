@@ -7,10 +7,14 @@ import logging
 import re
 from dataclasses import dataclass
 
-from sqlalchemy import select
+from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Paquete
+from app.models import Paquete, Pedido, PedidoEvento
+from app.services import ledger
+from app.services.codigos import codigo_pedido
+from app.services.estados import Estado, validar_transicion
 from app.services.ventasff_client import ClienteVentasFF, ErrorVentasFF
 
 logger = logging.getLogger(__name__)
@@ -37,6 +41,18 @@ class JugadorNoExiste(ErrorRecarga):
 
 class PaqueteNoDisponible(ErrorRecarga):
     pass
+
+
+class TokenInvalido(ErrorRecarga):
+    pass
+
+
+class ConfirmacionRequerida(ErrorRecarga):
+    """El ID no pudo verificarse: el cliente debe confirmar para continuar (RF-20)."""
+
+    def __init__(self, advertencia: str):
+        super().__init__(advertencia)
+        self.advertencia = advertencia
 
 
 @dataclass(frozen=True)
@@ -94,3 +110,124 @@ async def validar_jugador(
         logger.warning("validar.php devolvió un estado desconocido: %r", validacion.estado)
         return ResultadoValidacion("error_validador", None, ADVERTENCIA_NO_DISPONIBLE)
     return ResultadoValidacion("no_disponible", None, ADVERTENCIA_NO_DISPONIBLE)
+
+
+LARGO_MAXIMO_TOKEN = 200
+
+
+@dataclass(frozen=True)
+class PedidoCreado:
+    pedido: Pedido
+    # False si el token ya existía y se devolvió el pedido anterior (RF-25).
+    nuevo: bool
+
+
+async def cambiar_estado(
+    sesion: AsyncSession,
+    pedido: Pedido,
+    nuevo: Estado,
+    *,
+    detalle: str | None = None,
+    creado_por: int | None = None,
+) -> None:
+    """Valida la transición (sec. 7 de la spec), actualiza el pedido y registra el evento.
+
+    `creado_por` es el admin que resuelve; solo así se sale de PENDIENTE_VERIFICAR.
+    """
+    anterior = pedido.estado
+    if anterior is not None:
+        validar_transicion(anterior, nuevo, por_admin=creado_por is not None)
+    pedido.estado = nuevo
+    pedido.actualizado_en = func.now()
+    sesion.add(
+        PedidoEvento(
+            pedido_id=pedido.id,
+            estado_anterior=anterior,
+            estado_nuevo=nuevo,
+            detalle=detalle,
+            creado_por=creado_por,
+        )
+    )
+    await sesion.flush()
+
+
+async def _pedido_por_token(sesion: AsyncSession, usuario_id: int, token: str) -> Pedido | None:
+    return await sesion.scalar(
+        select(Pedido)
+        .where(Pedido.usuario_id == usuario_id, Pedido.token_idempotencia == token)
+        .execution_options(populate_existing=True)
+    )
+
+
+async def crear_pedido(
+    sesion: AsyncSession,
+    cliente: ClienteVentasFF,
+    usuario_id: int,
+    paquete_id: int,
+    player_id: str,
+    token_idempotencia: str,
+    *,
+    confirmar_sin_verificar: bool = False,
+) -> PedidoCreado:
+    """Fase A (plan 4.2): valida, reserva el saldo y crea el pedido en PROCESANDO.
+
+    Confirma su propia transacción. Un reenvío con el mismo token devuelve el
+    pedido existente sin crear otro ni reservar de nuevo (RF-25, CA-02). Si falla,
+    no queda pedido ni reserva.
+    """
+    if (
+        not isinstance(token_idempotencia, str)
+        or not token_idempotencia.strip()
+        or len(token_idempotencia) > LARGO_MAXIMO_TOKEN
+    ):
+        raise TokenInvalido("Token de idempotencia inválido")
+
+    existente = await _pedido_por_token(sesion, usuario_id, token_idempotencia)
+    if existente is not None:
+        return PedidoCreado(existente, nuevo=False)
+
+    # RN-03: el ID se valida en el servidor antes de reservar, sin bloqueos tomados.
+    validacion = await validar_jugador(sesion, cliente, player_id, paquete_id)
+    if not validacion.verificado and not confirmar_sin_verificar:
+        raise ConfirmacionRequerida(validacion.advertencia or ADVERTENCIA_NO_DISPONIBLE)
+    player_id = validar_formato_player_id(player_id)
+
+    try:
+        paquete = await paquete_disponible(sesion, paquete_id)
+        # RN-02: precios congelados al crear el pedido.
+        pedido = Pedido(
+            usuario_id=usuario_id,
+            paquete_id=paquete.paquete_id,
+            player_id=player_id,
+            nickname=validacion.nickname,
+            precio_costo=paquete.precio_costo,
+            precio_venta=paquete.precio_venta,
+            estado=Estado.CREADO,
+            token_idempotencia=token_idempotencia,
+        )
+        sesion.add(pedido)
+        try:
+            await sesion.flush()
+        except IntegrityError as error:
+            if "uq_pedidos_usuario_token" not in str(error.orig):
+                raise
+            # Otro reenvío con el mismo token se adelantó: se devuelve ese pedido.
+            await sesion.rollback()
+            existente = await _pedido_por_token(sesion, usuario_id, token_idempotencia)
+            if existente is None:
+                raise
+            return PedidoCreado(existente, nuevo=False)
+
+        pedido.codigo = codigo_pedido(pedido.id)
+        sesion.add(
+            PedidoEvento(pedido_id=pedido.id, estado_anterior=None, estado_nuevo=Estado.CREADO)
+        )
+        await ledger.reservar(sesion, usuario_id, paquete.precio_venta, pedido_id=pedido.id)
+        await cambiar_estado(sesion, pedido, Estado.PROCESANDO, detalle="Saldo reservado")
+        await sesion.commit()
+    except Exception:
+        await sesion.rollback()
+        raise
+    await sesion.refresh(pedido)
+    logger.info("Pedido %s creado y reservado", pedido.codigo)
+    return PedidoCreado(pedido, nuevo=True)
