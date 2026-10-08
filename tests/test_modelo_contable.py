@@ -1,6 +1,5 @@
 """T-010: restricciones del modelo contable (RN-01, RNF-04)."""
 
-import uuid
 from decimal import Decimal
 
 import pytest
@@ -8,17 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from app.models import Auditoria, Movimiento, Saldo, Usuario
-
-
-def nuevo_usuario(rol: str = "cliente") -> Usuario:
-    return Usuario(usuario=f"u_{uuid.uuid4().hex[:12]}", hash_password="x", rol=rol)
-
-
-async def crear_usuario(sesion) -> Usuario:
-    usuario = nuevo_usuario()
-    sesion.add(usuario)
-    await sesion.flush()
-    return usuario
+from tests.utilidades import crear_usuario, nuevo_usuario
 
 
 def movimiento(usuario_id: int, **cambios) -> Movimiento:

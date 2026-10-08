@@ -68,3 +68,24 @@ async def motor_bd(url_bd_test):
 async def sesion_bd(motor_bd):
     async with crear_fabrica_sesiones(motor_bd)() as sesion:
         yield sesion
+
+
+@pytest.fixture
+async def cuenta(sesion_bd):
+    """Id de un cliente nuevo con saldo en cero, ya confirmado en la BD."""
+    from app.services import ledger
+    from tests.utilidades import crear_usuario
+
+    usuario = await crear_usuario(sesion_bd)
+    await ledger.abrir_cuenta(sesion_bd, usuario.id)
+    await sesion_bd.commit()
+    return usuario.id
+
+
+@pytest.fixture
+async def admin_id(sesion_bd):
+    from tests.utilidades import crear_usuario
+
+    usuario = await crear_usuario(sesion_bd, rol="admin")
+    await sesion_bd.commit()
+    return usuario.id

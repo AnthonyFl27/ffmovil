@@ -5,7 +5,8 @@ from sqlalchemy import delete, func, select, text, update
 from sqlalchemy.exc import DBAPIError
 
 from app.models import Movimiento
-from tests.test_modelo_contable import crear_usuario, movimiento
+from tests.test_modelo_contable import movimiento
+from tests.utilidades import crear_usuario
 
 
 @pytest.fixture
