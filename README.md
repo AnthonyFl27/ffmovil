@@ -16,7 +16,7 @@ El desarrollo sigue un proceso guiado por especificación (SDD):
 
 - [uv](https://docs.astral.sh/uv/) (gestiona Python 3.12 y dependencias).
 - Docker y Docker Compose.
-- Acceso a un servidor PostgreSQL 16 (no se incluye en el Compose).
+- Acceso a un servidor PostgreSQL 18 (no se incluye en el Compose).
 
 ## Configuración
 
