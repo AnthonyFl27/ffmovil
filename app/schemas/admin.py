@@ -173,3 +173,19 @@ class Catalogo(BaseModel):
     # Resultado de la última sincronización (fecha, contadores o error), si hubo.
     ultima_sincronizacion: dict | None
 
+
+class RegistroAuditoria(BaseModel):
+    id: int
+    fecha: datetime
+    usuario_id: int | None
+    usuario: str | None
+    accion: str
+    detalle: dict | None
+    ip: str | None
+
+
+class ListaAuditoria(BaseModel):
+    registros: list[RegistroAuditoria]
+    total: int
+    pagina: int
+    por_pagina: int
