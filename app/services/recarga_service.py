@@ -13,10 +13,10 @@ from sqlalchemy import func, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
-from app.models import Paquete, Pedido, PedidoEvento
+from app.models import Auditoria, Paquete, Pedido, PedidoEvento, Usuario
 from app.services import ledger
 from app.services.codigos import codigo_pedido
-from app.services.estados import Estado, validar_transicion
+from app.services.estados import Estado, TransicionInvalida, validar_transicion
 from app.services.limitador import LimitadorTasa
 from app.services.ventasff_client import (
     Clasificacion,
@@ -506,3 +506,75 @@ async def procesar_pedido(
     async with fabrica() as sesion:
         pedido = await resolver_pedido(sesion, pedido_id, resultado)
     return pedido, resultado
+
+
+# --- Resolución manual de PENDIENTE_VERIFICAR (RF-52, plan 4.4) ---
+
+MENSAJE_FALLIDO_POR_ADMIN = "La recarga no se realizó (verificado por soporte)."
+CODIGO_FALLIDO_POR_ADMIN = "RESUELTO_FALLIDO"
+
+
+class ErrorResolucion(Exception):
+    pass
+
+
+async def resolver_pendiente(
+    sesion: AsyncSession,
+    pedido_id: int,
+    resultado: str,
+    *,
+    admin_id: int,
+    nota: str,
+    referencia: str | None = None,
+    ip: str | None = None,
+) -> Pedido:
+    """El admin marca un pedido PENDIENTE_VERIFICAR como exitoso o fallido.
+
+    - exitoso: misma contabilidad que un éxito (cobra la reserva), con referencia opcional.
+    - fallido: misma contabilidad que un fallo (libera la reserva).
+    Solo válido desde PENDIENTE_VERIFICAR (RN-04). Registra evento y auditoría (RF-55).
+    """
+    if resultado not in ("exitoso", "fallido"):
+        raise ErrorResolucion("El resultado debe ser 'exitoso' o 'fallido'")
+    if not isinstance(nota, str) or not nota.strip():
+        raise ErrorResolucion("La nota es obligatoria")
+    nota = nota.strip()
+    referencia = referencia.strip() if referencia and referencia.strip() else None
+
+    try:
+        admin = await sesion.get(Usuario, admin_id)
+        if admin is None or admin.rol != "admin" or not admin.activo:
+            raise ErrorResolucion("Solo un admin activo puede resolver pedidos")
+        pedido = await bloquear_pedido(sesion, pedido_id)
+        if pedido.estado != Estado.PENDIENTE_VERIFICAR:
+            raise TransicionInvalida(pedido.estado, resultado.upper())
+        if resultado == "exitoso":
+            await aplicar_exito(sesion, pedido, referencia, detalle=nota, creado_por=admin_id)
+        else:
+            await aplicar_fallo(
+                sesion,
+                pedido,
+                MENSAJE_FALLIDO_POR_ADMIN,
+                CODIGO_FALLIDO_POR_ADMIN,
+                detalle=nota,
+                creado_por=admin_id,
+            )
+        sesion.add(
+            Auditoria(
+                usuario_id=admin_id,
+                accion="resolver_pedido",
+                detalle={
+                    "pedido": pedido.codigo,
+                    "resultado": resultado,
+                    "referencia": referencia,
+                    "nota": nota,
+                },
+                ip=ip,
+            )
+        )
+        await sesion.commit()
+    except Exception:
+        await sesion.rollback()
+        raise
+    logger.info("Pedido %s resuelto manualmente: %s", pedido.codigo, pedido.estado)
+    return pedido

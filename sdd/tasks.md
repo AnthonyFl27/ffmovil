@@ -54,7 +54,7 @@
 - [x] T-045 Fase B: candado global (`pg_advisory_lock`), limitador de tasa propio, verificación de `saldo.php`, `recargar.php` con un reintento ante `BUSY` (RF-23, RN-05 a RN-08) → tests contra simulador.
 - [x] T-046 Fase C: resolución según resultado, con contabilidad por caso (RF-24, RN-02) → un test por escenario del simulador.
 - [x] T-047 Recuperación al iniciar: `PROCESANDO` huérfanos → `PENDIENTE_VERIFICAR` (RN-09) → test.
-- [ ] T-048 Resolución manual por admin de `PENDIENTE_VERIFICAR` (RF-52, RN-04) → tests de ambos resultados y rechazo de estados inválidos.
+- [x] T-048 Resolución manual por admin de `PENDIENTE_VERIFICAR` (RF-52, RN-04) → tests de ambos resultados y rechazo de estados inválidos.
 - [ ] T-049 Alertas al admin: crédito bajo, `INSUFFICIENT_CREDIT`, errores de cuenta (RN-08, Q-06) → alerta visible en el panel.
 
 ## Fase 6 — API cliente y admin
