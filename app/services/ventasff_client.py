@@ -4,11 +4,16 @@ La API Key solo viaja en la cabecera `Authorization` y nunca se registra
 (RNF-05). Los montos se leen como `Decimal` directamente del JSON (RNF-04).
 """
 
+import asyncio
 import json
 import logging
+import math
 import time
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from decimal import Decimal
+from email.utils import parsedate_to_datetime
 from enum import StrEnum
 from typing import Any, Self
 
@@ -19,6 +24,8 @@ logger = logging.getLogger(__name__)
 URL_BASE = "https://ventasff.com/api/reseller"
 TIMEOUT_GENERAL = httpx.Timeout(30.0, connect=15.0)
 TIMEOUT_RECARGA = httpx.Timeout(90.0, connect=15.0)
+# Pausa máxima tras RATE_LIMITED; también se usa si falta `Retry-After` (RN-07).
+PAUSA_MAXIMA = 60.0
 
 
 @dataclass(frozen=True)
@@ -62,11 +69,13 @@ class ErrorVentasFF(Exception):
 class ErrorAPI(ErrorVentasFF):
     """VentasFF respondió `success: false` con un código de error."""
 
-    def __init__(self, code: str, mensaje: str, estado_http: int):
+    def __init__(self, code: str, mensaje: str, estado_http: int, retry_after: float | None = None):
         super().__init__(f"{code}: {mensaje}")
         self.code = code
         self.mensaje = mensaje
         self.estado_http = estado_http
+        # Segundos de espera pedidos por el proveedor (solo en RATE_LIMITED).
+        self.retry_after = retry_after
 
 
 class ErrorPrevioAlEnvio(ErrorVentasFF):
@@ -141,6 +150,26 @@ def _monto(datos: dict, campo: str) -> Decimal:
     return Decimal(valor)
 
 
+def segundos_retry_after(valor: str | None, ahora: datetime | None = None) -> float:
+    """Interpreta `Retry-After` (segundos o fecha HTTP), acotado a [0, PAUSA_MAXIMA]."""
+    if not valor:
+        return PAUSA_MAXIMA
+    valor = valor.strip()
+    try:
+        segundos = float(valor)
+    except ValueError:
+        try:
+            fecha = parsedate_to_datetime(valor)
+        except (TypeError, ValueError):
+            return PAUSA_MAXIMA
+        if fecha.tzinfo is None:
+            fecha = fecha.replace(tzinfo=UTC)
+        segundos = (fecha - (ahora or datetime.now(UTC))).total_seconds()
+    if not math.isfinite(segundos):
+        return PAUSA_MAXIMA
+    return min(max(segundos, 0.0), PAUSA_MAXIMA)
+
+
 def _diccionario(data: Any) -> dict:
     if not isinstance(data, dict):
         raise ResultadoIncierto("`data` no es un objeto")
@@ -154,7 +183,13 @@ class ClienteVentasFF:
         base_url: str = URL_BASE,
         *,
         transport: httpx.AsyncBaseTransport | None = None,
+        reloj: Callable[[], float] = time.monotonic,
+        dormir: Callable[[float], Awaitable[None]] = asyncio.sleep,
     ):
+        self._reloj = reloj
+        self._dormir = dormir
+        # Instante (según `reloj`) antes del cual no se envía nada (RATE_LIMITED).
+        self._pausa_hasta = 0.0
         self._http = httpx.AsyncClient(
             base_url=base_url.rstrip("/") + "/",
             headers={"Authorization": f"Bearer {api_key}", "Accept": "application/json"},
@@ -181,6 +216,10 @@ class ClienteVentasFF:
         timeout: httpx.Timeout = TIMEOUT_GENERAL,
     ) -> Any:
         """Devuelve `data` de una respuesta `success: true`."""
+        espera = self._pausa_hasta - self._reloj()
+        if espera > 0:
+            logger.info("VentasFF en pausa por RATE_LIMITED: %.1fs", espera)
+            await self._dormir(espera)
         inicio = time.monotonic()
         try:
             respuesta = await self._http.request(
@@ -216,11 +255,18 @@ class ClienteVentasFF:
 
         if not cuerpo_json["success"]:
             code = cuerpo_json.get("code")
+            code = code if isinstance(code, str) and code else "DESCONOCIDO"
             mensaje = cuerpo_json.get("error")
+            retry_after = None
+            if code == "RATE_LIMITED" or respuesta.status_code == 429:
+                retry_after = segundos_retry_after(respuesta.headers.get("Retry-After"))
+                self._pausa_hasta = max(self._pausa_hasta, self._reloj() + retry_after)
+                logger.warning("VentasFF RATE_LIMITED: pausa de %.1fs", retry_after)
             raise ErrorAPI(
-                code if isinstance(code, str) and code else "DESCONOCIDO",
+                code,
                 mensaje if isinstance(mensaje, str) else "",
                 respuesta.status_code,
+                retry_after,
             )
         return cuerpo_json.get("data")
 
