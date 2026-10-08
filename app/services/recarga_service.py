@@ -11,7 +11,7 @@ from dataclasses import dataclass
 
 from sqlalchemy import func, select, text
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from app.models import Paquete, Pedido, PedidoEvento
 from app.services import ledger
@@ -393,3 +393,116 @@ async def llamar_proveedor(
                 text("SELECT pg_advisory_unlock(:clave)"), {"clave": CANDADO_RECARGAS}
             )
             await conexion.commit()
+
+
+# --- Fase C: resolución (plan 4.2) ---
+
+
+async def bloquear_pedido(sesion: AsyncSession, pedido_id: int) -> Pedido:
+    pedido = await sesion.scalar(
+        select(Pedido)
+        .where(Pedido.id == pedido_id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    if pedido is None:
+        raise LookupError(f"No existe el pedido {pedido_id}")
+    return pedido
+
+
+async def aplicar_exito(
+    sesion: AsyncSession,
+    pedido: Pedido,
+    referencia: str | None,
+    *,
+    detalle: str | None = None,
+    creado_por: int | None = None,
+) -> None:
+    """EXITOSO: confirma el cobro de la reserva y guarda la referencia (RF-24)."""
+    await cambiar_estado(sesion, pedido, Estado.EXITOSO, detalle=detalle, creado_por=creado_por)
+    pedido.referencia = referencia
+    await ledger.cargar(sesion, pedido.usuario_id, pedido.precio_venta, pedido_id=pedido.id)
+
+
+async def aplicar_fallo(
+    sesion: AsyncSession,
+    pedido: Pedido,
+    motivo: str,
+    error_code: str | None,
+    *,
+    detalle: str | None = None,
+    creado_por: int | None = None,
+) -> None:
+    """FALLIDO: libera la reserva y guarda el motivo (RF-24)."""
+    await cambiar_estado(sesion, pedido, Estado.FALLIDO, detalle=detalle, creado_por=creado_por)
+    pedido.error = motivo
+    pedido.error_code = error_code
+    await ledger.liberar(sesion, pedido.usuario_id, pedido.precio_venta, pedido_id=pedido.id)
+
+
+async def resolver_pedido(
+    sesion: AsyncSession, pedido_id: int, resultado: ResultadoProveedor
+) -> Pedido:
+    """Fase C: actualiza pedido y saldo según el resultado, en una transacción.
+
+    Solo resuelve pedidos en PROCESANDO; si no, `TransicionInvalida` sin cambios.
+    """
+    try:
+        pedido = await bloquear_pedido(sesion, pedido_id)
+        match resultado.clasificacion:
+            case Clasificacion.EXITO:
+                referencia = resultado.recarga.referencia if resultado.recarga else None
+                await aplicar_exito(sesion, pedido, referencia, detalle=f"Referencia {referencia}")
+            case Clasificacion.ERROR_API | Clasificacion.ERROR_PREVIO:
+                await aplicar_fallo(
+                    sesion,
+                    pedido,
+                    resultado.motivo or MENSAJE_ERROR_RECARGA,
+                    resultado.error_code,
+                    detalle=resultado.detalle,
+                )
+            case _:
+                # Timeout o respuesta ilegible: el monto queda retenido (RN-04).
+                await cambiar_estado(
+                    sesion, pedido, Estado.PENDIENTE_VERIFICAR, detalle=resultado.detalle
+                )
+        await sesion.commit()
+    except Exception:
+        await sesion.rollback()
+        raise
+    logger.info("Pedido %s resuelto: %s", pedido.codigo, pedido.estado)
+    return pedido
+
+
+async def procesar_pedido(
+    fabrica: async_sessionmaker,
+    motor: AsyncEngine,
+    cliente: ClienteVentasFF,
+    limitador: LimitadorTasa,
+    pedido_id: int,
+    *,
+    dormir: Callable[[float], Awaitable[None]] = asyncio.sleep,
+) -> tuple[Pedido, ResultadoProveedor]:
+    """Fases B y C de un pedido ya creado en PROCESANDO."""
+    async with fabrica() as sesion:
+        pedido = await sesion.get(Pedido, pedido_id)
+        if pedido is None:
+            raise LookupError(f"No existe el pedido {pedido_id}")
+        datos = (pedido.paquete_id, pedido.player_id, pedido.precio_costo, pedido.estado)
+    paquete_id, player_id, precio_costo, estado = datos
+    validar_transicion(estado, Estado.EXITOSO)  # solo pedidos en PROCESANDO
+
+    resultado = await llamar_proveedor(
+        motor,
+        cliente,
+        limitador,
+        paquete_id=paquete_id,
+        player_id=player_id,
+        precio_costo=precio_costo,
+        dormir=dormir,
+    )
+    if resultado.alerta:
+        logger.warning("Alerta para el admin (%s): %s", resultado.alerta, resultado.error_code)
+    async with fabrica() as sesion:
+        pedido = await resolver_pedido(sesion, pedido_id, resultado)
+    return pedido, resultado
