@@ -4,14 +4,19 @@ El `precio_venta` lo fija el admin a mano; no hay cálculo de margen (RF-11).
 Ninguna función hace commit: corren en la transacción de quien las llama.
 """
 
-from dataclasses import dataclass
+import logging
+from dataclasses import dataclass, field
 from decimal import Decimal
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Paquete
+from app.models.catalogo import JUEGO_FREE_FIRE
 from app.services import montos
+from app.services.ventasff_client import ClienteVentasFF
+
+logger = logging.getLogger(__name__)
 
 
 class ErrorCatalogo(Exception):
@@ -89,3 +94,72 @@ async def desactivar(sesion: AsyncSession, paquete_id: int) -> Paquete:
     paquete.activo = False
     await sesion.flush()
     return paquete
+
+
+@dataclass(frozen=True)
+class ResumenSincronizacion:
+    recibidos: int = 0
+    nuevos: int = 0
+    actualizados: int = 0
+    desactivados: int = 0
+    # Paquetes con precio de venta <= costo tras la sincronización (RF-14).
+    bajo_costo: list[int] = field(default_factory=list)
+
+
+async def sincronizar_catalogo(
+    sesion: AsyncSession, cliente: ClienteVentasFF
+) -> ResumenSincronizacion:
+    """Sincroniza `productos.php` con la tabla `paquetes` (RF-10, RF-14).
+
+    Solo `free_fire`. Actualiza nombre, diamantes y costo; los nuevos se crean
+    inactivos y sin precio de venta; los que ya no vienen se desactivan. Nunca
+    modifica `precio_venta`. Si la API falla, propaga el error sin cambios.
+    """
+    productos = {p.paquete_id: p for p in await cliente.productos() if p.juego == JUEGO_FREE_FIRE}
+
+    existentes = {
+        p.paquete_id: p
+        for p in await sesion.scalars(
+            select(Paquete).with_for_update().execution_options(populate_existing=True)
+        )
+    }
+    nuevos = actualizados = desactivados = 0
+    for paquete_id, producto in productos.items():
+        paquete = existentes.get(paquete_id)
+        if paquete is None:
+            sesion.add(
+                Paquete(
+                    paquete_id=paquete_id,
+                    juego=producto.juego,
+                    nombre=producto.nombre,
+                    diamantes=producto.diamantes,
+                    precio_costo=producto.precio,
+                    precio_venta=None,
+                    activo=False,
+                )
+            )
+            nuevos += 1
+            continue
+        datos = (producto.nombre, producto.diamantes, producto.precio)
+        if (paquete.nombre, paquete.diamantes, paquete.precio_costo) != datos:
+            paquete.nombre, paquete.diamantes, paquete.precio_costo = datos
+            paquete.actualizado_en = func.now()
+            actualizados += 1
+
+    for paquete_id, paquete in existentes.items():
+        if paquete_id not in productos and paquete.activo:
+            paquete.activo = False
+            paquete.actualizado_en = func.now()
+            desactivados += 1
+
+    await sesion.flush()
+    bajo_costo = sorted(
+        p.paquete_id
+        for p in existentes.values()
+        if p.paquete_id in productos and precio_bajo_costo(p)
+    )
+    resumen = ResumenSincronizacion(len(productos), nuevos, actualizados, desactivados, bajo_costo)
+    logger.info("Catálogo sincronizado: %s", resumen)
+    if bajo_costo:
+        logger.warning("Paquetes con precio de venta <= costo: %s", bajo_costo)
+    return resumen
