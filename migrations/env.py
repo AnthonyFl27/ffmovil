@@ -1,4 +1,5 @@
 import asyncio
+import re
 from logging.config import fileConfig
 
 from alembic import context
@@ -22,8 +23,17 @@ target_metadata = Base.metadata
 
 
 def obtener_url() -> str:
+    # Las pruebas pasan la URL por config.attributes (ver tests/conftest.py).
     # No se usa config.set_main_option: configparser interpreta '%' de claves codificadas.
-    return obtener_configuracion().database_url.get_secret_value()
+    return config.attributes.get("url") or obtener_configuracion().database_url.get_secret_value()
+
+
+def obtener_esquema() -> str | None:
+    """Esquema destino opcional (las pruebas usan `test`, RNF-10). Sin él, el search_path por defecto."""
+    esquema = config.attributes.get("esquema")
+    if esquema is not None and not re.fullmatch(r"[a-z_][a-z0-9_]*", esquema):
+        raise ValueError(f"Nombre de esquema inválido: {esquema!r}")
+    return esquema
 
 
 def run_migrations_offline() -> None:
@@ -51,7 +61,11 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: Connection) -> None:
-    context.configure(connection=connection, target_metadata=target_metadata)
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        version_table_schema=obtener_esquema(),
+    )
 
     with context.begin_transaction():
         context.run_migrations()
@@ -63,7 +77,12 @@ async def run_async_migrations() -> None:
 
     """
 
-    connectable = create_async_engine(obtener_url(), poolclass=pool.NullPool)
+    esquema = obtener_esquema()
+    # search_path a nivel de conexión: las tablas sin esquema explícito se crean en `esquema`.
+    connect_args = {"options": f"-csearch_path={esquema}"} if esquema else {}
+    connectable = create_async_engine(
+        obtener_url(), poolclass=pool.NullPool, connect_args=connect_args
+    )
 
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)

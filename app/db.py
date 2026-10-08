@@ -9,8 +9,10 @@ class ErrorConexionBD(RuntimeError):
     """No se pudo conectar a la base de datos."""
 
 
-def crear_motor(url: str) -> AsyncEngine:
-    return create_async_engine(url, pool_pre_ping=True)
+def crear_motor(url: str, esquema: str | None = None) -> AsyncEngine:
+    """`esquema` fija el search_path de cada conexión (las pruebas usan `test`, RNF-10)."""
+    connect_args = {"options": f"-csearch_path={esquema}"} if esquema else {}
+    return create_async_engine(url, pool_pre_ping=True, connect_args=connect_args)
 
 
 def crear_fabrica_sesiones(motor: AsyncEngine) -> async_sessionmaker:
