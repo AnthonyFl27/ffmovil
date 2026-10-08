@@ -172,7 +172,7 @@ Al iniciar la aplicación: pedidos en `CREADO`/`PROCESANDO` con antigüedad mayo
 Solo válido si el estado es `PENDIENTE_VERIFICAR`. Registra evento y auditoría.
 
 ### 4.5 Cliente VentasFF (`ventasff_client.py`)
-- Único módulo que llama a VentasFF. `httpx.AsyncClient` con `Authorization: Bearer`, timeouts 15 s conexión / 30 s general / 90 s en `recargar.php`. El transporte es inyectable (pruebas con respx y con el simulador).
+- Único módulo que llama a VentasFF. `httpx.AsyncClient` con `Authorization: Bearer`, timeouts 15 s conexión / 30 s general / 90 s en `recargar.php`. El transporte es inyectable (pruebas con respx y con el simulador). La URL base sale de `VENTASFF_URL` (opcional; por defecto la real), para usar el simulador como servidor en desarrollo.
 - El JSON se lee con `parse_float=Decimal`; los montos nunca pasan por float.
 - Métodos: `saldo()`, `productos()`, `validar(player_id, paquete_id)`, `recargar(paquete_id, player_id)`; devuelven dataclasses con los campos de la sección 9 de la spec.
 - Clasificación de resultados (T-021), sobre todo para `recargar`:
@@ -232,7 +232,7 @@ Esquemas de respuesta del cliente: modelos Pydantic dedicados que **no declaran*
 
 ## 7. Seguridad (RNF-01 a RNF-06)
 
-- Configuración por variables de entorno: `VENTASFF_API_KEY`, `DATABASE_URL`, `TEST_DATABASE_URL`, `SECRET_KEY`, `COOKIE_SECURE`.
+- Configuración por variables de entorno: `VENTASFF_API_KEY`, `DATABASE_URL`, `TEST_DATABASE_URL`, `SECRET_KEY`, `COOKIE_SECURE`; opcional `VENTASFF_URL`.
 - Sesión con cookie firmada `HttpOnly; SameSite=Lax`; `Secure` según `COOKIE_SECURE` (`true` en producción con HTTPS); token CSRF en formularios.
 - Limitador de login (por usuario e IP).
 - Middleware que bloquea a usuarios con `debe_cambiar_clave` salvo en `/auth/cambiar-clave`.

@@ -21,6 +21,8 @@ class Configuracion(BaseSettings):
     database_url: SecretStr = Field(min_length=1)
     secret_key: SecretStr = Field(min_length=32)
     cookie_secure: bool
+    # Opcional: en desarrollo puede apuntar al simulador (tests/fake_ventasff.py).
+    ventasff_url: str = "https://ventasff.com/api/reseller"
     # Solo la necesitan las pruebas (RNF-10); producción no la define.
     test_database_url: SecretStr | None = None
 
