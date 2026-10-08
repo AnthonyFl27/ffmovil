@@ -65,10 +65,11 @@ El código nunca introduce comportamiento que no esté en la spec. Si durante la
 
 ## Convenciones
 
-- Código y comentarios técnicos en inglés o español, de forma consistente dentro del proyecto (definir y anotar aquí).
+- Código, identificadores y comentarios técnicos en **español** (mismos términos que la spec: `pedidos`, `saldos`, `movimientos`, `precio_venta`…). Se aceptan términos técnicos sin traducción habitual (`router`, `schema`, `fixture`).
 - Mensajes al usuario final en español.
 - Commits: `T-XXX <resumen> [RF-/RN-/RNF-...]`.
 - Formato y lint: `ruff`.
+- Dependencias y Python 3.12 gestionados con `uv` (`pyproject.toml` + `uv.lock`). Pruebas: `uv run pytest`; lint: `uv run ruff check .`.
 
 ## Qué no hacer
 

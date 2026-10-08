@@ -1,6 +1,6 @@
 # Plan técnico
 
-- **Spec de referencia:** `sdd/spec.md` v0.3.0
+- **Spec de referencia:** `sdd/spec.md` v0.4.0
 - **Regla:** este plan implementa la spec. Si el plan contradice la spec, gana la spec.
 
 ---
@@ -9,7 +9,8 @@
 
 | Capa | Tecnología |
 |---|---|
-| Backend | Python 3.12, FastAPI, SQLAlchemy 2.x (async o sync), Alembic |
+| Backend | Python 3.12, FastAPI, SQLAlchemy 2.x async con psycopg 3, Alembic |
+| Dependencias | uv (`pyproject.toml` + `uv.lock`) |
 | Base de datos | PostgreSQL 16, externo (servidor propio en el VPS), acceso solo por `DATABASE_URL` |
 | Frontend (propuesta Q-05) | Jinja2 + HTMX servidos por FastAPI |
 | HTTP cliente | httpx |
