@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 
@@ -7,13 +8,16 @@ from fastapi.responses import JSONResponse
 from app.config import obtener_configuracion
 from app.db import ErrorConexionBD, crear_fabrica_sesiones, crear_motor, verificar_conexion
 from app.logs import configurar_logs
-from app.routers import auth, me
+from app.routers import auth, me, paquetes, recargas
+from app.services.limitador import PETICIONES_POR_MINUTO, RECARGAS_POR_MINUTO, LimitadorTasa
 from app.services.limitador_login import LimitadorLogin
 from app.services.recuperacion import recuperar_pedidos_huerfanos
 from app.services.tareas import crear_programador
 from app.services.ventasff_client import ClienteVentasFF
 
 logger = logging.getLogger(__name__)
+
+TIMEOUT_CIERRE_SEGUNDOS = 100
 
 
 @asynccontextmanager
@@ -37,17 +41,34 @@ async def lifespan(app: FastAPI):
     def crear_cliente() -> ClienteVentasFF:
         return ClienteVentasFF(config.ventasff_api_key.get_secret_value(), config.ventasff_url)
 
+    # Un solo cliente VentasFF para las rutas: comparte el límite general de peticiones
+    # y la pausa por RATE_LIMITED (RN-07). Las recargas tienen además su propio límite.
+    app.state.ventasff = ClienteVentasFF(
+        config.ventasff_api_key.get_secret_value(),
+        config.ventasff_url,
+        limitador=LimitadorTasa(PETICIONES_POR_MINUTO),
+    )
+    app.state.limitador_recargas = LimitadorTasa(RECARGAS_POR_MINUTO)
+    app.state.tareas_recarga = set()
+
     # Sincronización diaria del catálogo (RF-10); la app corre con un solo worker.
     programador = crear_programador(app.state.sesiones, crear_cliente)
     programador.start()
     yield
     programador.shutdown(wait=False)
+    # Deja terminar las recargas en curso; las que no terminen pasan a revisión al
+    # volver a arrancar (RN-09).
+    if app.state.tareas_recarga:
+        await asyncio.wait(app.state.tareas_recarga, timeout=TIMEOUT_CIERRE_SEGUNDOS)
+    await app.state.ventasff.cerrar()
     await motor.dispose()
 
 
 app = FastAPI(title="ffmovil", lifespan=lifespan)
 app.include_router(auth.router)
 app.include_router(me.router)
+app.include_router(paquetes.router)
+app.include_router(recargas.router)
 
 
 @app.get("/health")

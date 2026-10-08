@@ -82,3 +82,25 @@ class ListaPedidosCliente(BaseModel):
     pagina: int
     por_pagina: int
 
+
+class SolicitudValidacion(BaseModel):
+    player_id: str
+    paquete_id: int
+
+
+class ValidacionJugador(BaseModel):
+    """Resultado de validar el Player ID (RF-20): ok, no_disponible o error_validador."""
+
+    estado: str
+    nickname: str | None
+    # Aviso cuando no se pudo verificar: el cliente puede continuar bajo su confirmación.
+    advertencia: str | None
+
+
+class SolicitudRecarga(BaseModel):
+    """Recarga confirmada por el cliente (RF-21, RF-25)."""
+
+    paquete_id: int
+    player_id: str
+    token_idempotencia: str
+    confirmar_sin_verificar: bool = False

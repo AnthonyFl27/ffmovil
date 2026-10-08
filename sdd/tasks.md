@@ -63,7 +63,7 @@
 - [x] T-051 Cambio obligatorio de contraseña con política mínima y dependencia que restringe acceso; el cambio cierra las demás sesiones (RF-02, RF-06, RF-08; CHG-007) → tests.
 - [x] T-052 `/me/resumen`, `/me/fondos` (RF-33, RF-34, RF-36; CHG-007) → tests con datos de ejemplo.
 - [x] T-053 `/me/pedidos` con filtros y paginación; `/me/pedidos/{codigo}` solo del propio usuario (RF-31, RF-32, CA-05) → tests, incluido acceso a pedido ajeno → 404.
-- [ ] T-054 `/paquetes` y `/recargas` (RF-13, RF-21) → tests.
+- [x] T-054 `/paquetes` y `/recargas` (RF-13, RF-21) → tests.
 - [ ] T-055 Admin usuarios: crear cliente, bloquear, desbloquear, resetear clave; bloquear y resetear cierran sesiones (RF-03, RF-06, RF-07; CHG-007) → tests y auditoría.
 - [ ] T-056 Admin saldos: abono y ajuste con nota obligatoria (RF-40, RF-41) → tests.
 - [ ] T-057 Admin pedidos: filtros y detalle con costo y ganancia (RF-50, RF-51, RF-54, CA-06) → tests.

@@ -155,3 +155,29 @@ async def test_la_clave_no_aparece_en_logs(cliente, api, caplog):
         await cliente.saldo()
     assert caplog.records
     assert CLAVE not in caplog.text
+
+
+async def test_limite_general_de_peticiones():
+    """RN-07: con limitador, las peticiones esperan cupo antes de enviarse."""
+    from app.services.limitador import LimitadorTasa
+    from tests.fake_ventasff import SimuladorVentasFF
+
+    instante = [0.0]
+    esperas = []
+
+    async def dormir(segundos):
+        esperas.append(segundos)
+        instante[0] += segundos
+
+    limitador = LimitadorTasa(2, 60, reloj=lambda: instante[0], dormir=dormir)
+    sim = SimuladorVentasFF()
+    async with ClienteVentasFF(
+        sim.api_key,
+        "http://simulador/api/reseller",
+        transport=sim.transporte(),
+        limitador=limitador,
+    ) as cliente:
+        for _ in range(3):
+            await cliente.saldo()
+    assert esperas == [60.0]
+    assert len(sim.peticiones) == 3

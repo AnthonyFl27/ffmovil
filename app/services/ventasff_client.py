@@ -19,6 +19,8 @@ from typing import Any, Self
 
 import httpx
 
+from app.services.limitador import LimitadorTasa
+
 logger = logging.getLogger(__name__)
 
 URL_BASE = "https://ventasff.com/api/reseller"
@@ -185,8 +187,11 @@ class ClienteVentasFF:
         transport: httpx.AsyncBaseTransport | None = None,
         reloj: Callable[[], float] = time.monotonic,
         dormir: Callable[[float], Awaitable[None]] = asyncio.sleep,
+        limitador: LimitadorTasa | None = None,
     ):
         self._reloj = reloj
+        # Límite general de peticiones propio (RN-07), compartido por toda la app.
+        self._limitador = limitador
         self._dormir = dormir
         # Instante (según `reloj`) antes del cual no se envía nada (RATE_LIMITED).
         self._pausa_hasta = 0.0
@@ -216,6 +221,8 @@ class ClienteVentasFF:
         timeout: httpx.Timeout = TIMEOUT_GENERAL,
     ) -> Any:
         """Devuelve `data` de una respuesta `success: true`."""
+        if self._limitador is not None:
+            await self._limitador.adquirir()
         espera = self._pausa_hasta - self._reloj()
         if espera > 0:
             logger.info("VentasFF en pausa por RATE_LIMITED: %.1fs", espera)

@@ -92,21 +92,37 @@ async def admin_id(sesion_bd):
 
 
 @pytest.fixture
-async def api(motor_bd):
+def simulador():
+    """Simulador de VentasFF que usa la app en las pruebas de la API (RNF-08)."""
+    from tests.fake_ventasff import SimuladorVentasFF
+
+    return SimuladorVentasFF()
+
+
+@pytest.fixture
+async def api(motor_bd, simulador):
     """Fábrica de clientes HTTP contra la app, con la BD del esquema `test`.
 
     Cada cliente tiene su propio tarro de cookies (una sesión por cliente). El
     limitador de login es nuevo en cada prueba. `ip` fija la IP del cliente.
+    VentasFF es el `simulador` de la prueba.
     """
     import httpx
 
     from app.main import app
+    from app.services.limitador import LimitadorTasa
     from app.services.limitador_login import LimitadorLogin
+    from app.services.ventasff_client import ClienteVentasFF
 
     app.state.motor = motor_bd
     app.state.sesiones = crear_fabrica_sesiones(motor_bd)
     app.state.cookie_secure = False
     app.state.limitador_login = LimitadorLogin()
+    app.state.ventasff = ClienteVentasFF(
+        simulador.api_key, "http://simulador/api/reseller", transport=simulador.transporte()
+    )
+    app.state.limitador_recargas = LimitadorTasa(1000)
+    app.state.tareas_recarga = set()
     clientes = []
 
     def nuevo(ip: str = "127.0.0.1") -> httpx.AsyncClient:
@@ -118,3 +134,4 @@ async def api(motor_bd):
     yield nuevo
     for cliente in clientes:
         await cliente.aclose()
+    await app.state.ventasff.cerrar()
