@@ -99,7 +99,7 @@ uv run alembic revision -m "..."   # nueva migración (luego editarla a mano)
 uv run uvicorn app.main:app --reload
 ```
 
-### Piezas ya construidas (fases 1 a 6, spec v0.7.0)
+### Piezas ya construidas (fases 1 a 7, spec v0.7.1)
 
 Detalle de diseño en `sdd/plan.md` (sec. 3 modelo, 4.2 fases A/B/C, 4.2.1 alertas, 4.5 cliente VentasFF, 4.6 transacciones y rutas de recarga, 6 endpoints, 7 seguridad). Migración head: `ea509abd049b` (`sesiones`, aplicada en desarrollo).
 
@@ -113,14 +113,16 @@ Detalle de diseño en `sdd/plan.md` (sec. 3 modelo, 4.2 fases A/B/C, 4.2.1 alert
   - `catalogo` (`fijar_precio_venta` con aviso bajo costo, `activar`, `desactivar`, `sincronizar_catalogo`); `tareas` (job diario y "sincronizar ahora").
   - `estados` (máquina de estados), `codigos` (`FF-000123`), `recarga_service` (`validar_jugador`, `crear_pedido` = Fase A, `llamar_proveedor` = Fase B, `resolver_pedido` = Fase C, `procesar_pedido` = B+C+alertas, `resolver_pendiente` = admin), `recuperacion`, `alertas`, `consultas_pedidos` (filtros y paginación comunes).
 - **Rutas** (`app/routers/`): `dependencias.py` (`Bd`, `EnSesion`, `Actual`, `Cliente`, `Admin`; CSRF por cabecera `X-CSRF-Token` en métodos no seguros), `auth` (login, logout, sesión, cambiar-clave), `me` (resumen, fondos, pedidos), `paquetes`, `recargas` (validar y crear; B+C en tarea propia), `admin/` (usuarios, saldos, pedidos + resolver, panel + alertas + config, paquetes + sincronizar, auditoría; `require_admin` a nivel de router).
+- **Web** (`app/web/`, plan sec. 6.1; Q-05 → Jinja2 + HTMX 2 + Pico.css 2, ambos en `app/static`): las rutas HTML llaman a las funciones de las rutas JSON y renderizan sus esquemas (el cliente nunca recibe uno con costo). `plantillas.py` (filtros `usd`, `fecha` → `<time>` que `app.js` pasa a la zona del navegador, `texto`; `render`, `error(..., destino)` con `HX-Retarget`; `Redirigir`/`ErrorWeb`; dependencias `SesionWeb`, `ClienteWeb`, `AdminWeb`), `filtros.py` (día local + `tz` → UTC), `acceso.py` (`/`, `/entrar`, `/clave`, `/salir`), `cliente.py` (`/inicio`, `/recargar*`, `/historial*`, `/fondos`), `admin.py` (`/gestion*`). CSRF en `<body hx-headers>`; HTMX intercambia también los 4xx y el 502. Plantillas en `app/templates/` (`admin/` solo para el admin).
 - **Esquemas:** los de cliente van en `app/schemas/` (cualquier módulo que no empiece por `admin`) y una prueba falla si declaran algo con "costo"; los de admin, en `app/schemas/admin*.py`. Montos con el tipo `Monto` (texto con 2 decimales) y `moneda: "USD"` (RF-36).
 
 ### Pruebas: cómo escribirlas
 
 - Simulador: `tests/fake_ventasff.py` → `SimuladorVentasFF(escenario_recarga=…, escenario_validar=…, credito=…, busy_restantes=…)`; cliente con `ClienteVentasFF(sim.api_key, "http://simulador/api/reseller", transport=sim.transporte())`. `sim.recargas` dice si el proveedor cobró.
-- API: fixture `api` (fábrica de `httpx.AsyncClient` contra la app; `api(ip)` fija la IP; un tarro de cookies por cliente) y fixture `simulador` (el VentasFF de la app en la prueba). `tests/utilidades_api.py`: `crear_usuario_con_clave` (confirma; clientes con saldo en cero) e `iniciar_sesion` (deja la cabecera CSRF en el cliente). Los pedidos creados con `crear_pedido` no tienen `codigo`: asignar `codigo_pedido(pedido.id)` si la prueba lo usa. Usar precios ficticios (0.50/0.75), no 0.81.
+- API: fixture `api` (fábrica de `httpx.AsyncClient` contra la app; `api(ip)` fija la IP; un tarro de cookies por cliente) y fixture `simulador` (el VentasFF de la app en la prueba). `tests/utilidades_api.py`: `crear_usuario_con_clave` (confirma; clientes con saldo en cero) e `iniciar_sesion` (deja la cabecera CSRF en el cliente). Los pedidos creados con `crear_pedido` no tienen `codigo`: asignar `codigo_pedido(pedido.id)` si la prueba lo usa. Usar precios ficticios (0.50/0.75; el simulador cuesta 0.50).
+- Web: `tests/utilidades_web.py` (`cliente_web` = cliente con sesión, saldo y paquete; `htmx_post`/`htmx_get` con `HX-Request`; `csrf_de(html)`).
 - El esquema `test` se crea **una vez por sesión** de pytest y lo comparten todas las pruebas: usar ids/nombres únicos (`tests/utilidades.py`: `crear_usuario`, `crear_paquete`, `crear_pedido`; fixtures `cuenta`, `admin_id`), aserciones solo sobre lo propio y `rollback` cuando no haga falta persistir. Releer con `execution_options(populate_existing=True)`; tras un `rollback` no acceder a atributos de objetos ORM (expiran → `MissingGreenlet`).
-- Motor y event loop son de alcance sesión. El enlace al VPS es lento (~0.5 s por consulta): minimizar ida y vuelta. Suite completa ≈ 12 min (529 pruebas al cerrar la fase 6).
+- Motor y event loop son de alcance sesión. El enlace al VPS es lento (~0.5 s por consulta): minimizar ida y vuelta. Suite completa ≈ 14 min (570 pruebas al cerrar la fase 7).
 - Dos procesos de pytest con BD a la vez se pisan (cada sesión recrea `test`): no correr pruebas de BD en paralelo.
 
 ### Forma de trabajo acordada con el usuario
@@ -128,12 +130,15 @@ Detalle de diseño en `sdd/plan.md` (sec. 3 modelo, 4.2 fases A/B/C, 4.2.1 alert
 - Al terminar cada tarea: marcar `[x]`, commit y **push** a `origin/main` (repositorio público: revisar que no haya secretos antes). Avisar al usuario al terminar cada fase.
 - El LLM principal orquesta y delega tareas básicas y acotadas a subagentes Haiku (simuladores, utilidades puras, servicios con contrato exacto, tablas de pruebas). La lógica contable, transaccional y de clasificación la hace el principal. A cada subagente: lista cerrada de archivos, sin git, sin leer `.env`, sin suite completa; revisar e integrar antes del commit.
 
-### Pendientes y decisiones abiertas (al cerrar la fase 6)
+### Pendientes y decisiones abiertas (al cerrar la fase 7)
 
-- Siguiente: **Fase 7** (T-070…). Antes: resolver Q-05 (Jinja2 + HTMX propuesto o SPA). Los formularios deben enviar el token CSRF (campo oculto o cabecera) y mostrar fechas en la zona del usuario (RNF-09).
-- Consultados al usuario y sin respuesta: (1) las pruebas antiguas usan 0.81, que coincide con un costo real (RNF-06), ¿pasar a valores ficticios?; (2) si `productos.php` llega vacío, la sincronización desactiva todo el catálogo, ¿proteger con un cambio de spec?
+- Siguiente: **Fase 8** (T-080…).
+- Acordado con el usuario (2026-10-08): proponer un cambio de spec para que, si `productos.php` llega vacío, la sincronización no desactive todo el catálogo (p. ej. no desactivar nada y generar alerta). Presentar el texto exacto antes de aplicarlo.
+- Las pruebas ya usan precios ficticios (commit `Ajuste:` de 2026-10-08).
 - Un fallo inesperado (excepción) en la tarea de fases B/C deja el pedido en `PROCESANDO` hasta el siguiente arranque (RN-09); se registra en el log.
+- La web no se ha probado en un navegador real (solo con pruebas ASGI): revisar a mano antes de la fase 9.
 - Producción: usuario de BD dedicado con clave fuerte; rotar la API Key de VentasFF que se compartió en un chat; `--workers 1` (limitadores de login y de VentasFF en memoria).
+- Desde la sesión en segundo plano no hay credenciales para `git push`: el usuario sube los commits.
 
 ## Convenciones
 
