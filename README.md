@@ -33,6 +33,7 @@ El Compose solo incluye `app` (sin base de datos): se une a la red externa `ffmo
 ```bash
 docker compose up -d --build                         # levanta la app (lee .env)
 docker compose exec app alembic upgrade head         # aplica migraciones
+docker compose exec app python -m app.cli crear-admin <usuario>   # primer admin
 ```
 
 En el VPS, `DATABASE_URL` usa como host `postgresql:5432`.
