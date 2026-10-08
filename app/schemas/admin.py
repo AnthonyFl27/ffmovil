@@ -3,7 +3,7 @@
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from app.schemas.cliente import Monto
 
@@ -35,3 +35,16 @@ class UsuarioConClave(BaseModel):
 class MovimientoSaldo(BaseModel):
     monto: Decimal
     nota: str
+
+
+class MovimientoAdmin(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    usuario_id: int
+    tipo: str
+    monto: Monto
+    saldo_disponible_resultante: Monto
+    saldo_reservado_resultante: Monto
+    nota: str | None
+    fecha: datetime
