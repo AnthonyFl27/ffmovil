@@ -35,7 +35,7 @@ async def sin_espera(_segundos):
 
 @pytest.fixture
 async def escenario(sesion_bd, cuenta, admin_id):
-    """Cliente con 10.00 y paquete activo (costo 0.81, venta 0.91) con id 1 del simulador."""
+    """Cliente con 10.00 y paquete activo (costo 0.50, venta 0.75) con id 1 del simulador."""
     await ledger.abonar(sesion_bd, cuenta, D("10.00"), nota="abono", creado_por=admin_id)
     paquete = await crear_paquete(sesion_bd)
     await sesion_bd.commit()
@@ -73,8 +73,8 @@ async def estado_contable(sesion, usuario_id, pedido_id):
     return (saldo.saldo_disponible, saldo.saldo_reservado), tipos
 
 
-EXITO = ("EXITOSO", (D("9.09"), D("0.00")), ["reserva", "cargo"])
-RETENIDO = ("PENDIENTE_VERIFICAR", (D("9.09"), D("0.91")), ["reserva"])
+EXITO = ("EXITOSO", (D("9.25"), D("0.00")), ["reserva", "cargo"])
+RETENIDO = ("PENDIENTE_VERIFICAR", (D("9.25"), D("0.75")), ["reserva"])
 LIBERADO = ("FALLIDO", (D("10.00"), D("0.00")), ["reserva", "liberacion"])
 
 CASOS = {
@@ -121,7 +121,7 @@ async def test_resolucion_por_escenario(sesion_bd, motor_bd, escenario, escenari
 
 async def test_sin_credito_del_proveedor_falla_sin_recargar(sesion_bd, motor_bd, escenario):
     usuario_id, paquete = escenario
-    sim = SimuladorVentasFF(credito=D("0.50"))
+    sim = SimuladorVentasFF(credito=D("0.49"))
     pedido, resultado = await recargar(sesion_bd, motor_bd, sim, usuario_id, paquete)
     assert (pedido.estado, pedido.error_code, resultado.alerta) == (
         "FALLIDO",

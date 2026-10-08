@@ -104,14 +104,14 @@ def test_paquete_cliente_no_serializa_costo():
         juego="free_fire",
         nombre="110 Diamantes",
         diamantes=110,
-        precio_costo=Decimal("0.81"),
-        precio_venta=Decimal("0.91"),
+        precio_costo=Decimal("0.50"),
+        precio_venta=Decimal("0.75"),
         activo=True,
     )
     cliente = PaqueteCliente.model_validate(paquete)
 
     dump = cliente.model_dump_json()
     assert "costo" not in dump
-    assert "0.81" not in dump
-    assert json.loads(dump)["precio_venta"] == "0.91"
-    assert cliente.precio_venta == Decimal("0.91")
+    assert "0.50" not in dump
+    assert json.loads(dump)["precio_venta"] == "0.75"
+    assert cliente.precio_venta == Decimal("0.75")

@@ -16,7 +16,7 @@ async def crear_usuario(sesion, rol: str = "cliente") -> Usuario:
     return usuario
 
 
-async def crear_paquete(sesion, precio_costo="0.81", precio_venta="0.91", activo=True):
+async def crear_paquete(sesion, precio_costo="0.50", precio_venta="0.75", activo=True):
     """Paquete free_fire con id aleatorio (el esquema `test` es compartido)."""
     import random
     from decimal import Decimal

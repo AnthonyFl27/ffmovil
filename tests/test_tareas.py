@@ -26,7 +26,7 @@ def producto(paquete_id, precio=None, juego="free_fire"):
         "nombre": f"Paquete {paquete_id}",
         "juego": juego,
         "diamantes": 100,
-        "precio": precio or D("0.81"),
+        "precio": precio or D("0.50"),
         "currency": "USD",
         "dato_extra": None if juego == "free_fire" else "Zone ID",
     }

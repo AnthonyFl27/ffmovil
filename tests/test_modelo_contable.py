@@ -87,7 +87,7 @@ async def test_movimientos_validos(sesion_bd):
         [
             movimiento(usuario.id),
             movimiento(usuario.id, tipo="ajuste", monto=Decimal("-2.50"), nota="corrección"),
-            movimiento(usuario.id, tipo="reserva", monto=Decimal("0.81"), nota=None),
+            movimiento(usuario.id, tipo="reserva", monto=Decimal("0.50"), nota=None),
         ]
     )
     await sesion_bd.flush()

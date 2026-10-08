@@ -52,7 +52,7 @@ def productos_de_ejemplo() -> list[dict[str, Any]]:
             "nombre": "110 Diamantes",
             "juego": "free_fire",
             "diamantes": 110,
-            "precio": Decimal("0.81"),
+            "precio": Decimal("0.50"),
             "currency": MONEDA,
             "dato_extra": None,
         },

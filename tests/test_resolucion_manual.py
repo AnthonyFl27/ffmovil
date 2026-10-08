@@ -20,7 +20,7 @@ D = Decimal
 
 
 async def pedido_con_reserva(sesion, usuario_id, admin_id, estado="PENDIENTE_VERIFICAR"):
-    """Cliente con 10.00, un pedido de 0.91 reservado en el estado indicado."""
+    """Cliente con 10.00, un pedido de 0.75 reservado en el estado indicado."""
     await ledger.abonar(sesion, usuario_id, D("10.00"), nota="abono", creado_por=admin_id)
     paquete = await crear_paquete(sesion)
     pedido = await crear_pedido(sesion, usuario_id, paquete, estado=estado)
@@ -60,7 +60,7 @@ async def test_marcar_exitoso(sesion_bd, cuenta, admin_id):
     )
     pedido, saldo, tipos = await estado_de(sesion_bd, cuenta, pedido_id)
     assert (pedido.estado, pedido.referencia, pedido.error) == ("EXITOSO", "EV-ABCDEF12", None)
-    assert saldo == (D("9.09"), D("0.00"))
+    assert saldo == (D("9.25"), D("0.00"))
     assert tipos == ["reserva", "cargo"]
 
     evento = await sesion_bd.scalar(select(PedidoEvento).where(PedidoEvento.pedido_id == pedido_id))
@@ -103,7 +103,7 @@ async def test_rechaza_estados_que_no_son_pendiente(sesion_bd, cuenta, admin_id,
         await resolver_pendiente(sesion_bd, pedido_id, "exitoso", admin_id=admin_id, nota="x")
     pedido, saldo, tipos = await estado_de(sesion_bd, cuenta, pedido_id)
     assert pedido.estado == estado
-    assert (saldo, tipos) == ((D("9.09"), D("0.91")), ["reserva"])
+    assert (saldo, tipos) == ((D("9.25"), D("0.75")), ["reserva"])
 
 
 async def test_solo_un_admin_puede_resolver(sesion_bd, cuenta, admin_id):

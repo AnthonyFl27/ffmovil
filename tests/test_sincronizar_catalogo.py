@@ -53,7 +53,7 @@ async def test_crea_solo_free_fire_inactivos_sin_precio(sesion_bd, ids):
     a, b, ml = ids
     sim = SimuladorVentasFF(
         productos=[
-            producto(a, D("0.81"), nombre="110 Diamantes", diamantes=110),
+            producto(a, D("0.50"), nombre="110 Diamantes", diamantes=110),
             producto(b, D("2.40")),
             producto(ml, D("1.10"), juego="mobile_legends"),
         ]
@@ -62,16 +62,16 @@ async def test_crea_solo_free_fire_inactivos_sin_precio(sesion_bd, ids):
 
     assert (resumen.recibidos, resumen.nuevos) == (2, 2)
     nuevo = await leer(sesion_bd, a)
-    assert (nuevo.nombre, nuevo.diamantes, nuevo.precio_costo) == ("110 Diamantes", 110, D("0.81"))
+    assert (nuevo.nombre, nuevo.diamantes, nuevo.precio_costo) == ("110 Diamantes", 110, D("0.50"))
     assert (nuevo.juego, nuevo.activo, nuevo.precio_venta) == ("free_fire", False, None)
     assert await leer(sesion_bd, ml) is None
 
 
 async def test_cambio_de_costo_no_toca_precio_venta_ni_activo(sesion_bd, ids):
     a, b, _ = ids
-    sim = SimuladorVentasFF(productos=[producto(a, D("0.81")), producto(b, D("2.40"))])
+    sim = SimuladorVentasFF(productos=[producto(a, D("0.50")), producto(b, D("2.40"))])
     await sincronizar(sesion_bd, sim)
-    await catalogo.fijar_precio_venta(sesion_bd, a, D("0.91"))
+    await catalogo.fijar_precio_venta(sesion_bd, a, D("0.75"))
     await catalogo.activar(sesion_bd, a)
     await catalogo.fijar_precio_venta(sesion_bd, b, D("3.00"))
     await sesion_bd.commit()
@@ -84,16 +84,16 @@ async def test_cambio_de_costo_no_toca_precio_venta_ni_activo(sesion_bd, ids):
 
     paquete = await leer(sesion_bd, a)
     assert (paquete.precio_costo, paquete.nombre) == (D("0.95"), "110 Diamantes nuevo")
-    assert (paquete.precio_venta, paquete.activo) == (D("0.91"), True)
+    assert (paquete.precio_venta, paquete.activo) == (D("0.75"), True)
     assert (resumen.nuevos, resumen.actualizados) == (0, 1)
-    # RF-14: ahora 0.91 <= 0.95, se marca; b sigue por encima del costo.
+    # RF-14: ahora 0.75 <= 0.95, se marca; b sigue por encima del costo.
     assert a in resumen.bajo_costo
     assert b not in resumen.bajo_costo
 
 
 async def test_sin_cambios_no_cuenta_actualizados(sesion_bd, ids):
     a, _, _ = ids
-    sim = SimuladorVentasFF(productos=[producto(a, D("0.81"))])
+    sim = SimuladorVentasFF(productos=[producto(a, D("0.50"))])
     await sincronizar(sesion_bd, sim)
     resumen = await sincronizar(sesion_bd, sim)
     assert (resumen.nuevos, resumen.actualizados) == (0, 0)
@@ -101,27 +101,27 @@ async def test_sin_cambios_no_cuenta_actualizados(sesion_bd, ids):
 
 async def test_ausente_se_desactiva_y_no_se_reactiva_solo(sesion_bd, ids):
     a, b, _ = ids
-    sim = SimuladorVentasFF(productos=[producto(a, D("0.81")), producto(b, D("2.40"))])
+    sim = SimuladorVentasFF(productos=[producto(a, D("0.50")), producto(b, D("2.40"))])
     await sincronizar(sesion_bd, sim)
     await catalogo.fijar_precio_venta(sesion_bd, b, D("3.00"))
     await catalogo.activar(sesion_bd, b)
     await sesion_bd.commit()
 
-    sim.productos = [producto(a, D("0.81"))]
+    sim.productos = [producto(a, D("0.50"))]
     resumen = await sincronizar(sesion_bd, sim)
     paquete = await leer(sesion_bd, b)
     assert (paquete.activo, paquete.precio_venta) == (False, D("3.00"))
     assert resumen.desactivados >= 1
 
     # Si vuelve a aparecer, queda inactivo hasta que el admin lo active.
-    sim.productos = [producto(a, D("0.81")), producto(b, D("2.40"))]
+    sim.productos = [producto(a, D("0.50")), producto(b, D("2.40"))]
     await sincronizar(sesion_bd, sim)
     assert (await leer(sesion_bd, b)).activo is False
 
 
 async def test_error_de_api_no_modifica_nada(sesion_bd, ids):
     a, _, _ = ids
-    sim = SimuladorVentasFF(productos=[producto(a, D("0.81"))])
+    sim = SimuladorVentasFF(productos=[producto(a, D("0.50"))])
     await sincronizar(sesion_bd, sim)
 
     sim.productos = [producto(a, D("9.99"))]
@@ -130,4 +130,4 @@ async def test_error_de_api_no_modifica_nada(sesion_bd, ids):
         with pytest.raises(ErrorAPI):
             await catalogo.sincronizar_catalogo(sesion_bd, cliente)
     await sesion_bd.rollback()
-    assert (await leer(sesion_bd, a)).precio_costo == D("0.81")
+    assert (await leer(sesion_bd, a)).precio_costo == D("0.50")

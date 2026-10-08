@@ -28,7 +28,7 @@ BASE = "http://simulador/api/reseller"
 
 @pytest.fixture
 async def escenario(sesion_bd, cuenta, admin_id):
-    """Cliente con 10.00 y un paquete activo de venta 0.91 (costo 0.81)."""
+    """Cliente con 10.00 y un paquete activo de venta 0.75 (costo 0.50)."""
     await ledger.abonar(sesion_bd, cuenta, D("10.00"), nota="abono", creado_por=admin_id)
     paquete = await crear_paquete(sesion_bd)
     await sesion_bd.commit()
@@ -65,10 +65,10 @@ async def test_crea_pedido_procesando_con_reserva(sesion_bd, escenario):
     assert pedido.estado == "PROCESANDO"
     assert pedido.codigo == f"FF-{pedido.id:06d}"
     assert pedido.nickname == "Jugador7448"
-    assert (pedido.precio_costo, pedido.precio_venta) == (D("0.81"), D("0.91"))
-    assert await saldo(sesion_bd, usuario_id) == (D("9.09"), D("0.91"))
+    assert (pedido.precio_costo, pedido.precio_venta) == (D("0.50"), D("0.75"))
+    assert await saldo(sesion_bd, usuario_id) == (D("9.25"), D("0.75"))
     reserva = await sesion_bd.scalar(select(Movimiento).where(Movimiento.pedido_id == pedido.id))
-    assert (reserva.tipo, reserva.monto) == ("reserva", D("0.91"))
+    assert (reserva.tipo, reserva.monto) == ("reserva", D("0.75"))
     eventos = await sesion_bd.execute(
         select(PedidoEvento.estado_anterior, PedidoEvento.estado_nuevo)
         .where(PedidoEvento.pedido_id == pedido.id)
@@ -88,7 +88,7 @@ async def test_reenvio_con_mismo_token_devuelve_el_mismo_pedido(sesion_bd, escen
     assert (primero.nuevo, segundo.nuevo) == (True, False)
     assert segundo.pedido.id == primero.pedido.id
     assert await contar(sesion_bd, Movimiento, Movimiento.pedido_id == primero.pedido.id) == 1
-    assert await saldo(sesion_bd, usuario_id) == (D("9.09"), D("0.91"))
+    assert await saldo(sesion_bd, usuario_id) == (D("9.25"), D("0.75"))
     # El reenvío no vuelve a validar.
     assert sim.peticiones.count(("GET", "/api/reseller/validar.php")) == 1
 
@@ -108,7 +108,7 @@ async def test_doble_envio_simultaneo_crea_un_solo_pedido(sesion_bd, motor_bd, e
     assert sorted(r.nuevo for r in resultados) == [False, True]
     assert resultados[0].pedido.id == resultados[1].pedido.id
     assert await contar(sesion_bd, Pedido, Pedido.token_idempotencia == "tok-doble") == 1
-    assert await saldo(sesion_bd, usuario_id) == (D("9.09"), D("0.91"))
+    assert await saldo(sesion_bd, usuario_id) == (D("9.25"), D("0.75"))
 
 
 async def test_saldo_insuficiente_no_crea_pedido(sesion_bd, escenario):
@@ -154,7 +154,7 @@ async def test_precio_congelado(sesion_bd, escenario):
         .where(Pedido.id == creado.pedido.id)
         .execution_options(populate_existing=True)
     )
-    assert pedido.precio_venta == D("0.91")
+    assert pedido.precio_venta == D("0.75")
 
 
 async def test_paquete_inactivo(sesion_bd, escenario):

@@ -29,7 +29,7 @@ async def test_pedido_y_evento(sesion_bd, datos):
     sesion_bd.add(PedidoEvento(pedido_id=pedido.id, estado_anterior=None, estado_nuevo="CREADO"))
     await sesion_bd.flush()
     await sesion_bd.refresh(pedido)
-    assert pedido.precio_venta == Decimal("0.91")
+    assert pedido.precio_venta == Decimal("0.75")
     assert pedido.creado_en.tzinfo is not None
     assert pedido.codigo is None
     eventos = await sesion_bd.scalars(

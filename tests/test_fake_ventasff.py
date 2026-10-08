@@ -56,7 +56,7 @@ async def test_productos_con_precios_decimal(cliente: httpx.AsyncClient):
     por_id = {p["paquete_id"]: p for p in datos}
     assert len(datos) >= 3
     assert isinstance(por_id[1]["precio"], Decimal)
-    assert por_id[1]["precio"] == Decimal("0.81")
+    assert por_id[1]["precio"] == Decimal("0.50")
     assert por_id[1]["dato_extra"] is None
     assert por_id[193]["juego"] == "mobile_legends"
     assert por_id[193]["dato_extra"] == "Zone ID"
@@ -110,17 +110,17 @@ async def test_recargar_ok(sim: SimuladorVentasFF, cliente: httpx.AsyncClient):
     datos = _json(resp)["data"]
     assert _json(resp)["success"] is True
     assert re.fullmatch(r"EV-[0-9A-F]{8}", datos["referencia"])
-    assert datos["monto"] == Decimal("0.81")
-    assert datos["saldo"] == Decimal("99.19")
+    assert datos["monto"] == Decimal("0.50")
+    assert datos["saldo"] == Decimal("99.50")
     assert datos["player_id"] == "123456789"
     assert datos["nickname"] == "Jugador6789"
-    assert sim.credito == Decimal("99.19")
+    assert sim.credito == Decimal("99.50")
     assert sim.recargas == [
         {
             "referencia": datos["referencia"],
             "paquete_id": 1,
             "player_id": "123456789",
-            "monto": Decimal("0.81"),
+            "monto": Decimal("0.50"),
         }
     ]
 
@@ -132,7 +132,7 @@ async def test_recargar_nickname_null(sim: SimuladorVentasFF, cliente: httpx.Asy
 
     assert resp.status_code == 200
     assert _json(resp)["data"]["nickname"] is None
-    assert sim.credito == Decimal("99.19")
+    assert sim.credito == Decimal("99.50")
     assert len(sim.recargas) == 1
 
 
@@ -193,7 +193,7 @@ async def test_busy_una_vez_y_luego_ok(sim: SimuladorVentasFF, cliente: httpx.As
     assert _json(primera)["code"] == "BUSY"
     assert segunda.status_code == 200
     assert sim.busy_restantes == 0
-    assert sim.credito == Decimal("99.19")
+    assert sim.credito == Decimal("99.50")
     assert len(sim.recargas) == 1
 
 
@@ -233,7 +233,7 @@ async def test_ilegible_cobra_pero_no_es_json(sim: SimuladorVentasFF, cliente: h
     assert resp.status_code == 200
     with pytest.raises(json.JSONDecodeError):
         json.loads(resp.text)
-    assert sim.credito == Decimal("99.19")
+    assert sim.credito == Decimal("99.50")
     assert len(sim.recargas) == 1
 
 
@@ -245,7 +245,7 @@ async def test_timeout_cobra_y_lanza_read_timeout(
     with pytest.raises(httpx.ReadTimeout):
         await _recargar(cliente)
 
-    assert sim.credito == Decimal("99.19")
+    assert sim.credito == Decimal("99.50")
     assert len(sim.recargas) == 1
 
 

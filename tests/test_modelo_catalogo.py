@@ -16,7 +16,7 @@ def paquete(**cambios) -> Paquete:
         "juego": "free_fire",
         "nombre": "110 Diamantes",
         "diamantes": 110,
-        "precio_costo": Decimal("0.81"),
+        "precio_costo": Decimal("0.50"),
     } | cambios
     return Paquete(**datos)
 
@@ -33,7 +33,7 @@ async def test_paquete_nuevo_inactivo_sin_precio(sesion_bd):
 
 
 async def test_activo_con_precio_de_venta(sesion_bd):
-    sesion_bd.add(paquete(precio_venta=Decimal("0.91"), activo=True))
+    sesion_bd.add(paquete(precio_venta=Decimal("0.75"), activo=True))
     await sesion_bd.flush()
     await sesion_bd.rollback()
 

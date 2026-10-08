@@ -29,7 +29,7 @@ class Esperas:
         self.valores.append(segundos)
 
 
-async def llamar(motor, sim, limitador=None, dormir=None, precio_costo=Decimal("0.81")):
+async def llamar(motor, sim, limitador=None, dormir=None, precio_costo=Decimal("0.50")):
     async with ClienteVentasFF(sim.api_key, BASE, transport=sim.transporte()) as cliente:
         return await llamar_proveedor(
             motor,
@@ -51,7 +51,7 @@ async def test_exito_verifica_credito_antes_de_recargar(motor_bd):
 
 
 async def test_credito_insuficiente_no_recarga(motor_bd):
-    sim = SimuladorVentasFF(credito=Decimal("0.80"))
+    sim = SimuladorVentasFF(credito=Decimal("0.49"))
     resultado = await llamar(motor_bd, sim)
     assert resultado.clasificacion == Clasificacion.ERROR_PREVIO
     assert (resultado.error_code, resultado.alerta) == ("SIN_CREDITO_PROVEEDOR", ALERTA_CREDITO)

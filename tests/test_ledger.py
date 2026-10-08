@@ -87,13 +87,13 @@ async def test_ajuste_no_deja_saldo_negativo(sesion_bd, con_fondos, admin_id):
 
 
 async def test_reservar(sesion_bd, con_fondos):
-    mov = await ledger.reservar(sesion_bd, con_fondos, D("0.91"))
+    mov = await ledger.reservar(sesion_bd, con_fondos, D("0.75"))
     await sesion_bd.commit()
     assert mov.tipo == "reserva"
-    assert await saldo_de(sesion_bd, con_fondos) == (D("9.09"), D("0.91"))
+    assert await saldo_de(sesion_bd, con_fondos) == (D("9.25"), D("0.75"))
     assert (mov.saldo_disponible_resultante, mov.saldo_reservado_resultante) == (
-        D("9.09"),
-        D("0.91"),
+        D("9.25"),
+        D("0.75"),
     )
 
 
@@ -139,7 +139,7 @@ async def test_no_libera_ni_cobra_mas_de_lo_reservado(sesion_bd, con_fondos, ope
 
 @pytest.mark.parametrize(
     "monto",
-    [0.81, 1, D("0"), D("-1.00"), D("0.001"), D("NaN"), D("Infinity"), D("10000000000.00")],
+    [0.50, 1, D("0"), D("-1.00"), D("0.001"), D("NaN"), D("Infinity"), D("10000000000.00")],
     ids=["float", "int", "cero", "negativo", "3_decimales", "nan", "infinito", "excede"],
 )
 async def test_monto_invalido(sesion_bd, cuenta, admin_id, monto):

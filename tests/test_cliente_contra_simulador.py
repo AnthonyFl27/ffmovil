@@ -44,6 +44,6 @@ async def test_consultas_contra_simulador():
     async with ClienteVentasFF(sim.api_key, BASE, transport=sim.transporte()) as cliente:
         assert (await cliente.saldo()).credito == Decimal("12.34")
         productos = await cliente.productos()
-        assert productos[0].precio == Decimal("0.81")
+        assert productos[0].precio == Decimal("0.50")
         validacion = await cliente.validar("75807448", 1)
         assert (validacion.estado, validacion.nickname) == ("ok", "Jugador7448")

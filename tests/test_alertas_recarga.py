@@ -31,10 +31,10 @@ async def activas(sesion) -> dict[str, str]:
     ("simulador", "tipo", "texto"),
     [
         ({"escenario_recarga": "INSUFFICIENT_CREDIT"}, "sin_credito", "INSUFFICIENT_CREDIT"),
-        ({"credito": Decimal("0.50")}, "sin_credito", "SIN_CREDITO_PROVEEDOR"),
+        ({"credito": Decimal("0.49")}, "sin_credito", "SIN_CREDITO_PROVEEDOR"),
         ({"escenario_recarga": "INVALID_KEY"}, "cuenta", "INVALID_KEY"),
-        # Tras la recarga de 0.81 quedan 9.69, por debajo del umbral de 10.00.
-        ({"credito": Decimal("10.50")}, "credito_bajo", "9.69"),
+        # Tras la recarga de 0.50 quedan 9.90, por debajo del umbral de 10.00.
+        ({"credito": Decimal("10.40")}, "credito_bajo", "9.90"),
     ],
 )
 async def test_flujo_genera_alerta(sesion_bd, motor_bd, escenario, simulador, tipo, texto):  # noqa: F811

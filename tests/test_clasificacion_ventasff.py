@@ -14,7 +14,7 @@ from app.services.ventasff_client import (
 )
 
 OK = (
-    '{"success":true,"data":{"referencia":"EV-9B5F34F9","monto":0.81,"saldo":24.30,'
+    '{"success":true,"data":{"referencia":"EV-9B5F34F9","monto":0.50,"saldo":24.30,'
     '"player_id":"75807448","nickname":"Jugador"}}'
 )
 
@@ -70,7 +70,7 @@ CASOS = [
         cuerpo(200, OK.replace('"referencia":"EV-9B5F34F9",', "")),
         Clasificacion.INCIERTO,
     ),
-    ("monto_como_texto", cuerpo(200, OK.replace("0.81", '"0.81"')), Clasificacion.INCIERTO),
+    ("monto_como_texto", cuerpo(200, OK.replace("0.50", '"0.50"')), Clasificacion.INCIERTO),
 ]
 
 

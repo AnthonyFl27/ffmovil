@@ -64,14 +64,14 @@ async def test_productos(cliente, api):
             200,
             '{"success":true,"data":['
             '{"paquete_id":1,"nombre":"110 Diamantes","juego":"free_fire","diamantes":110,'
-            '"precio":0.81,"currency":"USD","dato_extra":null},'
+            '"precio":0.50,"currency":"USD","dato_extra":null},'
             '{"paquete_id":193,"nombre":"56 Diamantes","juego":"mobile_legends","diamantes":56,'
             '"precio":1.10,"currency":"USD","dato_extra":"Zone ID"}]}',
         )
     )
     productos = await cliente.productos()
     assert productos[0] == Producto(
-        1, "110 Diamantes", "free_fire", 110, Decimal("0.81"), "USD", None
+        1, "110 Diamantes", "free_fire", 110, Decimal("0.50"), "USD", None
     )
     assert productos[1].dato_extra == "Zone ID"
     assert productos[1].precio == Decimal("1.10")
@@ -91,13 +91,13 @@ async def test_recargar_cuerpo_exacto_y_timeout_90(cliente, api):
     ruta = api.post("/recargar.php").mock(
         return_value=respuesta(
             200,
-            '{"success":true,"data":{"referencia":"EV-9B5F34F9","monto":0.81,"saldo":24.30,'
+            '{"success":true,"data":{"referencia":"EV-9B5F34F9","monto":0.50,"saldo":24.30,'
             '"player_id":"75807448","nickname":null}}',
         )
     )
     recarga = await cliente.recargar(1, "75807448")
     assert recarga == RecargaRealizada(
-        "EV-9B5F34F9", Decimal("0.81"), Decimal("24.30"), "75807448", None
+        "EV-9B5F34F9", Decimal("0.50"), Decimal("24.30"), "75807448", None
     )
     peticion = ruta.calls.last.request
     # recargar.php no acepta otros campos (spec sec. 9).
