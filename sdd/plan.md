@@ -251,6 +251,8 @@ Solo válido si el estado es `PENDIENTE_VERIFICAR`. Registra evento y auditoría
 | POST | `/recargas/validar` | Valida Player ID |
 | POST | `/recargas` | Crea recarga |
 
+Las rutas `/me/*`, `/paquetes` y `/recargas*` son solo para clientes (un admin recibe 403: no tiene cuenta de saldo).
+
 ### Admin (`/admin/*`, rol admin)
 | Método | Ruta | Descripción |
 |---|---|---|
@@ -258,15 +260,16 @@ Solo válido si el estado es `PENDIENTE_VERIFICAR`. Registra evento y auditoría
 | POST | `/admin/usuarios/{id}/bloquear` · `/desbloquear` · `/reset-clave` | Gestión |
 | POST | `/admin/saldos/{usuario_id}/abono` · `/ajuste` | Saldos con nota |
 | GET | `/admin/pedidos` | Filtros completos (RF-50) |
-| GET | `/admin/pedidos/{id}` | Detalle con costo y ganancia |
+| GET | `/admin/pedidos/{id}` | Detalle con costo, ganancia e historial (`id` numérico o código `FF-…`) |
 | POST | `/admin/pedidos/{id}/resolver` | Resolver `PENDIENTE_VERIFICAR` |
 | GET | `/admin/panel` | Saldo VentasFF vs suma de saldos, alertas, ganancia |
 | GET/PUT | `/admin/config` | Alertas (crédito bajo) |
 | GET | `/admin/alertas` | Alertas activas (RN-11) |
 | POST | `/admin/alertas/{id}/atender` | Marca una alerta como atendida |
+| GET | `/admin/paquetes` | Todos los paquetes con costo, marcador `bajo_costo` y última sincronización |
 | PUT | `/admin/paquetes/{id}` | `precio_venta`, `activo` |
 | POST | `/admin/catalogo/sincronizar` | Sincroniza ahora |
-| GET | `/admin/auditoria` | Registro de acciones |
+| GET | `/admin/auditoria` | Registro de acciones (filtros `accion`, `usuario_id`, `desde`, `hasta`; paginado) |
 
 Esquemas de respuesta del cliente: modelos Pydantic dedicados que **no declaran** `precio_costo` (CA-03). Los montos se serializan como texto con 2 decimales (`"0.91"`) y las respuestas de montos incluyen `moneda: "USD"` (RF-36). Las fechas van en ISO 8601 UTC (RNF-09: el frontend las muestra en la zona del usuario). Errores: `{"detail": "mensaje en español"}`.
 

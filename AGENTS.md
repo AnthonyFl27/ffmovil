@@ -99,26 +99,28 @@ uv run alembic revision -m "..."   # nueva migración (luego editarla a mano)
 uv run uvicorn app.main:app --reload
 ```
 
-### Piezas ya construidas (fases 1 a 5, spec v0.6.0)
+### Piezas ya construidas (fases 1 a 6, spec v0.7.0)
 
-Detalle de diseño en `sdd/plan.md` (sec. 3 modelo, 4.2 fases A/B/C, 4.2.1 alertas, 4.5 cliente VentasFF, 4.6 transacciones). Migración head: `d1971a9d5b68` (aplicada en desarrollo).
+Detalle de diseño en `sdd/plan.md` (sec. 3 modelo, 4.2 fases A/B/C, 4.2.1 alertas, 4.5 cliente VentasFF, 4.6 transacciones y rutas de recarga, 6 endpoints, 7 seguridad). Migración head: `ea509abd049b` (`sesiones`, aplicada en desarrollo).
 
-- **Arranque** (`app/main.py`, `lifespan`): `configurar_logs` → verificar BD → `recuperar_pedidos_huerfanos` (RN-09) → programador APScheduler (sincronización diaria 08:00 UTC). `GET /health`. Aún **no hay routers** (Fase 6).
+- **Arranque** (`app/main.py`, `lifespan`): `configurar_logs` → verificar BD → `recuperar_pedidos_huerfanos` (RN-09) → `app.state`: `sesiones`, `cookie_secure`, `limitador_login`, `ventasff` (cliente único con límite general 50/min), `limitador_recargas` (8/min), `tareas_recarga`, `crear_cliente_ventasff` → programador APScheduler (sincronización diaria 08:00 UTC). Al apagar espera las recargas en curso (100 s) y cierra el cliente.
 - `app/config.py` (`SecretStr`; `VENTASFF_URL` opcional para apuntar al simulador), `app/db.py`, `app/logs.py` (enmascara API Key, `SECRET_KEY`, clave de BD y `Bearer …`), `app/cli.py` (`python -m app.cli crear-admin <usuario>`).
-- **Modelos** (`app/models/`): `Usuario`, `Auditoria`, `Saldo`, `Movimiento` (triggers impiden UPDATE/DELETE/TRUNCATE), `Paquete`, `Config` (`alerta_credito_min` = 10.00), `Pedido`, `PedidoEvento`, `Alerta`. `Base` mapea `Decimal` → `NUMERIC(12,2)` y `datetime` → `TIMESTAMPTZ`.
+- **Modelos** (`app/models/`): `Usuario`, `Auditoria`, `Saldo`, `Movimiento` (triggers impiden UPDATE/DELETE/TRUNCATE), `Paquete`, `Config` (`alerta_credito_min` = 10.00), `Pedido`, `PedidoEvento`, `Alerta`, `Sesion` (solo SHA-256 del token). `Base` mapea `Decimal` → `NUMERIC(12,2)` y `datetime` → `TIMESTAMPTZ`.
 - **Servicios** (`app/services/`):
   - `montos.normalizar_monto` (Decimal, 2 decimales, > 0); `ledger` (`abrir_cuenta`, `abonar`, `ajustar`, `reservar`, `liberar`, `cargar`; `monto` positivo salvo `ajuste`).
-  - `auth_service` (argon2id, `crear_usuario` → `(usuario, clave_temporal)`; clientes reciben saldo en cero).
-  - `ventasff_client` (`ClienteVentasFF`, `clasificar`, `ErrorAPI`/`ErrorPrevioAlEnvio`/`ResultadoIncierto`, pausa por `Retry-After`); `limitador.LimitadorTasa`.
-  - `catalogo` (`fijar_precio_venta` con aviso bajo costo, `activar`, `desactivar`, `sincronizar_catalogo`); `tareas` (job diario).
-  - `estados` (máquina de estados), `codigos` (`FF-000123`), `recarga_service` (`validar_jugador`, `crear_pedido` = Fase A, `llamar_proveedor` = Fase B, `resolver_pedido` = Fase C, `procesar_pedido` = B+C+alertas, `resolver_pendiente` = admin), `recuperacion`, `alertas`.
-- **Esquemas:** los de cliente van en `app/schemas/` (cualquier módulo que no empiece por `admin`) y una prueba falla si declaran algo con "costo"; los de admin, en `app/schemas/admin*.py`.
+  - `auth_service` (argon2id, `crear_usuario` → `(usuario, clave_temporal)`; clientes reciben saldo en cero; `normalizar_nombre_usuario` RF-07, `validar_clave_nueva` RF-08, `autenticar`); `sesiones` (crear, obtener con expiración de 8 h, cerrar, cerrar todas); `limitador_login` (RF-05, en memoria); `auditoria.registrar` (RF-55).
+  - `ventasff_client` (`ClienteVentasFF` con `limitador` opcional, `clasificar`, `ErrorAPI`/`ErrorPrevioAlEnvio`/`ResultadoIncierto`, pausa por `Retry-After`); `limitador.LimitadorTasa`.
+  - `catalogo` (`fijar_precio_venta` con aviso bajo costo, `activar`, `desactivar`, `sincronizar_catalogo`); `tareas` (job diario y "sincronizar ahora").
+  - `estados` (máquina de estados), `codigos` (`FF-000123`), `recarga_service` (`validar_jugador`, `crear_pedido` = Fase A, `llamar_proveedor` = Fase B, `resolver_pedido` = Fase C, `procesar_pedido` = B+C+alertas, `resolver_pendiente` = admin), `recuperacion`, `alertas`, `consultas_pedidos` (filtros y paginación comunes).
+- **Rutas** (`app/routers/`): `dependencias.py` (`Bd`, `EnSesion`, `Actual`, `Cliente`, `Admin`; CSRF por cabecera `X-CSRF-Token` en métodos no seguros), `auth` (login, logout, sesión, cambiar-clave), `me` (resumen, fondos, pedidos), `paquetes`, `recargas` (validar y crear; B+C en tarea propia), `admin/` (usuarios, saldos, pedidos + resolver, panel + alertas + config, paquetes + sincronizar, auditoría; `require_admin` a nivel de router).
+- **Esquemas:** los de cliente van en `app/schemas/` (cualquier módulo que no empiece por `admin`) y una prueba falla si declaran algo con "costo"; los de admin, en `app/schemas/admin*.py`. Montos con el tipo `Monto` (texto con 2 decimales) y `moneda: "USD"` (RF-36).
 
 ### Pruebas: cómo escribirlas
 
 - Simulador: `tests/fake_ventasff.py` → `SimuladorVentasFF(escenario_recarga=…, escenario_validar=…, credito=…, busy_restantes=…)`; cliente con `ClienteVentasFF(sim.api_key, "http://simulador/api/reseller", transport=sim.transporte())`. `sim.recargas` dice si el proveedor cobró.
+- API: fixture `api` (fábrica de `httpx.AsyncClient` contra la app; `api(ip)` fija la IP; un tarro de cookies por cliente) y fixture `simulador` (el VentasFF de la app en la prueba). `tests/utilidades_api.py`: `crear_usuario_con_clave` (confirma; clientes con saldo en cero) e `iniciar_sesion` (deja la cabecera CSRF en el cliente). Los pedidos creados con `crear_pedido` no tienen `codigo`: asignar `codigo_pedido(pedido.id)` si la prueba lo usa. Usar precios ficticios (0.50/0.75), no 0.81.
 - El esquema `test` se crea **una vez por sesión** de pytest y lo comparten todas las pruebas: usar ids/nombres únicos (`tests/utilidades.py`: `crear_usuario`, `crear_paquete`, `crear_pedido`; fixtures `cuenta`, `admin_id`), aserciones solo sobre lo propio y `rollback` cuando no haga falta persistir. Releer con `execution_options(populate_existing=True)`; tras un `rollback` no acceder a atributos de objetos ORM (expiran → `MissingGreenlet`).
-- Motor y event loop son de alcance sesión. El enlace al VPS es lento (~0.5 s por consulta): minimizar ida y vuelta. Suite completa ≈ 6–7 min.
+- Motor y event loop son de alcance sesión. El enlace al VPS es lento (~0.5 s por consulta): minimizar ida y vuelta. Suite completa ≈ 12 min (529 pruebas al cerrar la fase 6).
 - Dos procesos de pytest con BD a la vez se pisan (cada sesión recrea `test`): no correr pruebas de BD en paralelo.
 
 ### Forma de trabajo acordada con el usuario
@@ -126,12 +128,12 @@ Detalle de diseño en `sdd/plan.md` (sec. 3 modelo, 4.2 fases A/B/C, 4.2.1 alert
 - Al terminar cada tarea: marcar `[x]`, commit y **push** a `origin/main` (repositorio público: revisar que no haya secretos antes). Avisar al usuario al terminar cada fase.
 - El LLM principal orquesta y delega tareas básicas y acotadas a subagentes Haiku (simuladores, utilidades puras, servicios con contrato exacto, tablas de pruebas). La lógica contable, transaccional y de clasificación la hace el principal. A cada subagente: lista cerrada de archivos, sin git, sin leer `.env`, sin suite completa; revisar e integrar antes del commit.
 
-### Pendientes y decisiones abiertas (al cerrar la fase 5)
+### Pendientes y decisiones abiertas (al cerrar la fase 6)
 
-- Siguiente: **Fase 6** (T-050…). Preguntas abiertas que la afectan: Q-04 (expiración de sesión, T-050), Q-03 (moneda), Q-05 (frontend, T-070). Vacíos a proponer antes de T-051/T-055: reglas del nombre de usuario (mayúsculas, caracteres) y política mínima de contraseñas.
-- T-054: ver `plan.md` 4.6 (fases B/C no deben cancelarse si el cliente se desconecta; límite general de peticiones a VentasFF aún sin aplicar).
-- Consultados al usuario y sin respuesta: (1) las pruebas usan 0.81, que coincide con un costo real (RNF-06), ¿pasar a valores ficticios?; (2) si `productos.php` llega vacío, la sincronización desactiva todo el catálogo, ¿proteger con un cambio de spec?
-- Producción: usuario de BD dedicado con clave fuerte; rotar la API Key de VentasFF que se compartió en un chat.
+- Siguiente: **Fase 7** (T-070…). Antes: resolver Q-05 (Jinja2 + HTMX propuesto o SPA). Los formularios deben enviar el token CSRF (campo oculto o cabecera) y mostrar fechas en la zona del usuario (RNF-09).
+- Consultados al usuario y sin respuesta: (1) las pruebas antiguas usan 0.81, que coincide con un costo real (RNF-06), ¿pasar a valores ficticios?; (2) si `productos.php` llega vacío, la sincronización desactiva todo el catálogo, ¿proteger con un cambio de spec?
+- Un fallo inesperado (excepción) en la tarea de fases B/C deja el pedido en `PROCESANDO` hasta el siguiente arranque (RN-09); se registra en el log.
+- Producción: usuario de BD dedicado con clave fuerte; rotar la API Key de VentasFF que se compartió en un chat; `--workers 1` (limitadores de login y de VentasFF en memoria).
 
 ## Convenciones
 
