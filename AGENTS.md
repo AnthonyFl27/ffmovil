@@ -85,7 +85,7 @@ El código nunca introduce comportamiento que no esté en la spec. Si durante la
 - **Stack fijado:** Python 3.12 (uv), FastAPI, SQLAlchemy 2 async + psycopg 3, Alembic, PostgreSQL 18, pytest + pytest-asyncio (`asyncio_mode = "auto"`), ruff fijado como dependencia de desarrollo.
 - **VPS:** acceso con `ssh ffmovil`. PostgreSQL corre en el contenedor `postgresql` (imagen `postgres:18`), con su propio Compose fuera de este repo (`/root/container/postgresql_testing/`). Publica el puerto solo en `127.0.0.1:5432` y está unido a la red Docker externa `ffmovil_net`.
 - **App ↔ BD en el VPS:** `app` se une a `ffmovil_net` y usa como host `postgresql:5432`.
-- **BD desde el equipo local:** túnel SSH `ssh -N -L 5433:localhost:5432 ffmovil`; el `.env` local apunta a `localhost:5433`. Sin túnel fallan Alembic, la app y las pruebas de BD. El túnel se abre al iniciar la sesión y se cierra al terminar.
+- **BD desde el equipo local:** túnel SSH `ssh -f -N -o ExitOnForwardFailure=yes -L 5433:localhost:5432 ffmovil` (comprobar con `ss -ltn | grep 5433`); el `.env` local apunta a `localhost:5433`. Sin túnel fallan Alembic, la app y las pruebas de BD. El túnel se abre al iniciar la sesión y se cierra al terminar.
 - **Cambios en el VPS:** solo con pedido explícito del usuario; nunca exponer puertos de PostgreSQL a internet.
 - **`.env` local:** lo crea el LLM o el usuario a partir de `.env.example`; permisos `600`; nunca mostrar su contenido.
 
@@ -99,14 +99,39 @@ uv run alembic revision -m "..."   # nueva migración (luego editarla a mano)
 uv run uvicorn app.main:app --reload
 ```
 
-### Piezas ya construidas
+### Piezas ya construidas (fases 1 a 5, spec v0.6.0)
 
-- `app/config.py`: configuración por entorno (`SecretStr`); falla con mensaje claro sin exponer valores. `TEST_DATABASE_URL` es opcional para la app.
-- `app/db.py`: `crear_motor(url, esquema=None)`, `verificar_conexion()` (la app no arranca si la BD no responde).
-- `app/main.py`: `lifespan` con verificación de BD; `GET /health` (200 / 503 sin detalles).
-- `app/models/base.py`: `Base` con convención de nombres de restricciones.
-- `migrations/env.py`: toma la URL de la configuración (nunca de `alembic.ini`); acepta `config.attributes["url"]` y `["esquema"]` para migrar en el esquema `test`.
-- `tests/conftest.py`: fixtures `url_bd_test` (sesión: crea `test`, migra, elimina al final), `motor_bd` y `sesion_bd` (search_path = `test`).
+Detalle de diseño en `sdd/plan.md` (sec. 3 modelo, 4.2 fases A/B/C, 4.2.1 alertas, 4.5 cliente VentasFF, 4.6 transacciones). Migración head: `d1971a9d5b68` (aplicada en desarrollo).
+
+- **Arranque** (`app/main.py`, `lifespan`): `configurar_logs` → verificar BD → `recuperar_pedidos_huerfanos` (RN-09) → programador APScheduler (sincronización diaria 08:00 UTC). `GET /health`. Aún **no hay routers** (Fase 6).
+- `app/config.py` (`SecretStr`; `VENTASFF_URL` opcional para apuntar al simulador), `app/db.py`, `app/logs.py` (enmascara API Key, `SECRET_KEY`, clave de BD y `Bearer …`), `app/cli.py` (`python -m app.cli crear-admin <usuario>`).
+- **Modelos** (`app/models/`): `Usuario`, `Auditoria`, `Saldo`, `Movimiento` (triggers impiden UPDATE/DELETE/TRUNCATE), `Paquete`, `Config` (`alerta_credito_min` = 10.00), `Pedido`, `PedidoEvento`, `Alerta`. `Base` mapea `Decimal` → `NUMERIC(12,2)` y `datetime` → `TIMESTAMPTZ`.
+- **Servicios** (`app/services/`):
+  - `montos.normalizar_monto` (Decimal, 2 decimales, > 0); `ledger` (`abrir_cuenta`, `abonar`, `ajustar`, `reservar`, `liberar`, `cargar`; `monto` positivo salvo `ajuste`).
+  - `auth_service` (argon2id, `crear_usuario` → `(usuario, clave_temporal)`; clientes reciben saldo en cero).
+  - `ventasff_client` (`ClienteVentasFF`, `clasificar`, `ErrorAPI`/`ErrorPrevioAlEnvio`/`ResultadoIncierto`, pausa por `Retry-After`); `limitador.LimitadorTasa`.
+  - `catalogo` (`fijar_precio_venta` con aviso bajo costo, `activar`, `desactivar`, `sincronizar_catalogo`); `tareas` (job diario).
+  - `estados` (máquina de estados), `codigos` (`FF-000123`), `recarga_service` (`validar_jugador`, `crear_pedido` = Fase A, `llamar_proveedor` = Fase B, `resolver_pedido` = Fase C, `procesar_pedido` = B+C+alertas, `resolver_pendiente` = admin), `recuperacion`, `alertas`.
+- **Esquemas:** los de cliente van en `app/schemas/` (cualquier módulo que no empiece por `admin`) y una prueba falla si declaran algo con "costo"; los de admin, en `app/schemas/admin*.py`.
+
+### Pruebas: cómo escribirlas
+
+- Simulador: `tests/fake_ventasff.py` → `SimuladorVentasFF(escenario_recarga=…, escenario_validar=…, credito=…, busy_restantes=…)`; cliente con `ClienteVentasFF(sim.api_key, "http://simulador/api/reseller", transport=sim.transporte())`. `sim.recargas` dice si el proveedor cobró.
+- El esquema `test` se crea **una vez por sesión** de pytest y lo comparten todas las pruebas: usar ids/nombres únicos (`tests/utilidades.py`: `crear_usuario`, `crear_paquete`, `crear_pedido`; fixtures `cuenta`, `admin_id`), aserciones solo sobre lo propio y `rollback` cuando no haga falta persistir. Releer con `execution_options(populate_existing=True)`; tras un `rollback` no acceder a atributos de objetos ORM (expiran → `MissingGreenlet`).
+- Motor y event loop son de alcance sesión. El enlace al VPS es lento (~0.5 s por consulta): minimizar ida y vuelta. Suite completa ≈ 6–7 min.
+- Dos procesos de pytest con BD a la vez se pisan (cada sesión recrea `test`): no correr pruebas de BD en paralelo.
+
+### Forma de trabajo acordada con el usuario
+
+- Al terminar cada tarea: marcar `[x]`, commit y **push** a `origin/main` (repositorio público: revisar que no haya secretos antes). Avisar al usuario al terminar cada fase.
+- El LLM principal orquesta y delega tareas básicas y acotadas a subagentes Haiku (simuladores, utilidades puras, servicios con contrato exacto, tablas de pruebas). La lógica contable, transaccional y de clasificación la hace el principal. A cada subagente: lista cerrada de archivos, sin git, sin leer `.env`, sin suite completa; revisar e integrar antes del commit.
+
+### Pendientes y decisiones abiertas (al cerrar la fase 5)
+
+- Siguiente: **Fase 6** (T-050…). Preguntas abiertas que la afectan: Q-04 (expiración de sesión, T-050), Q-03 (moneda), Q-05 (frontend, T-070). Vacíos a proponer antes de T-051/T-055: reglas del nombre de usuario (mayúsculas, caracteres) y política mínima de contraseñas.
+- T-054: ver `plan.md` 4.6 (fases B/C no deben cancelarse si el cliente se desconecta; límite general de peticiones a VentasFF aún sin aplicar).
+- Consultados al usuario y sin respuesta: (1) las pruebas usan 0.81, que coincide con un costo real (RNF-06), ¿pasar a valores ficticios?; (2) si `productos.php` llega vacío, la sincronización desactiva todo el catálogo, ¿proteger con un cambio de spec?
+- Producción: usuario de BD dedicado con clave fuerte; rotar la API Key de VentasFF que se compartió en un chat.
 
 ## Convenciones
 

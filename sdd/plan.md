@@ -45,11 +45,20 @@ Monorepo: la API y la web viven en el mismo repositorio.
 │   │   ├── paquetes.py
 │   │   ├── recargas.py
 │   │   └── admin/             # usuarios, saldos, pedidos, config
+│   ├── cli.py                 # python -m app.cli crear-admin <usuario>
+│   ├── logs.py                # enmascarado de secretos (RNF-05)
 │   ├── services/
 │   │   ├── ventasff_client.py # único módulo que llama a VentasFF
-│   │   ├── recarga_service.py # flujo transaccional
+│   │   ├── recarga_service.py # validación y fases A/B/C, resolución manual
 │   │   ├── ledger.py          # movimientos y saldos
-│   │   ├── catalogo.py        # sincronización y precios
+│   │   ├── montos.py          # validación común de montos Decimal
+│   │   ├── catalogo.py        # precios, activación y sincronización
+│   │   ├── tareas.py          # APScheduler: sincronización diaria
+│   │   ├── estados.py         # máquina de estados del pedido
+│   │   ├── codigos.py         # FF-000123 <-> id
+│   │   ├── limitador.py       # límite de tasa propio (RN-07)
+│   │   ├── recuperacion.py    # RN-09 al arrancar
+│   │   ├── alertas.py         # alertas al admin (RN-11)
 │   │   └── auth_service.py
 │   ├── templates/             # Jinja2
 │   └── static/
@@ -201,6 +210,12 @@ Solo válido si el estado es `PENDIENTE_VERIFICAR`. Registra evento y auditoría
 
 - `RATE_LIMITED`: se lanza `ErrorAPI` con `retry_after` (segundos) y el cliente no envía otra petición hasta que pase ese plazo (tope 60 s). No reintenta por su cuenta (RN-07).
 - Logs: método, ruta, estado HTTP y duración; nunca cabeceras ni la API Key (RNF-05).
+
+### 4.6 Transacciones y bloqueos (implementado en fase 5)
+- **No confirman** (corren en la transacción de quien llama): `ledger.*`, `catalogo.fijar_precio_venta/activar/desactivar/sincronizar_catalogo`, `alertas.*`, `auth_service.crear_usuario`.
+- **Confirman su propia transacción:** `recarga_service.crear_pedido` (Fase A), `resolver_pedido` (Fase C), `resolver_pendiente` (admin), `recuperacion.recuperar_pedidos_huerfanos`, `tareas.ejecutar_sincronizacion`; `procesar_pedido` = Fase B + Fase C + `registrar_alertas`.
+- Orden de bloqueos: fila de `pedidos` y después fila de `saldos`. La Fase A no bloquea pedidos existentes.
+- **Pendiente para T-054:** `POST /recargas` ejecuta la Fase A en la petición; las fases B y C deben correr de modo que una desconexión del cliente no las cancele a mitad (p. ej. tarea con `asyncio.shield` o `create_task` guardada en `app.state`). El límite general de 50 peticiones/min (`limitador.PETICIONES_POR_MINUTO`) aún no se aplica a `validar.php`/`saldo.php`; solo las recargas pasan por el limitador (8/min).
 
 ## 5. Precios (RF-10 a RF-14)
 
