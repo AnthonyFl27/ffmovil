@@ -1,6 +1,6 @@
 # Plan técnico
 
-- **Spec de referencia:** `sdd/spec.md` v0.4.0
+- **Spec de referencia:** `sdd/spec.md` v0.5.0
 - **Regla:** este plan implementa la spec. Si el plan contradice la spec, gana la spec.
 
 ---
@@ -146,7 +146,7 @@ Cuerpo: `{paquete_id, player_id, nickname?, token_idempotencia}`.
 
 **Fase B — llamada al proveedor (fuera de la transacción de saldo):**
 1. Adquiere candado global (`pg_advisory_lock`, conexión dedicada) y pasa por el limitador de tasa propio (≤ 10 recargas/min; margen de seguridad configurable).
-2. `GET saldo.php`: si crédito < `precio_costo` → resultado FALLIDO ("sin disponibilidad del proveedor"), alerta al admin (RN-08).
+2. `GET saldo.php`: si `data.credito` < `precio_costo` → resultado FALLIDO ("sin disponibilidad del proveedor"), alerta al admin (RN-08).
 3. `POST recargar.php`. Si `BUSY` → espera 3 s, reintenta una vez (RN-06).
 4. Libera el candado.
 
@@ -171,9 +171,25 @@ Al iniciar la aplicación: pedidos en `CREADO`/`PROCESANDO` con antigüedad mayo
 - fallido → misma contabilidad que fallo.
 Solo válido si el estado es `PENDIENTE_VERIFICAR`. Registra evento y auditoría.
 
+### 4.5 Cliente VentasFF (`ventasff_client.py`)
+- Único módulo que llama a VentasFF. `httpx.AsyncClient` con `Authorization: Bearer`, timeouts 15 s conexión / 30 s general / 90 s en `recargar.php`. El transporte es inyectable (pruebas con respx y con el simulador).
+- El JSON se lee con `parse_float=Decimal`; los montos nunca pasan por float.
+- Métodos: `saldo()`, `productos()`, `validar(player_id, paquete_id)`, `recargar(paquete_id, player_id)`; devuelven dataclasses con los campos de la sección 9 de la spec.
+- Clasificación de resultados (T-021), sobre todo para `recargar`:
+
+| Situación | Excepción / resultado | Consecuencia en Fase C |
+|---|---|---|
+| `success: true` con `data` válido | resultado | EXITOSO |
+| `success: false` con `code` | `ErrorAPI(code, mensaje, http, retry_after)` | FALLIDO |
+| Fallo antes de enviar (DNS, conexión rechazada, timeout de conexión) | `ErrorPrevioAlEnvio` | FALLIDO |
+| Timeout de lectura/escritura, corte tras enviar, JSON ilegible, `success` ausente o `data` incompleto | `ResultadoIncierto` | PENDIENTE_VERIFICAR |
+
+- `RATE_LIMITED`: se lanza `ErrorAPI` con `retry_after` (segundos) y el cliente no envía otra petición hasta que pase ese plazo (tope 60 s). No reintenta por su cuenta (RN-07).
+- Logs: método, ruta, estado HTTP y duración; nunca cabeceras ni la API Key (RNF-05).
+
 ## 5. Precios (RF-10 a RF-14)
 
-- `sincronizar_catalogo()`: GET `productos.php`, filtra `juego = free_fire`, upsert en `paquetes` actualizando solo `nombre`, `diamantes` y `precio_costo`.
+- `sincronizar_catalogo()`: GET `productos.php`, filtra `juego = free_fire`, upsert en `paquetes` actualizando solo `nombre`, `diamantes` y `precio_costo` (tomado de `precio`).
 - Paquetes nuevos: se crean con `activo = false` y `precio_venta = NULL`.
 - `precio_venta` nunca se modifica en la sincronización; el panel marca paquetes con `precio_venta <= precio_costo`.
 - Paquetes que desaparecen del proveedor → `activo = false`.

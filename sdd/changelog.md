@@ -55,6 +55,14 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.3.0 → 0.4.0
 - **Motivo:** el dominio se añadirá más adelante; hasta entonces solo hay pruebas, sin clientes reales.
 
+### CHG-005 · 2026-10-08 · Formato real de respuestas de VentasFF
+- **Origen:** hallazgo en implementación (documentación del proveedor usada en la primera recarga real, 2026-10-05)
+- **Spec:** sección 9 ampliada: envoltura `success`/`data`, campos de `saldo.php`, `productos.php`, `validar.php` y `recargar.php`, estado HTTP por código de error, `Retry-After` en `RATE_LIMITED`, montos leídos como decimales
+- **Plan:** sec. 4.2 (Fase B compara `data.credito`), sec. 5 (`precio_costo` desde `precio`), sec. 4.5 nueva (diseño del cliente)
+- **Tareas:** sin cambios; T-020 y T-023 siguen este contrato
+- **Versión spec:** 0.4.0 → 0.5.0
+- **Motivo:** la sección 9 no definía los campos de respuesta; el cliente y el simulador no deben inventarlos. No se incorporan los precios reales (RNF-06), `dato_extra` en la recarga (Mobile Legends, fuera de alcance) ni el reintento como formulario ante `MISSING_FIELD`.
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |

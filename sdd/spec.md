@@ -1,6 +1,6 @@
 # Especificación: Plataforma de recargas Free Fire (prepago)
 
-- **Versión:** 0.4.0
+- **Versión:** 0.5.0
 - **Estado:** Borrador aprobado para iniciar desarrollo
 - **Fuente de verdad:** este archivo. El código y el plan se derivan de aquí.
 
@@ -138,18 +138,28 @@ Transiciones permitidas:
 
 ## 9. Contrato externo (VentasFF)
 
-Base: `https://ventasff.com/api/reseller`. Autenticación: `Authorization: Bearer <API_KEY>`.
+Base: `https://ventasff.com/api/reseller`. Autenticación: `Authorization: Bearer <API_KEY>`. Todas las respuestas son JSON.
 
-| Endpoint | Uso |
+Respuesta correcta: `{"success": true, "data": …}`. Error: `{"success": false, "error": "texto", "code": "CODIGO"}`.
+
+| Endpoint | Uso | `data` en éxito |
+|---|---|---|
+| `GET /saldo.php` | Crédito disponible del dueño. | `{credito, currency, nombre}` |
+| `GET /productos.php` | Catálogo con precio de costo. | Lista de `{paquete_id, nombre, juego, diamantes, precio, currency, dato_extra}`; `precio` es el precio de costo; `dato_extra` es `null` si el juego no pide datos adicionales. |
+| `GET /validar.php?player_id=&paquete_id=` | Valida el ID. | `{valid, nickname, estado}`; `estado`: `ok`, `no_existe`, `no_disponible` (el validador no respondió). |
+| `POST /recargar.php` | Cuerpo JSON `{paquete_id, player_id}`. | `{referencia, monto, saldo, player_id, nickname}`; `nickname` puede ser `null`. |
+
+Los montos llegan como números JSON y se leen como decimales exactos (RNF-04), nunca como float.
+
+| HTTP | `code` |
 |---|---|
-| `GET /saldo.php` | Crédito disponible del dueño. |
-| `GET /productos.php` | Catálogo con precio de costo; `dato_extra` indica datos adicionales. |
-| `GET /validar.php?player_id=&paquete_id=` | Valida ID; `estado`: `ok`, `no_existe`, `no_disponible`. |
-| `POST /recargar.php` | Cuerpo JSON `{paquete_id, player_id}`. Respuesta con `referencia`, `monto`, `saldo`, `nickname` (puede ser `null`). |
+| 401 | `MISSING_KEY`, `INVALID_KEY` |
+| 403 | `INACTIVE`, `API_DISABLED` |
+| 409 | `BUSY` (otra recarga en curso) |
+| 422 | `MISSING_FIELD`, `INSUFFICIENT_CREDIT` (nada se cobró), `PURCHASE_FAILED` (la entrega falló; el crédito no se descontó; `error` trae el motivo) |
+| 429 | `RATE_LIMITED` (incluye cabecera `Retry-After`) |
 
-Errores: `{"success": false, "error": "...", "code": "..."}`. Códigos: `MISSING_KEY`, `INVALID_KEY`, `INACTIVE`, `API_DISABLED`, `BUSY`, `MISSING_FIELD`, `INSUFFICIENT_CREDIT`, `RATE_LIMITED`, `PURCHASE_FAILED`.
-
-Limitaciones: sin endpoint de estado de pedido; `recargar.php` no acepta otros campos. Timeouts: 15 s conexión, 30 s general, 90 s recarga.
+Limitaciones: sin endpoint de estado de pedido; `recargar.php` no acepta otros campos (ni precio de venta ni nickname). Timeouts: 15 s conexión, 30 s general, 90 s recarga.
 
 ## 10. Criterios de aceptación globales
 
