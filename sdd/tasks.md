@@ -20,7 +20,7 @@
 
 ## Fase 2 — Núcleo contable
 
-- [ ] T-010 Migración: `usuarios`, `saldos`, `movimientos`, `auditoria` con restricciones `CHECK` (RN-01, RNF-04) → migración aplicada.
+- [x] T-010 Migración: `usuarios`, `saldos`, `movimientos`, `auditoria` con restricciones `CHECK` (RN-01, RNF-04) → migración aplicada.
 - [ ] T-011 Proteger `movimientos` contra `UPDATE`/`DELETE` (RF-42) → intento de modificar falla en test.
 - [ ] T-012 Servicio `ledger`: abono, ajuste, reserva, liberación, cargo, con `SELECT … FOR UPDATE` (RNF-02) → pruebas unitarias de cada operación.
 - [ ] T-013 Prueba de invariante: saldo = suma de movimientos (CA-04) → test pasa tras secuencia aleatoria de operaciones.

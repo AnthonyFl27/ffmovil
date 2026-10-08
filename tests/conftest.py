@@ -56,8 +56,9 @@ def url_bd_test() -> str:
     _recrear_esquema(url, crear=False)
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 async def motor_bd(url_bd_test):
+    """Un motor para toda la sesión: cada conexión nueva al VPS es costosa."""
     motor = crear_motor(url_bd_test, esquema=ESQUEMA_TEST)
     yield motor
     await motor.dispose()
