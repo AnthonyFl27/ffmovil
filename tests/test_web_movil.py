@@ -47,6 +47,8 @@ async def test_menu_plegable_con_todas_las_opciones(api, sesion_bd):
         assert rutas(en_linea) == rutas(plegable) == opciones
         assert '<details class="dropdown">' in plegable
         assert 'hx-post="/salir"' in en_linea and 'hx-post="/salir"' in plegable
+        # Estáticos con versión: un CSS nuevo nunca se mezcla con uno viejo en caché.
+        assert re.search(r'href="/static/app\.css\?v=[0-9a-f]{10}"', html)
 
 
 async def test_historial_en_tarjetas_con_filtros_plegables(api, sesion_bd):

@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="htmx-config" content='{"responseHandling":[{"code":"204","swap":false},{"code":"[23]..","swap":true},{"code":"4..","swap":true,"error":false},{"code":"502","swap":true,"error":false},{"code":"...","swap":false,"error":true}]}'>
   <title>{% block titulo %}Recargas{% endblock %} · ffmovil</title>
-  <link rel="stylesheet" href="/static/pico.min.css">
-  <link rel="stylesheet" href="/static/app.css">
-  <link rel="icon" type="image/png" href="/static/favicon.png">
-  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
-  <script src="/static/htmx.min.js" defer></script>
-  <script src="/static/app.js" defer></script>
+  <link rel="stylesheet" href="{{ estatico("pico.min.css") }}">
+  <link rel="stylesheet" href="{{ estatico("app.css") }}">
+  <link rel="icon" type="image/png" href="{{ estatico("favicon.png") }}">
+  <link rel="apple-touch-icon" href="{{ estatico("apple-touch-icon.png") }}">
+  <script src="{{ estatico("htmx.min.js") }}" defer></script>
+  <script src="{{ estatico("app.js") }}" defer></script>
 </head>
 <body{% if csrf %} hx-headers='{{ {"X-CSRF-Token": csrf} | tojson }}'{% endif %}>
   {%- if rol == "cliente" %}
@@ -22,7 +22,7 @@
   {%- endif %}
   <header class="container">
     <nav>
-      <ul><li><a href="/" class="marca"><img src="/static/logo.png" alt="" width="40" height="40"><strong>ffmovil</strong></a></li></ul>
+      <ul><li><a href="/" class="marca"><img src="{{ estatico("logo.png") }}" alt="" width="40" height="40"><strong>ffmovil</strong></a></li></ul>
       {% if csrf and not opciones %}
       <ul><li><button class="outline secondary salir" hx-post="/salir">Salir</button></li></ul>
       {% elif csrf %}

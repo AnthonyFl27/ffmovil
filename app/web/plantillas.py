@@ -5,8 +5,10 @@ Las páginas usan las dependencias de sesión de la API. Sin sesión redirigen a
 al inicio de su rol. A una petición HTMX la redirección se indica con `HX-Redirect`.
 """
 
+import hashlib
 from datetime import UTC, datetime
 from decimal import Decimal
+from functools import cache
 from pathlib import Path
 from typing import Annotated
 
@@ -50,10 +52,21 @@ def texto(valor) -> str:
     return "—" if valor is None or valor == "" else str(valor)
 
 
+@cache
+def estatico(nombre: str) -> str:
+    """URL de un archivo de `app/static` con su versión (hash del contenido).
+
+    Al cambiar el archivo cambia la URL, así el navegador no usa una copia vieja.
+    """
+    contenido = (DIRECTORIO_ESTATICOS / nombre).read_bytes()
+    return f"/static/{nombre}?v={hashlib.sha256(contenido).hexdigest()[:10]}"
+
+
 plantillas = Jinja2Templates(directory=DIRECTORIO_PLANTILLAS)
 plantillas.env.filters["usd"] = usd
 plantillas.env.filters["fecha"] = fecha
 plantillas.env.filters["texto"] = texto
+plantillas.env.globals["estatico"] = estatico
 
 
 def es_htmx(request: Request) -> bool:

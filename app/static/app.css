@@ -11,7 +11,10 @@ nav button.salir { padding: 0.25rem 0.75rem; margin: 0; min-height: var(--area-t
 
 /* Navegación: plegada en pantallas angostas, en línea desde 768 px. */
 nav ul.menu-linea { display: none; }
-nav .menu-plegable details.dropdown { margin: 0; }
+/* Bloque posicionado: la lista se alinea al borde derecho del botón en todo navegador
+   (Pico lo deja inline y cada navegador ubica distinto un absoluto dentro de un inline). */
+nav .menu-plegable details.dropdown { display: block; position: relative; margin: 0; }
+nav .menu-plegable details.dropdown > summary + ul { right: 0; left: auto; }
 nav .menu-plegable details.dropdown > summary { height: var(--area-tactil); }
 nav .menu-plegable details.dropdown > ul { min-width: 12rem; }
 nav .menu-plegable details.dropdown > ul li a { min-height: var(--area-tactil); display: flex; align-items: center; }
