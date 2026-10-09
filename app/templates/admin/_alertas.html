@@ -1,16 +1,16 @@
 {% if alertas %}
 <div class="overflow-auto">
-<table>
+<table class="tarjetas">
   <thead>
     <tr><th>Tipo</th><th>Mensaje</th><th>Creada</th><th></th></tr>
   </thead>
   <tbody>
   {% for a in alertas %}
     <tr>
-      <td>{{ a.tipo }}</td>
-      <td>{{ a.mensaje }}</td>
-      <td>{{ a.creada_en | fecha }}</td>
-      <td><button class="secondary outline" hx-post="/gestion/alertas/{{ a.id }}/atender" hx-target="#alertas" hx-disabled-elt="this">Marcar atendida</button></td>
+      <td data-etiqueta="Tipo">{{ a.tipo }}</td>
+      <td data-etiqueta="Mensaje">{{ a.mensaje }}</td>
+      <td data-etiqueta="Creada">{{ a.creada_en | fecha }}</td>
+      <td data-etiqueta="Acciones" class="accion"><button class="secondary outline" hx-post="/gestion/alertas/{{ a.id }}/atender" hx-target="#alertas" hx-disabled-elt="this">Marcar atendida</button></td>
     </tr>
   {% endfor %}
   </tbody>

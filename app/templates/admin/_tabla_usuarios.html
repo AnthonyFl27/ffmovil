@@ -1,19 +1,19 @@
 {% if usuarios %}
 <div class="overflow-auto">
-<table>
+<table class="tarjetas">
   <thead>
     <tr><th>Usuario</th><th>Rol</th><th>Estado</th><th>Debe cambiar clave</th><th>Saldo disponible</th><th>Saldo reservado</th><th>Último login</th></tr>
   </thead>
   <tbody>
   {% for u in usuarios %}
     <tr>
-      <td><a href="/gestion/usuarios/{{ u.id }}">{{ u.usuario }}</a></td>
-      <td>{{ u.rol }}</td>
-      <td>{{ "Activo" if u.activo else "Bloqueado" }}</td>
-      <td>{{ "Sí" if u.debe_cambiar_clave else "No" }}</td>
-      <td>{{ u.saldo_disponible | usd }}</td>
-      <td>{{ u.saldo_reservado | usd }}</td>
-      <td>{{ u.ultimo_login | fecha }}</td>
+      <td data-etiqueta="Usuario"><a href="/gestion/usuarios/{{ u.id }}">{{ u.usuario }}</a></td>
+      <td data-etiqueta="Rol">{{ u.rol }}</td>
+      <td data-etiqueta="Estado">{{ "Activo" if u.activo else "Bloqueado" }}</td>
+      <td data-etiqueta="Debe cambiar clave" class="secundario">{{ "Sí" if u.debe_cambiar_clave else "No" }}</td>
+      <td data-etiqueta="Saldo disponible">{{ u.saldo_disponible | usd }}</td>
+      <td data-etiqueta="Saldo reservado" class="secundario">{{ u.saldo_reservado | usd }}</td>
+      <td data-etiqueta="Último login" class="secundario">{{ u.ultimo_login | fecha }}</td>
     </tr>
   {% endfor %}
   </tbody>

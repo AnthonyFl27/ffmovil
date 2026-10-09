@@ -1,17 +1,17 @@
 {% if lista.registros %}
 <div class="overflow-auto">
-<table>
+<table class="tarjetas">
   <thead>
     <tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Detalle</th><th>IP</th></tr>
   </thead>
   <tbody>
   {% for r in lista.registros %}
     <tr>
-      <td>{{ r.fecha | fecha }}</td>
-      <td>{{ r.usuario | texto }}</td>
-      <td>{{ r.accion }}</td>
-      <td><code>{{ r.detalle | tojson }}</code></td>
-      <td>{{ r.ip | texto }}</td>
+      <td data-etiqueta="Fecha">{{ r.fecha | fecha }}</td>
+      <td data-etiqueta="Usuario">{{ r.usuario | texto }}</td>
+      <td data-etiqueta="Acción">{{ r.accion }}</td>
+      <td data-etiqueta="Detalle"><code>{{ r.detalle | tojson }}</code></td>
+      <td data-etiqueta="IP">{{ r.ip | texto }}</td>
     </tr>
   {% endfor %}
   </tbody>

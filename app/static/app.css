@@ -63,12 +63,20 @@ nav .menu-plegable li button.salir { width: 100%; }
   }
   table.tarjetas td.secundario { display: none; }
   table.tarjetas td.estado { white-space: normal; }
+  /* Celdas de acciones: sin etiqueta, controles a todo el ancho de la tarjeta. */
+  table.tarjetas td.accion { display: block; padding-top: 0.5rem; text-align: left; }
+  table.tarjetas td.accion::before { content: none; }
+  table.tarjetas td.accion form { margin-bottom: 0.5rem; }
+  table.tarjetas td.accion input[name=precio_venta] { width: 100% !important; flex: 1 1 8rem; }
+  .acciones { margin-bottom: 1rem; }
 }
 
 /* Filtros plegables; app.js los abre en escritorio. */
 details.filtros > summary { font-weight: 600; }
 
-/* Fichas de detalle: etiqueta a la izquierda, valor a la derecha. */
-dl.ficha { display: grid; grid-template-columns: auto 1fr; gap: 0.25rem 1rem; }
-dl.ficha dt { color: var(--pico-muted-color); font-weight: normal; }
-dl.ficha dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+/* Fichas de detalle en móvil: etiqueta a la izquierda, valor a la derecha. */
+@media (max-width: 767.98px) {
+  dl.ficha { display: grid; grid-template-columns: auto 1fr; gap: 0.25rem 1rem; }
+  dl.ficha dt { color: var(--pico-muted-color); font-weight: normal; }
+  dl.ficha dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+}

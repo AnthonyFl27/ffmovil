@@ -6,25 +6,25 @@
 </section>
 {% if lista.pedidos %}
 <div class="overflow-auto">
-<table>
+<table class="tarjetas">
   <thead>
     <tr><th>Fecha</th><th>Código</th><th>Usuario</th><th>Paquete</th><th>Player ID</th><th>Nickname</th><th>Venta</th><th>Costo</th><th>Ganancia</th><th>Estado</th><th>Referencia</th><th>Error</th></tr>
   </thead>
   <tbody>
   {% for p in lista.pedidos %}
     <tr>
-      <td>{{ p.fecha | fecha }}</td>
-      <td><a href="/gestion/pedidos/{{ p.id }}">{{ p.codigo }}</a></td>
-      <td>{{ p.usuario | texto }}</td>
-      <td>{{ p.paquete | texto }}</td>
-      <td>{{ p.player_id | texto }}</td>
-      <td>{{ p.nickname | texto }}</td>
-      <td>{{ p.precio_venta | usd }}</td>
-      <td>{{ p.precio_costo | usd }}</td>
-      <td>{{ p.ganancia | usd }}</td>
-      <td class="estado estado-{{ p.estado }}">{{ p.estado }}</td>
-      <td>{{ p.referencia | texto }}</td>
-      <td>{{ p.error | texto }}</td>
+      <td data-etiqueta="Fecha">{{ p.fecha | fecha }}</td>
+      <td data-etiqueta="Código"><a href="/gestion/pedidos/{{ p.id }}">{{ p.codigo }}</a></td>
+      <td data-etiqueta="Usuario">{{ p.usuario | texto }}</td>
+      <td data-etiqueta="Paquete">{{ p.paquete | texto }}</td>
+      <td data-etiqueta="Player ID" class="secundario">{{ p.player_id | texto }}</td>
+      <td data-etiqueta="Nickname" class="secundario">{{ p.nickname | texto }}</td>
+      <td data-etiqueta="Venta">{{ p.precio_venta | usd }}</td>
+      <td data-etiqueta="Costo" class="secundario">{{ p.precio_costo | usd }}</td>
+      <td data-etiqueta="Ganancia">{{ p.ganancia | usd }}</td>
+      <td data-etiqueta="Estado" class="estado estado-{{ p.estado }}">{{ p.estado }}</td>
+      <td data-etiqueta="Referencia" class="secundario">{{ p.referencia | texto }}</td>
+      <td data-etiqueta="Error" class="secundario">{{ p.error | texto }}</td>
     </tr>
   {% endfor %}
   </tbody>

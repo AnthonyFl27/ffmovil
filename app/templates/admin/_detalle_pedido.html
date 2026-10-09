@@ -1,4 +1,4 @@
-<dl>
+<dl class="ficha">
   <dt>Código</dt><dd>{{ pedido.codigo }}</dd>
   <dt>Estado</dt><dd class="estado estado-{{ pedido.estado }}">{{ pedido.estado }}</dd>
   <dt>Fecha</dt><dd>{{ pedido.fecha | fecha }}</dd>
@@ -17,16 +17,16 @@
 
 <h2>Historial</h2>
 <div class="overflow-auto">
-<table>
+<table class="tarjetas">
   <thead>
     <tr><th>Fecha</th><th>Estado</th><th>Detalle</th></tr>
   </thead>
   <tbody>
   {% for e in pedido.eventos %}
     <tr>
-      <td>{{ e.fecha | fecha }}</td>
-      <td>{{ e.estado_anterior | texto }} → {{ e.estado_nuevo }}</td>
-      <td>{{ e.detalle | texto }}</td>
+      <td data-etiqueta="Fecha">{{ e.fecha | fecha }}</td>
+      <td data-etiqueta="Estado">{{ e.estado_anterior | texto }} → {{ e.estado_nuevo }}</td>
+      <td data-etiqueta="Detalle">{{ e.detalle | texto }}</td>
     </tr>
   {% else %}
     <tr><td colspan="3">Sin eventos.</td></tr>

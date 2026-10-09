@@ -3,7 +3,7 @@
 {% endif %}
 <h2>Última sincronización</h2>
 {% if catalogo.ultima_sincronizacion %}
-<dl>
+<dl class="ficha">
   {% for clave, valor in catalogo.ultima_sincronizacion.items() %}
   <dt>{{ clave }}</dt><dd>{{ valor }}</dd>
   {% endfor %}
@@ -12,7 +12,7 @@
 <p>Sin sincronizaciones todavía</p>
 {% endif %}
 <div class="overflow-auto">
-<table>
+<table class="tarjetas">
   <thead>
     <tr><th>ID</th><th>Nombre</th><th>Diamantes</th><th>Costo</th><th>Precio de venta</th><th>Activo</th><th>Acciones</th></tr>
   </thead>

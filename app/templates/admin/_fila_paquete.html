@@ -1,11 +1,11 @@
 <tr id="paquete-{{ p.paquete_id }}">
-  <td>{{ p.paquete_id }}</td>
-  <td>{{ p.nombre }}</td>
-  <td>{{ p.diamantes | texto }}</td>
-  <td>{{ p.precio_costo | usd }}</td>
-  <td>{% if p.bajo_costo %}<span class="bajo-costo">{{ p.precio_venta | usd }} (bajo costo)</span>{% else %}{{ p.precio_venta | usd }}{% endif %}</td>
-  <td>{{ "Sí" if p.activo else "No" }}</td>
-  <td>
+  <td data-etiqueta="ID">{{ p.paquete_id }}</td>
+  <td data-etiqueta="Nombre">{{ p.nombre }}</td>
+  <td data-etiqueta="Diamantes">{{ p.diamantes | texto }}</td>
+  <td data-etiqueta="Costo">{{ p.precio_costo | usd }}</td>
+  <td data-etiqueta="Precio de venta">{% if p.bajo_costo %}<span class="bajo-costo">{{ p.precio_venta | usd }} (bajo costo)</span>{% else %}{{ p.precio_venta | usd }}{% endif %}</td>
+  <td data-etiqueta="Activo">{{ "Sí" if p.activo else "No" }}</td>
+  <td data-etiqueta="Acciones" class="accion">
     <form hx-post="/gestion/paquetes/{{ p.paquete_id }}" hx-target="#paquete-{{ p.paquete_id }}" hx-swap="outerHTML" hx-disabled-elt="find button">
       <div class="acciones">
         <input name="precio_venta" inputmode="decimal" aria-label="Precio de venta (USD)" style="width: 7rem" value="{{ '%.2f' | format(p.precio_venta) if p.precio_venta is not none else '' }}">
