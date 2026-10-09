@@ -8,6 +8,13 @@ nav a.marca { display: inline-flex; align-items: center; gap: 0.5rem; color: inh
 nav a.marca img { width: 40px; height: 40px; }
 .logo-entrar { display: block; margin: 0 auto 1rem; }
 nav button.salir { padding: 0.25rem 0.75rem; margin: 0; min-height: var(--area-tactil); }
+/* Salir: se rellena en rojo al pasar el cursor, al enfocar o al pulsar. */
+nav button.salir { transition: background-color 0.15s, border-color 0.15s, color 0.15s; }
+nav button.salir:hover, nav button.salir:focus-visible, nav button.salir:active {
+  background-color: var(--pico-del-color);
+  border-color: var(--pico-del-color);
+  color: #fff;
+}
 
 /* Navegación: plegada en pantallas angostas, en línea desde 768 px. */
 nav ul.menu-linea { display: none; }

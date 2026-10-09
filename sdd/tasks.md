@@ -118,3 +118,7 @@ Auditoría previa (2026-10-08, 360 y 390 px): el documento se desbordaba en toda
 ### Recarga en tres pasos (CHG-010, RF-20, RF-21)
 
 - [x] T-106 Pantalla Recargar en tres pasos: solo Player ID; tarjeta del jugador y paquetes; resumen al tocar un paquete y confirmación (RF-20, RF-21, RF-25, RN-03, CHG-010) → pruebas web de cada paso (incluidos `no_existe` y `no_disponible`) y prueba de navegador a 360 px del flujo completo.
+
+### Abonos por encima del crédito de VentasFF (CHG-011, RF-53, RN-10)
+
+- [x] T-107 Panel con saldo por cubrir: `Panel.saldo_por_cubrir` (`max(saldos − crédito, 0)`), etiqueta "Saldo por cubrir" y nota neutra en lugar del aviso de error; el abono no cambia (RF-53, RN-10, CHG-011) → pruebas: un abono mayor que el crédito se acepta, el panel informa el saldo por cubrir y no muestra error, y la recarga sin crédito sigue fallando con alerta (RF-23, RN-08).

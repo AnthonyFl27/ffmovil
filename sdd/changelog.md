@@ -103,6 +103,14 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.8.0 → 0.9.0
 - **Motivo:** una pantalla más limpia: primero solo el Player ID; tras verificarlo, una tarjeta con el jugador y los paquetes; al tocar un paquete, el resumen y la confirmación. `validar.php` exige `paquete_id`, por eso el primer paso usa el paquete activo más barato; al confirmar el servidor vuelve a validar con el paquete elegido (RN-03). VentasFF no entrega avatar: la tarjeta muestra la inicial del nickname. Decisiones del dueño: el resumen aparece al tocar el paquete, sin botón intermedio.
 
+### CHG-011 · 2026-10-09 · Abonos por encima del crédito de VentasFF
+- **Origen:** decisión de negocio (el dueño adelanta saldo a clientes confiables)
+- **Spec:** RN-10 modificada (el abono puede superar el crédito en VentasFF, sin tope); RF-53 modificado (saldo por cubrir informativo)
+- **Plan:** sec. 6.1 (panel; la configuración del umbral vive en Auditoría)
+- **Tareas:** nueva T-107 (tareas emergentes)
+- **Versión spec:** 0.9.0 → 0.10.0
+- **Motivo:** un cliente puede pagar por adelantado 1000 USD aunque el crédito en VentasFF sea menor; consume a medida que el dueño recarga crédito. RN-10 antes lo prohibía y el panel lo mostraba como error. Decisiones del dueño: sin tope de adelanto, sin alerta aparte por saldo por cubrir. Cuando falta crédito para una recarga siguen RF-23 y RN-08 (pedido `FALLIDO`, reserva liberada, alerta). Queda fuera por ahora el mensaje al cliente cuando VentasFF no tiene crédito.
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |

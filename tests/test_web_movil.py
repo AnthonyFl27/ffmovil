@@ -18,7 +18,6 @@ OPCIONES_ADMIN = [
     "/gestion/pedidos",
     "/gestion/usuarios",
     "/gestion/paquetes",
-    "/gestion/config",
     "/gestion/auditoria",
 ]
 

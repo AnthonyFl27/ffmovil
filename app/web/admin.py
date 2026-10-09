@@ -21,7 +21,7 @@ from app.schemas.admin import (
 from app.services.consultas_pedidos import POR_PAGINA
 from app.services.estados import Estado
 from app.web import filtros
-from app.web.plantillas import AdminWeb, ErrorWeb, error, es_parcial, render
+from app.web.plantillas import AdminWeb, ErrorWeb, Redirigir, error, es_parcial, render
 
 router = APIRouter(prefix="/gestion", include_in_schema=False)
 
@@ -288,9 +288,9 @@ async def sincronizar(request: Request, actual: AdminWeb, bd: Bd):
 
 
 @router.get("/config")
-async def ver_config(request: Request, actual: AdminWeb, bd: Bd):
-    datos = await panel.ver_config(bd)
-    return render(request, "admin/config.html", actual, config=datos)
+async def ver_config(actual: AdminWeb):
+    # El umbral se gestiona dentro de Auditoría; se conserva la ruta antigua.
+    raise Redirigir("/gestion/auditoria")
 
 
 @router.post("/config")
@@ -329,11 +329,21 @@ async def ver_auditoria(
         por_pagina=POR_PAGINA,
     )
     valores = {"accion": accion, "desde": desde, "hasta": hasta, "tz": tz}
-    plantilla = (
-        "admin/_tabla_auditoria.html"
-        if es_parcial(request, "registros")
-        else "admin/auditoria.html"
-    )
+    if es_parcial(request, "registros"):
+        return render(
+            request,
+            "admin/_tabla_auditoria.html",
+            actual,
+            lista=lista,
+            filtros=valores,
+            consulta=filtros.consulta,
+        )
     return render(
-        request, plantilla, actual, lista=lista, filtros=valores, consulta=filtros.consulta
+        request,
+        "admin/auditoria.html",
+        actual,
+        lista=lista,
+        filtros=valores,
+        consulta=filtros.consulta,
+        config=await panel.ver_config(bd),
     )

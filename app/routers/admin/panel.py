@@ -1,6 +1,7 @@
 """Panel del admin, alertas y configuración (RF-53, RF-54, RN-10, RN-11, RF-55)."""
 
 import logging
+from decimal import Decimal
 
 from fastapi import APIRouter, HTTPException, Request, status
 from sqlalchemy import func, select
@@ -57,6 +58,7 @@ async def panel(request: Request, bd: Bd):
         saldos_clientes=saldos,
         diferencia=credito - saldos if credito is not None else None,
         cubierto=credito >= saldos if credito is not None else None,
+        saldo_por_cubrir=max(saldos - credito, Decimal("0.00")) if credito is not None else None,
         pendientes_verificar=pendientes,
         ganancia_total=ganancia,
         alertas=[AlertaAdmin.model_validate(a) for a in activas],

@@ -32,7 +32,7 @@ async def test_cliente_no_entra_a_gestion(api, sesion_bd):
     cliente = await crear_usuario_con_clave(sesion_bd)
     http = api()
     await iniciar_sesion(http, cliente.usuario)
-    for ruta in ("/gestion", "/gestion/usuarios", "/gestion/pedidos", "/gestion/config"):
+    for ruta in ("/gestion", "/gestion/usuarios", "/gestion/pedidos"):
         respuesta = await http.get(ruta)
         assert (respuesta.status_code, respuesta.headers["location"]) == (303, "/inicio")
     # Una acción por HTMX también se rechaza (redirección, sin efecto).
@@ -50,6 +50,11 @@ async def test_panel_con_credito_saldos_y_alertas(api, sesion_bd, simulador):
     assert '<strong id="credito-ventasff">1000000.00 USD</strong>' in html
     assert 'id="saldos-clientes"' in html and 'id="ganancia-total"' in html
     assert 'href="/gestion/pedidos?solo_pendientes=1"' in html
+    assert 'id="saldo-por-cubrir"' in html and 'id="diferencia"' not in html
+    # RN-10: con el crédito por debajo de los saldos solo hay una nota informativa.
+    simulador.credito = Decimal("0.00")
+    html = (await http.get("/gestion")).text
+    assert "no cubre los saldos" not in html
 
 
 async def test_atender_alerta(api, sesion_bd):
@@ -234,11 +239,13 @@ async def test_catalogo_precio_activar_y_sincronizar(api, sesion_bd, simulador):
 
 async def test_configuracion_del_umbral(api, sesion_bd):
     http, _ = await admin_web(api, sesion_bd)
-    pagina = await http.get("/gestion/config")
+    pagina = await http.get("/gestion/auditoria")
     assert 'name="alerta_credito_min"' in pagina.text
+    antigua = await http.get("/gestion/config")
+    assert (antigua.status_code, antigua.headers["location"]) == (303, "/gestion/auditoria")
     guardar = await htmx_post(http, "/gestion/config", {"alerta_credito_min": "15.00"})
     assert guardar.status_code == 200 and "guardado" in guardar.text
-    assert 'value="15.00"' in (await http.get("/gestion/config")).text
+    assert 'value="15.00"' in (await http.get("/gestion/auditoria")).text
     invalido = await htmx_post(http, "/gestion/config", {"alerta_credito_min": "-1"})
     assert invalido.status_code == 422
     # Deja el valor inicial para las demás pruebas (RN-11).

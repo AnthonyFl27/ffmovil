@@ -5,7 +5,7 @@
 <section class="cifras">
   <article><small>Crédito en VentasFF</small><strong id="credito-ventasff">{{ panel.credito_ventasff | usd }}</strong></article>
   <article><small>Saldos de clientes</small><strong id="saldos-clientes">{{ panel.saldos_clientes | usd }}</strong></article>
-  <article><small>Diferencia</small><strong id="diferencia">{{ panel.diferencia | usd }}</strong></article>
+  <article><small>Saldo por cubrir</small><strong id="saldo-por-cubrir">{{ panel.saldo_por_cubrir | usd }}</strong></article>
   <article><small>Pendientes de verificar</small><strong id="pendientes"><a href="/gestion/pedidos?solo_pendientes=1">{{ panel.pendientes_verificar }}</a></strong></article>
   <article><small>Ganancia total</small><strong id="ganancia-total">{{ panel.ganancia_total | usd }}</strong></article>
 </section>
@@ -13,7 +13,7 @@
 <p class="mensaje error">{{ panel.error_proveedor }}</p>
 {% endif %}
 {% if panel.cubierto is sameas false %}
-<p class="mensaje error">El crédito en VentasFF no cubre los saldos de los clientes.</p>
+<p><small>Los saldos de clientes superan el crédito en VentasFF: el saldo por cubrir es lo adelantado que aún no respalda tu crédito.</small></p>
 {% endif %}
 <h2>Alertas</h2>
 {% set alertas = panel.alertas %}

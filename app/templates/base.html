@@ -16,7 +16,7 @@
   {%- if rol == "cliente" %}
   {%- set opciones = [("/inicio", "Inicio"), ("/recargar", "Recargar"), ("/historial", "Historial"), ("/fondos", "Fondos")] %}
   {%- elif rol == "admin" %}
-  {%- set opciones = [("/gestion", "Panel"), ("/gestion/pedidos", "Pedidos"), ("/gestion/usuarios", "Usuarios"), ("/gestion/paquetes", "Paquetes"), ("/gestion/config", "Configuración"), ("/gestion/auditoria", "Auditoría")] %}
+  {%- set opciones = [("/gestion", "Panel"), ("/gestion/pedidos", "Pedidos"), ("/gestion/usuarios", "Usuarios"), ("/gestion/paquetes", "Paquetes"), ("/gestion/auditoria", "Auditoría")] %}
   {%- else %}
   {%- set opciones = [] %}
   {%- endif %}

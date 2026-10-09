@@ -135,6 +135,9 @@ class Panel(BaseModel):
     # credito_ventasff − saldos_clientes; negativo si el crédito no cubre los saldos.
     diferencia: Monto | None
     cubierto: bool | None
+    # max(saldos_clientes − credito_ventasff, 0): lo adelantado a clientes que aún no
+    # respalda el crédito (RN-10). Informativo, no es un error.
+    saldo_por_cubrir: Monto | None
     pendientes_verificar: int
     ganancia_total: Monto
     alertas: list[AlertaAdmin]

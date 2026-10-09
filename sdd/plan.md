@@ -288,12 +288,11 @@ Paquete `app/web/`: rutas HTML (sin `include_in_schema`) que llaman a las funcio
 | `/recargar`, `/recargar/validar`, `/recargar/resumen`, `/recargar/confirmar` | Player ID → tarjeta del jugador y paquetes → resumen → confirmación (RF-20, RF-21, RF-25; CHG-010) | `/paquetes`, `/recargas/validar`, `/recargas` |
 | `/historial`, `/historial/{codigo}` | Historial con filtros y detalle (RF-31, RF-32) | `/me/pedidos` |
 | `/fondos` | Fondos (RF-34) | `/me/fondos` |
-| `/gestion` | Panel: crédito vs saldos, pendientes, ganancia, alertas (RF-53, RN-10, RN-11) | `/admin/panel`, `/admin/alertas/{id}/atender` |
+| `/gestion` | Panel: crédito, saldos de clientes y saldo por cubrir (informativo, sin aviso de error; CHG-011), pendientes, ganancia, alertas (RF-53, RN-10, RN-11) | `/admin/panel`, `/admin/alertas/{id}/atender` |
 | `/gestion/usuarios`, `/gestion/usuarios/{id}` | Usuarios, abonos y ajustes (RF-03, RF-40, RF-41) | `/admin/usuarios*`, `/admin/saldos/*` |
 | `/gestion/pedidos`, `/gestion/pedidos/{id}` | Pedidos con filtros, detalle y resolución (RF-50 a RF-52, RF-54) | `/admin/pedidos*` |
 | `/gestion/paquetes` | Catálogo: precio, activación, sincronizar (RF-12, RF-14) | `/admin/paquetes`, `/admin/catalogo/sincronizar` |
-| `/gestion/config` | Umbral de crédito bajo (RN-11) | `/admin/config` |
-| `/gestion/auditoria` | Registro de acciones (RF-55) | `/admin/auditoria` |
+| `/gestion/auditoria` | Umbral de crédito bajo (RN-11; el formulario envía a `POST /gestion/config`, y `GET /gestion/config` redirige aquí) y registro de acciones (RF-55) | `/admin/config`, `/admin/auditoria` |
 
 - **Sesión:** las páginas usan las mismas dependencias que la API; sin sesión redirigen a `/login`, con `debe_cambiar_clave` a `/clave` y con el rol equivocado al inicio del rol. A una petición HTMX la redirección se le indica con la cabecera `HX-Redirect`.
 - **Formularios:** se envían con HTMX (`hx-post`), que agrega `X-CSRF-Token` desde `hx-headers` del `<body>`. La respuesta es un fragmento HTML; los errores 4xx (y el 502 de "sincronizar ahora") también traen un fragmento con el mensaje y HTMX los muestra (`htmx-config` con `responseHandling`). Si el formulario reemplaza otra parte de la página (resolver un pedido, una fila del catálogo), el error se muestra en su zona de mensajes con `HX-Retarget`.

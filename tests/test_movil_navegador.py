@@ -183,7 +183,6 @@ async def test_pantallas_en_viewport_movil(servidor_web, navegador, api, sesion_
             "/gestion/usuarios",
             f"/gestion/usuarios/{cliente.id}",
             "/gestion/paquetes",
-            "/gestion/config",
             "/gestion/auditoria",
         ],
         problemas,

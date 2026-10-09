@@ -1,6 +1,6 @@
 # Especificación: Plataforma de recargas Free Fire (prepago)
 
-- **Versión:** 0.9.0
+- **Versión:** 0.10.0
 - **Estado:** Borrador aprobado para iniciar desarrollo
 - **Fuente de verdad:** este archivo. El código y el plan se derivan de aquí.
 
@@ -96,7 +96,7 @@ Web de recargas de diamantes de Free Fire para clientes revendedores con cuentas
 - **RF-50** Listado de pedidos con filtros: estado, rango de fechas, usuario, Player ID, ID de pedido, `referencia` de VentasFF, solo `PENDIENTE_VERIFICAR`.
 - **RF-51** Detalle de pedido: todos los datos, costo, venta, ganancia, historial de estados y error.
 - **RF-52** Resolución manual de `PENDIENTE_VERIFICAR`: "Marcar exitoso" (confirma cobro; permite registrar `referencia`) o "Marcar fallido" (libera reserva).
-- **RF-53** Vista de saldo real en VentasFF frente a la suma de saldos de clientes (disponible + reservado).
+- **RF-53** Vista de saldo real en VentasFF frente a la suma de saldos de clientes (disponible + reservado), con el **saldo por cubrir** (suma de saldos menos crédito, o 0.00 si el crédito la cubre). Un saldo por cubrir mayor que cero es informativo, no un error (RN-10).
 - **RF-54** Ganancia propia: `precio_venta − precio_costo` por pedido exitoso, con totales por rango de fechas.
 - **RF-55** Registro de auditoría de acciones del admin.
 
@@ -111,7 +111,7 @@ Web de recargas de diamantes de Free Fire para clientes revendedores con cuentas
 - **RN-07** Límites del proveedor: 60 peticiones/min y 10 recargas/min. El sistema aplica límite propio por debajo de esos topes.
 - **RN-08** Si la API responde `INSUFFICIENT_CREDIT` (crédito del dueño agotado), el pedido es `FALLIDO` y el admin recibe alerta visible en su panel.
 - **RN-09** Los pedidos que quedan en `PROCESANDO` tras un reinicio del servicio pasan a `PENDIENTE_VERIFICAR`.
-- **RN-10** La suma de saldos de clientes no debe superar el crédito real en VentasFF; el admin ve la diferencia.
+- **RN-10** El admin puede abonar a un cliente un monto mayor que el crédito disponible en VentasFF (pago adelantado). El abono nunca consulta ni modifica el crédito de VentasFF y no tiene tope. Si la suma de saldos de clientes supera el crédito real, el panel muestra el **saldo por cubrir** como dato informativo, sin alerta aparte. Cuando falte crédito en VentasFF para una recarga, aplican RF-23 y RN-08: el pedido pasa a `FALLIDO`, se libera la reserva del cliente y el admin recibe la alerta.
 - **RN-11** El sistema genera una alerta visible para el admin cuando: (a) el crédito en VentasFF queda por debajo del umbral `alerta_credito_min` (valor inicial 10 USD, editable por el admin); (b) VentasFF responde `INSUFFICIENT_CREDIT` o el crédito no cubre el costo de una recarga; (c) VentasFF responde un error de cuenta (`MISSING_KEY`, `INVALID_KEY`, `INACTIVE`, `API_DISABLED`). La alerta sigue activa hasta que el admin la marca como atendida; no se crea otra activa del mismo tipo.
 
 ## 7. Estados del pedido
