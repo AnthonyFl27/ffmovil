@@ -1,6 +1,6 @@
 # Tareas
 
-- **Spec:** `sdd/spec.md` v0.7.1 · **Plan:** `sdd/plan.md`
+- **Spec:** `sdd/spec.md` v0.8.0 · **Plan:** `sdd/plan.md`
 - **Formato:** `- [ ] T-XXX descripción (refs) → criterio de hecho`
 - **Estados:** `[ ]` pendiente · `[~]` en curso · `[x]` hecha · `[!]` bloqueada
 - Cada tarea referencia requisitos (RF/RN/RNF/CA). Una tarea sin referencia no debería existir: o falta un requisito en la spec, o sobra la tarea.
@@ -103,3 +103,14 @@
 ## Tareas emergentes
 
 Se agregan aquí con el siguiente ID libre (`T-1xx`), indicando el cambio de spec que las originó (`CHG-XXX`).
+
+### Adaptación a móvil (CHG-009, RNF-12, CA-07)
+
+Auditoría previa (2026-10-08, 360 y 390 px): el documento se desbordaba en todas las pantallas (menú sin plegar: 445 px en cliente y 664 px en admin); el historial del cliente mide 900 px y oculta el estado; "Salir" 34 px, radios de paquete 20 px, enlaces de usuario 22 px, casilla "solo pendientes" 20 px.
+
+- [ ] T-100 Navegación plegable (menú desplegable) en pantallas angostas, para cliente y admin (RNF-12, CHG-009) → sin desbordamiento horizontal a 360 px; todas las opciones alcanzables.
+- [ ] T-101 Historial del cliente y detalle en tarjetas, con filtros plegables y estado visible (RNF-12, RF-31, RF-32, CA-05) → a 360 px el estado se ve sin desplazarse.
+- [ ] T-102 Pantallas admin en móvil: pedidos, usuarios, paquetes y auditoría en tarjetas; ajustes del panel, detalle de pedido y configuración (RNF-12, RF-50 a RF-55) → utilizables a 360 px, sin cambios en escritorio.
+- [ ] T-103 Áreas táctiles de 44 px: botones, enlaces de acción, casillas y opciones de paquete; cifras sin tarjetas huérfanas (RNF-12) → ningún control interactivo < 44 px a 360 px.
+- [ ] T-104 Prueba automatizada de viewport móvil con Playwright (dev) sobre todas las pantallas de cliente y admin (CA-07, RNF-12) → la prueba falla ante desbordamiento o un control < 44 px; se omite con aviso sin Chromium.
+- [ ] T-105 Revisión final en un celular real, por el dueño (RNF-12) → sin hallazgos o hallazgos registrados como tareas nuevas.

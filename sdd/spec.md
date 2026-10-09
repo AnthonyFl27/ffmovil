@@ -1,6 +1,6 @@
 # Especificación: Plataforma de recargas Free Fire (prepago)
 
-- **Versión:** 0.7.1
+- **Versión:** 0.8.0
 - **Estado:** Borrador aprobado para iniciar desarrollo
 - **Fuente de verdad:** este archivo. El código y el plan se derivan de aquí.
 
@@ -140,6 +140,12 @@ Transiciones permitidas:
 - **RNF-09** Zona horaria almacenada en UTC; mostrada en la zona del usuario.
 - **RNF-10** Las pruebas automáticas usan un esquema `test` aislado, nunca los datos de desarrollo ni de producción.
 - **RNF-11** Mientras no exista dominio, la app corre por HTTP y el atributo `Secure` de la cookie se controla con `COOKIE_SECURE` (`false` en pruebas). No se admiten clientes reales sin HTTPS.
+- **RNF-12** Uso en móvil (*mobile-first*): todas las pantallas de cliente y de admin se usan sin desplazamiento horizontal de la página y con todo el contenido legible desde 360 px de ancho, y siguen siendo correctas en escritorio.
+  - La navegación se pliega en pantallas angostas (menú desplegable) y todas sus opciones son alcanzables.
+  - Los listados con muchas columnas (historial, pedidos, usuarios, auditoría, catálogo) se muestran en móvil como tarjetas, con el estado del pedido visible sin desplazamiento horizontal. El detalle completo es accesible desde cada fila.
+  - Los controles interactivos (botones, enlaces de acción, casillas, opciones de paquete) miden al menos 44 × 44 px de área táctil.
+  - Los filtros de los listados se pliegan en móvil y se pueden expandir.
+  - Los campos de entrada usan letra de al menos 16 px y el Player ID abre el teclado numérico.
 
 ## 9. Contrato externo (VentasFF)
 
@@ -174,6 +180,7 @@ Limitaciones: sin endpoint de estado de pedido; `recargar.php` no acepta otros c
 - **CA-04** Para todo pedido, `saldo_disponible + saldo_reservado` del usuario coincide con la suma de sus movimientos.
 - **CA-05** Un pedido fallido aparece en el historial del cliente con su ID y motivo.
 - **CA-06** El admin puede localizar cualquier pedido por ID propio, `referencia` o Player ID.
+- **CA-07** En un viewport de 360 × 740 px, ninguna pantalla de cliente ni de admin hace que el ancho del documento supere el del viewport, y todo control interactivo mide al menos 44 px de lado. Se verifica con una prueba automatizada de navegador.
 
 ## 11. Preguntas abiertas
 

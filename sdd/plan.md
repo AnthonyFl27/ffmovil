@@ -1,6 +1,6 @@
 # Plan técnico
 
-- **Spec de referencia:** `sdd/spec.md` v0.7.1
+- **Spec de referencia:** `sdd/spec.md` v0.8.0
 - **Regla:** este plan implementa la spec. Si el plan contradice la spec, gana la spec.
 
 ---
@@ -301,6 +301,17 @@ Paquete `app/web/`: rutas HTML (sin `include_in_schema`) que llaman a las funcio
 - **Fechas (RNF-09):** se renderizan como `<time datetime="ISO UTC">` y `app/static/app.js` las muestra en la zona del navegador. Los filtros de fecha usan `<input type="date">` y envían el desfase del navegador (`tz`, minutos); la ruta convierte el día local a UTC (`desde` inclusivo, `hasta` hasta el final de ese día).
 - **Montos:** filtro `usd` → `"0.75 USD"` (RF-36).
 
+### 6.2 Adaptación a móvil (RNF-12, CA-07, CHG-009)
+
+- **Enfoque:** CSS propio en `app/static/app.css` sobre Pico.css, con diseño *mobile-first* (estilos base para 360 px; `@media (min-width: …)` para ampliar). Sin librerías nuevas ni paso de build. La `meta viewport` ya existe en `base.html`.
+- **Navegación:** en pantallas angostas el menú se pliega (`<details>`/`<summary>`, sin JavaScript adicional) y "Salir" queda dentro del menú; en escritorio se muestra en línea como hoy. Se aplica a las dos barras (cliente y admin).
+- **Listados:** las plantillas `_tabla_*.html` se mantienen como tabla en escritorio y, bajo el punto de corte, cada fila se presenta como tarjeta con los campos esenciales (fecha, código, paquete, monto, estado) y el resto accesible desde la fila o el detalle. Se prefiere CSS (`display: block` en filas y `data-etiqueta` en celdas) para no duplicar el HTML.
+- **Filtros:** cada formulario de filtros va dentro de un `<details>` que en escritorio se muestra abierto.
+- **Áreas táctiles:** variable CSS de altura mínima de 44 px para botones, enlaces de acción, casillas y opciones de paquete (radio con etiqueta que ocupa toda la fila).
+- **Cifras** (`.cifras`): una o dos columnas en móvil, sin tarjetas huérfanas a mitad de ancho.
+- **Prueba (CA-07):** Playwright como dependencia de desarrollo (Chromium se instala con `playwright install chromium`; nunca entra en la imagen Docker). La prueba levanta la app contra el esquema `test` y el simulador, entra como cliente y como admin con viewport 360 × 740 y táctil, recorre cada pantalla y comprueba `scrollWidth ≤ clientWidth` y que todo control interactivo mida ≥ 44 px. Se omite con aviso si Chromium no está instalado.
+- **Verificación manual:** un celular real (T-105), a cargo del dueño.
+
 ## 7. Seguridad (RNF-01 a RNF-06)
 
 - Configuración por variables de entorno: `VENTASFF_API_KEY`, `DATABASE_URL`, `TEST_DATABASE_URL`, `SECRET_KEY`, `COOKIE_SECURE`; opcional `VENTASFF_URL`.
@@ -338,6 +349,7 @@ Paquete `app/web/`: rutas HTML (sin `include_in_schema`) que llaman a las funcio
 - **Simulador de VentasFF** (`tests/fake_ventasff.py`): reproduce `ok`, `PURCHASE_FAILED`, `BUSY`, `INSUFFICIENT_CREDIT`, timeout, respuesta ilegible, `nickname: null`.
 - **Unitarias:** validación de precios y de Player ID, transiciones de estado.
 - **Integración (BD real, esquema `test`):** flujo de recarga completo por cada resultado; concurrencia (CA-01); idempotencia (CA-02); invariante contable (CA-04).
+- **Móvil:** CA-07 con navegador automatizado (sec. 6.2).
 - **Seguridad:** CA-03 (ningún payload de cliente contiene `precio_costo`), acceso a `/admin/*` como cliente → 403.
 - **Prueba real controlada** al final: 1 recarga del paquete más barato con un ID propio.
 

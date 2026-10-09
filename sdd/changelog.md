@@ -87,6 +87,14 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.7.0 → 0.7.1
 - **Motivo:** el dueño elige páginas renderizadas por FastAPI que reutilizan las rutas y esquemas ya construidos: sin paso de build ni otro contenedor.
 
+### CHG-009 · 2026-10-08 · Adaptación a móvil
+- **Origen:** decisión de negocio (la plataforma se usará sobre todo desde celular, el admin desde celular y escritorio) y hallazgo de la auditoría en navegador móvil
+- **Spec:** RNF-12 y CA-07 añadidos
+- **Plan:** sec. 6.2 nueva (CSS mobile-first, menú plegable, tarjetas, filtros plegables, áreas táctiles, prueba con Playwright); sec. 9 (prueba móvil)
+- **Tareas:** nuevas T-100 a T-105 (tareas emergentes)
+- **Versión spec:** 0.7.1 → 0.8.0
+- **Motivo:** la web desbordaba el viewport en todas las pantallas a 360 y 390 px, ocultaba el estado en el historial y tenía controles táctiles de 20 a 34 px. Decisiones del dueño: admin adaptado por completo, listados como tarjetas, mínimo 360 px, Playwright solo como dependencia de desarrollo.
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |
