@@ -28,7 +28,5 @@ services:
         max-file: "3"
 
 networks:
-  # La crea el dueño del VPS y la comparte con el Compose de PostgreSQL.
-  # En el VPS, DATABASE_URL usa como host `postgresql:5432`.
   ffmovil_net:
     external: true
