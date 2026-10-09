@@ -2,6 +2,9 @@
 {% block titulo %}Historial{% endblock %}
 {% block contenido %}
 <h1>Historial</h1>
+{% set hay_filtros = filtros.estado or filtros.desde or filtros.hasta or filtros.player_id or filtros.codigo %}
+<details class="filtros"{% if hay_filtros %} open{% endif %}>
+<summary>Filtros</summary>
 <form hx-get="/historial" hx-target="#pedidos" hx-push-url="true">
   <input type="hidden" name="tz" value="{{ filtros.tz or '' }}">
   <div class="grid">
@@ -25,6 +28,7 @@
     <a role="button" class="secondary outline" href="/historial">Limpiar</a>
   </div>
 </form>
+</details>
 <div id="pedidos">
 {% include "cliente/_tabla_pedidos.html" %}
 </div>

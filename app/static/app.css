@@ -30,3 +30,45 @@ nav .menu-plegable li button.salir { width: 100%; }
 .bajo-costo { color: var(--pico-del-color); font-weight: 600; }
 .htmx-indicator { display: none; }
 .htmx-request .htmx-indicator, .htmx-request.htmx-indicator { display: inline; }
+
+/* Listados: tabla en escritorio; bajo 768 px cada fila es una tarjeta (RNF-12).
+   Las celdas llevan data-etiqueta; las .secundario se ven en el detalle. */
+@media (max-width: 767.98px) {
+  table.tarjetas thead { display: none; }
+  table.tarjetas, table.tarjetas tbody, table.tarjetas tr { display: block; width: 100%; }
+  table.tarjetas tr {
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border: var(--pico-border-width) solid var(--pico-muted-border-color);
+    border-radius: var(--pico-border-radius);
+    background: var(--pico-card-background-color);
+  }
+  table.tarjetas td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.25rem 0;
+    border: none;
+    background: transparent;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+  table.tarjetas td::before {
+    content: attr(data-etiqueta);
+    flex-shrink: 0;
+    color: var(--pico-muted-color);
+    font-weight: normal;
+    text-align: left;
+  }
+  table.tarjetas td.secundario { display: none; }
+  table.tarjetas td.estado { white-space: normal; }
+}
+
+/* Filtros plegables; app.js los abre en escritorio. */
+details.filtros > summary { font-weight: 600; }
+
+/* Fichas de detalle: etiqueta a la izquierda, valor a la derecha. */
+dl.ficha { display: grid; grid-template-columns: auto 1fr; gap: 0.25rem 1rem; }
+dl.ficha dt { color: var(--pico-muted-color); font-weight: normal; }
+dl.ficha dd { margin: 0; text-align: right; overflow-wrap: anywhere; }

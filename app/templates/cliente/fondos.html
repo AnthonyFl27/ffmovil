@@ -9,15 +9,15 @@
 <h2>Abonos y ajustes</h2>
 {% if fondos.movimientos %}
 <div class="overflow-auto">
-<table>
+<table class="tarjetas">
   <thead><tr><th>Fecha</th><th>Tipo</th><th>Monto</th><th>Nota</th></tr></thead>
   <tbody>
   {% for m in fondos.movimientos %}
     <tr>
-      <td>{{ m.fecha | fecha }}</td>
-      <td>{{ "Abono" if m.tipo == "abono" else "Ajuste" }}</td>
-      <td>{{ m.monto | usd }}</td>
-      <td>{{ m.nota | texto }}</td>
+      <td data-etiqueta="Fecha">{{ m.fecha | fecha }}</td>
+      <td data-etiqueta="Tipo">{{ "Abono" if m.tipo == "abono" else "Ajuste" }}</td>
+      <td data-etiqueta="Monto">{{ m.monto | usd }}</td>
+      <td data-etiqueta="Nota">{{ m.nota | texto }}</td>
     </tr>
   {% endfor %}
   </tbody>

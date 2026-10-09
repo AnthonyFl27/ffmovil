@@ -16,6 +16,13 @@ function prepararFragmento(raiz) {
 htmx.onLoad(prepararFragmento);
 
 document.addEventListener("DOMContentLoaded", function () {
+  // Los filtros se pliegan en móvil y se muestran abiertos en escritorio (RNF-12).
+  if (window.matchMedia("(min-width: 768px)").matches) {
+    document.querySelectorAll("details.filtros").forEach(function (d) {
+      d.open = true;
+    });
+  }
+
   // Un formulario con data-limpia="#id" vacía ese elemento al cambiar sus datos.
   document.addEventListener("input", function (e) {
     var form = e.target.closest("[data-limpia]");
