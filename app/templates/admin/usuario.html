@@ -8,13 +8,15 @@
 <div class="grid">
   <form hx-post="/gestion/usuarios/{{ u.id }}/saldo/abono" hx-target="#mensaje-saldo" hx-disabled-elt="find button">
     <h3>Abono</h3>
+    <fieldset class="sentido" aria-label="Operación">
+      <span>Suma al saldo disponible del cliente</span>
+    </fieldset>
     <label>Monto (USD)
       <input name="monto" inputmode="decimal" required>
     </label>
     <label>Nota
-      <input name="nota" required>
+      <input name="nota" placeholder="Método de pago y referencia" required>
     </label>
-    <small>Método de pago y referencia</small>
     <div class="acciones">
       <button type="submit">Registrar abono</button>
     </div>
@@ -29,7 +31,7 @@
       <input name="monto" inputmode="decimal" required>
     </label>
     <label>Nota
-      <input name="nota" required>
+      <input name="nota" placeholder="Motivo del ajuste" required>
     </label>
     <div class="acciones">
       <button type="submit">Registrar ajuste</button>

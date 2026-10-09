@@ -190,5 +190,5 @@ details.nuevo-usuario { margin-bottom: var(--pico-spacing); }
 details.nuevo-usuario[open] > summary { margin-bottom: var(--pico-spacing); }
 
 /* Sumar / restar en el ajuste: opciones en una fila. */
-fieldset.sentido { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; margin-bottom: var(--pico-spacing); }
+fieldset.sentido { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.5rem; min-height: 2rem; margin-bottom: var(--pico-spacing); }
 fieldset.sentido label { margin: 0; }
