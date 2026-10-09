@@ -1,6 +1,6 @@
 # Especificación: Plataforma de recargas Free Fire (prepago)
 
-- **Versión:** 0.8.0
+- **Versión:** 0.9.0
 - **Estado:** Borrador aprobado para iniciar desarrollo
 - **Fuente de verdad:** este archivo. El código y el plan se derivan de aquí.
 
@@ -64,10 +64,10 @@ Web de recargas de diamantes de Free Fire para clientes revendedores con cuentas
 - **RF-14** Si el costo de un paquete cambia en la sincronización, el `precio_venta` no se modifica y el panel marca los paquetes con `precio_venta <= precio_costo`. Los pedidos ya creados conservan el precio con el que se vendieron.
 
 ### 5.3 Recarga
-- **RF-20** El cliente ingresa el Player ID; el backend llama a `validar.php` (con `paquete_id`) y muestra el nickname.
-  - `estado = no_existe` → se bloquea la recarga.
-  - `estado = no_disponible` o fallo del validador → se advierte al cliente y se permite continuar bajo su confirmación.
-- **RF-21** El cliente selecciona paquete y confirma explícitamente antes de enviar.
+- **RF-20** El cliente ingresa primero solo el Player ID; el backend llama a `validar.php` con el paquete activo de menor precio y muestra una tarjeta con el nickname y el Player ID. Los paquetes se muestran solo después de esa validación, y el cliente puede volver a cambiar el Player ID.
+  - `estado = no_existe` → se bloquea la recarga y se pide otro Player ID.
+  - `estado = no_disponible` o fallo del validador → la tarjeta advierte que no se pudo verificar el nombre y se permite continuar bajo su confirmación.
+- **RF-21** Con el jugador verificado, el cliente elige un paquete, ve un resumen (jugador, Player ID, paquete, precio y saldo disponible) y confirma explícitamente antes de enviar. Al confirmar, el backend vuelve a validar el ID con el paquete elegido (RN-03).
 - **RF-22** El backend verifica `saldo_disponible >= precio_venta` y reserva el monto antes de llamar a VentasFF.
 - **RF-23** El backend verifica con `saldo.php` que el crédito en VentasFF cubre el `precio_costo` antes de procesar.
 - **RF-24** El backend ejecuta `recargar.php` y procesa el resultado:

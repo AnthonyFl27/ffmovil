@@ -1,6 +1,6 @@
 # Tareas
 
-- **Spec:** `sdd/spec.md` v0.8.0 · **Plan:** `sdd/plan.md`
+- **Spec:** `sdd/spec.md` v0.9.0 · **Plan:** `sdd/plan.md`
 - **Formato:** `- [ ] T-XXX descripción (refs) → criterio de hecho`
 - **Estados:** `[ ]` pendiente · `[~]` en curso · `[x]` hecha · `[!]` bloqueada
 - Cada tarea referencia requisitos (RF/RN/RNF/CA). Una tarea sin referencia no debería existir: o falta un requisito en la spec, o sobra la tarea.
@@ -114,3 +114,7 @@ Auditoría previa (2026-10-08, 360 y 390 px): el documento se desbordaba en toda
 - [x] T-103 Áreas táctiles de 44 px: botones, enlaces de acción, casillas y opciones de paquete; cifras sin tarjetas huérfanas (RNF-12) → ningún control interactivo < 44 px a 360 px.
 - [x] T-104 Prueba automatizada de viewport móvil con Playwright (dev) sobre todas las pantallas de cliente y admin (CA-07, RNF-12) → la prueba falla ante desbordamiento o un control < 44 px; se omite con aviso sin Chromium.
 - [ ] T-105 Revisión final en un celular real, por el dueño (RNF-12) → sin hallazgos o hallazgos registrados como tareas nuevas.
+
+### Recarga en tres pasos (CHG-010, RF-20, RF-21)
+
+- [ ] T-106 Pantalla Recargar en tres pasos: solo Player ID; tarjeta del jugador y paquetes; resumen al tocar un paquete y confirmación (RF-20, RF-21, RF-25, RN-03, CHG-010) → pruebas web de cada paso (incluidos `no_existe` y `no_disponible`) y prueba de navegador a 360 px del flujo completo.

@@ -95,6 +95,14 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.7.1 → 0.8.0
 - **Motivo:** la web desbordaba el viewport en todas las pantallas a 360 y 390 px, ocultaba el estado en el historial y tenía controles táctiles de 20 a 34 px. Decisiones del dueño: admin adaptado por completo, listados como tarjetas, mínimo 360 px, Playwright solo como dependencia de desarrollo.
 
+### CHG-010 · 2026-10-08 · Recarga en tres pasos
+- **Origen:** decisión de negocio (revisión del flujo en celular por el dueño)
+- **Spec:** RF-20 y RF-21 modificados
+- **Plan:** sec. 6.1 (rutas y fragmentos de la pantalla Recargar)
+- **Tareas:** nueva T-106 (tareas emergentes)
+- **Versión spec:** 0.8.0 → 0.9.0
+- **Motivo:** una pantalla más limpia: primero solo el Player ID; tras verificarlo, una tarjeta con el jugador y los paquetes; al tocar un paquete, el resumen y la confirmación. `validar.php` exige `paquete_id`, por eso el primer paso usa el paquete activo más barato; al confirmar el servidor vuelve a validar con el paquete elegido (RN-03). VentasFF no entrega avatar: la tarjeta muestra la inicial del nickname. Decisiones del dueño: el resumen aparece al tocar el paquete, sin botón intermedio.
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |
