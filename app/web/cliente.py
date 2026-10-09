@@ -13,12 +13,17 @@ from app.routers import me, paquetes, recargas
 from app.routers.dependencias import Bd
 from app.schemas.cliente import SolicitudRecarga, SolicitudValidacion
 from app.services.estados import ESTADOS_FINALES, ETIQUETAS_CLIENTE, Estado
+from app.services.recarga_service import ADVERTENCIA_NO_DISPONIBLE
 from app.web import filtros
 from app.web.plantillas import ClienteWeb, ErrorWeb, error, es_htmx, es_parcial, render
 
 router = APIRouter(include_in_schema=False)
 
 MENSAJE_PAQUETE = "Elige un paquete disponible."
+MENSAJE_SIN_PAQUETES = "No hay paquetes disponibles en este momento."
+# Zonas de mensajes de los pasos de la recarga (HX-Retarget).
+DESTINO_ID = "#mensaje-id"
+DESTINO_CONFIRMACION = "#mensaje-confirmacion"
 # Segundos entre consultas de un pedido en proceso.
 INTERVALO_CONSULTA = 3
 
@@ -68,17 +73,58 @@ async def recargar_validar(
     actual: ClienteWeb,
     bd: Bd,
     player_id: Annotated[str, Form()] = "",
-    paquete_id: Annotated[str, Form()] = "",
 ):
-    """Valida el ID y muestra la confirmación con un token de idempotencia nuevo (RF-20)."""
-    datos = SolicitudValidacion(player_id=player_id, paquete_id=_paquete_id(paquete_id))
+    """Paso 2 (RF-20): tarjeta del jugador y paquetes; los errores van bajo el campo.
+
+    `validar.php` exige un paquete: se usa el activo más barato. Al confirmar, el
+    servidor vuelve a validar el ID con el paquete elegido (RN-03).
+    """
+    lista = await paquetes.paquetes(actual, bd)
+    if not lista:
+        return error(
+            request, MENSAJE_SIN_PAQUETES, status.HTTP_422_UNPROCESSABLE_CONTENT, DESTINO_ID
+        )
+    datos = SolicitudValidacion(player_id=player_id, paquete_id=lista[0].paquete_id)
     try:
         validacion = await recargas.validar(datos, request, actual, bd)
     except HTTPException as fallo:
-        return error(request, fallo.detail, fallo.status_code)
+        return error(request, fallo.detail, fallo.status_code, DESTINO_ID)
+    resumen = await me.resumen(actual, bd)
+    return render(
+        request,
+        "cliente/_paso_paquetes.html",
+        actual,
+        player_id=player_id.strip(),
+        validacion=validacion,
+        inicial=_inicial(validacion.nickname),
+        paquetes=lista,
+        resumen=resumen,
+    )
+
+
+def _inicial(nickname: str | None) -> str:
+    """Primera letra o cifra del nickname para la tarjeta (VentasFF no da avatar)."""
+    return next((c for c in nickname or "" if c.isalnum()), "?").upper()
+
+
+@router.post("/recargar/resumen")
+async def recargar_resumen(
+    request: Request,
+    actual: ClienteWeb,
+    bd: Bd,
+    player_id: Annotated[str, Form()] = "",
+    paquete_id: Annotated[str, Form()] = "",
+    nickname: Annotated[str, Form()] = "",
+    verificado: Annotated[str, Form()] = "",
+):
+    """Paso 3 (RF-21): resumen del paquete elegido con un token de idempotencia nuevo.
+
+    No llama a VentasFF; el nickname solo se muestra (el pedido guarda el de la
+    validación que hace el servidor al confirmar, RF-26).
+    """
+    elegido = _paquete_id(paquete_id)
     paquete = next(
-        (p for p in await paquetes.paquetes(actual, bd) if p.paquete_id == datos.paquete_id),
-        None,
+        (p for p in await paquetes.paquetes(actual, bd) if p.paquete_id == elegido), None
     )
     if paquete is None:
         return error(request, MENSAJE_PAQUETE, status.HTTP_422_UNPROCESSABLE_CONTENT)
@@ -88,8 +134,9 @@ async def recargar_validar(
         "cliente/_confirmacion.html",
         actual,
         player_id=player_id.strip(),
+        nickname=nickname.strip() or None,
+        advertencia=None if verificado else ADVERTENCIA_NO_DISPONIBLE,
         paquete=paquete,
-        validacion=validacion,
         resumen=resumen,
         token=uuid.uuid4().hex,
     )
@@ -115,7 +162,7 @@ async def recargar_confirmar(
     try:
         pedido = await recargas.crear_recarga(datos, request, Response(), actual, bd)
     except HTTPException as fallo:
-        return error(request, fallo.detail, fallo.status_code)
+        return error(request, fallo.detail, fallo.status_code, DESTINO_CONFIRMACION)
     return _fragmento_pedido(request, actual, pedido)
 
 

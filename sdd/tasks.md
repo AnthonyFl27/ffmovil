@@ -117,4 +117,4 @@ Auditoría previa (2026-10-08, 360 y 390 px): el documento se desbordaba en toda
 
 ### Recarga en tres pasos (CHG-010, RF-20, RF-21)
 
-- [ ] T-106 Pantalla Recargar en tres pasos: solo Player ID; tarjeta del jugador y paquetes; resumen al tocar un paquete y confirmación (RF-20, RF-21, RF-25, RN-03, CHG-010) → pruebas web de cada paso (incluidos `no_existe` y `no_disponible`) y prueba de navegador a 360 px del flujo completo.
+- [x] T-106 Pantalla Recargar en tres pasos: solo Player ID; tarjeta del jugador y paquetes; resumen al tocar un paquete y confirmación (RF-20, RF-21, RF-25, RN-03, CHG-010) → pruebas web de cada paso (incluidos `no_existe` y `no_disponible`) y prueba de navegador a 360 px del flujo completo.

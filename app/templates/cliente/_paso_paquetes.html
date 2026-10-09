@@ -1,0 +1,28 @@
+<p>Saldo disponible: <strong>{{ resumen.saldo_disponible | usd }}</strong></p>
+<article class="jugador">
+  <span class="inicial" aria-hidden="true">{{ inicial }}</span>
+  <div class="datos-jugador">
+    <strong>Nombre de usuario: {{ validacion.nickname or "sin verificar" }}</strong>
+    <small>ID de jugador: {{ player_id }}</small>
+  </div>
+  <a href="/recargar" class="cambiar-id">Cambiar ID</a>
+</article>
+{% if validacion.advertencia %}
+<p class="mensaje error">{{ validacion.advertencia }}</p>
+{% endif %}
+{# Al tocar un paquete aparece el resumen debajo (RF-21). #}
+<form hx-post="/recargar/resumen" hx-trigger="change" hx-target="#confirmacion" hx-swap="innerHTML show:top">
+  <input type="hidden" name="player_id" value="{{ player_id }}">
+  <input type="hidden" name="nickname" value="{{ validacion.nickname or '' }}">
+  <input type="hidden" name="verificado" value="{{ '' if validacion.advertencia else '1' }}">
+  <fieldset>
+    <legend>Elige un paquete</legend>
+    {% for p in paquetes %}
+    <label>
+      <input type="radio" name="paquete_id" value="{{ p.paquete_id }}" required>
+      {{ p.nombre }} — {{ p.precio_venta | usd }}
+    </label>
+    {% endfor %}
+  </fieldset>
+</form>
+<div id="confirmacion"></div>

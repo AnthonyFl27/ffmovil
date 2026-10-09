@@ -32,17 +32,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Con la recarga creada (llega el fragmento del pedido) se ocultan el saldo y el
-  // formulario y queda solo el pedido; ante un error se conservan para corregirlo.
-  document.body.addEventListener("htmx:afterSwap", function (e) {
-    var datos = document.getElementById("datos-recarga");
-    var pedido = e.detail.target.id === "confirmacion" && e.detail.target.querySelector("article[id^=pedido-]");
-    if (datos && pedido) {
-      datos.hidden = true;
-      pedido.scrollIntoView({ block: "start" });
-    }
-  });
-
   function avisar(texto) {
     var aviso = document.getElementById("aviso-global");
     if (aviso) aviso.innerHTML = '<p class="mensaje error"></p>';

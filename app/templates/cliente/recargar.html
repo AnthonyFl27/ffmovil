@@ -3,27 +3,18 @@
 {% block contenido %}
 <h1>Recargar diamantes</h1>
 {% if paquetes %}
-{# Se oculta cuando la recarga queda creada; "Nueva recarga" vuelve a cargar la página. #}
-<div id="datos-recarga">
+{# Tres pasos (RF-20, RF-21; CHG-010): cada fragmento reemplaza el contenido de #recarga. #}
+<div id="recarga" aria-live="polite">
 <p>Saldo disponible: <strong>{{ resumen.saldo_disponible | usd }}</strong></p>
-<form hx-post="/recargar/validar" hx-target="#confirmacion" hx-swap="innerHTML show:top" hx-disabled-elt="find button" data-limpia="#confirmacion">
+<form hx-post="/recargar/validar" hx-target="#recarga" hx-swap="innerHTML show:window:top" hx-disabled-elt="find button">
   <label>Player ID
     <input name="player_id" inputmode="numeric" pattern="[0-9]{4,20}" maxlength="20" required
            placeholder="Solo números" autocomplete="off">
   </label>
-  <fieldset>
-    <legend>Paquete</legend>
-    {% for p in paquetes %}
-    <label>
-      <input type="radio" name="paquete_id" value="{{ p.paquete_id }}" required {% if loop.first %}checked{% endif %}>
-      {{ p.nombre }} — {{ p.precio_venta | usd }}
-    </label>
-    {% endfor %}
-  </fieldset>
+  <div id="mensaje-id"></div>
   <button type="submit">Verificar ID <span class="htmx-indicator">…</span></button>
 </form>
 </div>
-<div id="confirmacion" aria-live="polite"></div>
 {% else %}
 <p>Saldo disponible: <strong>{{ resumen.saldo_disponible | usd }}</strong></p>
 <p>No hay paquetes disponibles en este momento.</p>

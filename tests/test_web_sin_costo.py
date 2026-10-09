@@ -62,16 +62,19 @@ async def test_paginas_del_cliente_no_contienen_el_costo(api, sesion_bd, simulad
         await http.get("/fondos"),
         await http.get("/clave"),
     ]
-    validacion = await htmx_post(
+
+    def ocultos(html: str) -> dict:
+        return dict(re.findall(r'<input type="hidden" name="(\w+)" value="([^"]*)">', html))
+
+    # Recarga en tres pasos (CHG-010): ninguno de los fragmentos lleva el costo.
+    validacion = await htmx_post(http, "/recargar/validar", {"player_id": "75807448"})
+    resumen = await htmx_post(
         http,
-        "/recargar/validar",
-        {"player_id": "75807448", "paquete_id": str(paquete.paquete_id)},
+        "/recargar/resumen",
+        ocultos(validacion.text) | {"paquete_id": str(paquete.paquete_id)},
     )
-    ocultos = dict(
-        re.findall(r'<input type="hidden" name="(\w+)" value="([^"]*)">', validacion.text)
-    )
-    confirmacion = await htmx_post(http, "/recargar/confirmar", ocultos)
-    respuestas += [validacion, confirmacion]
+    confirmacion = await htmx_post(http, "/recargar/confirmar", ocultos(resumen.text))
+    respuestas += [validacion, resumen, confirmacion]
 
     assert "Exitoso" in confirmacion.text
     for respuesta in respuestas:

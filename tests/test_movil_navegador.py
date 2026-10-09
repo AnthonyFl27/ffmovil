@@ -105,6 +105,8 @@ async def medir(pagina, nombre: str, problemas: list[str]) -> None:
         await pagina.locator(".menu-plegable details[open] ul a").first.wait_for()
         await pagina.wait_for_timeout(300)  # transición de Pico
         await registrar(pagina, f"{nombre} (menú abierto)", problemas)
+        await menu.click()  # lo cierra para seguir usando la pantalla
+        await pagina.locator(".menu-plegable details[open]").wait_for(state="detached")
 
 
 async def registrar(pagina, etiqueta: str, problemas: list[str]) -> None:
@@ -153,13 +155,17 @@ async def test_pantallas_en_viewport_movil(servidor_web, navegador, api, sesion_
         ["/inicio", "/recargar", "/historial", f"/historial/{exitoso.codigo}", "/fondos", "/clave"],
         problemas,
     )
-    # Confirmación de recarga con validador no disponible: muestra la casilla obligatoria.
+    # Pasos 2 y 3 de la recarga con validador no disponible: tarjeta con aviso,
+    # paquetes y resumen con la casilla obligatoria (CHG-010).
     simulador.escenario_validar = "no_disponible"
     await pagina.goto(f"{base}/recargar")
     await pagina.fill("input[name=player_id]", "75807448")
     await pagina.click("form[hx-post='/recargar/validar'] button[type=submit]")
+    await pagina.locator("article.jugador").wait_for()
+    await medir(pagina, "/recargar (jugador y paquetes)", problemas)
+    await pagina.locator("input[name=paquete_id]").first.check()
     await pagina.locator("input[name=confirmar_sin_verificar]").wait_for()
-    await medir(pagina, "/recargar (confirmación)", problemas)
+    await medir(pagina, "/recargar (resumen)", problemas)
     # Filtros desplegados del historial.
     await pagina.goto(f"{base}/historial")
     await pagina.click("details.filtros > summary")
@@ -186,26 +192,34 @@ async def test_pantallas_en_viewport_movil(servidor_web, navegador, api, sesion_
     assert not problemas, "Problemas a 360 × 740:\n" + "\n".join(problemas)
 
 
-async def test_verificar_muestra_la_confirmacion_y_recargar_oculta_el_formulario(
-    servidor_web, navegador, api, sesion_bd, simulador
-):
-    # Verificar baja hasta la confirmación con el jugador (RF-20); con la recarga
-    # creada queda solo el pedido, y "Nueva recarga" abre el formulario limpio (RF-21).
+async def test_recarga_en_tres_pasos(servidor_web, navegador, api, sesion_bd, simulador):
+    # Paso 1 solo el Player ID; paso 2 tarjeta del jugador y paquetes, sin "Verificar ID";
+    # paso 3 resumen a la vista al tocar un paquete; al confirmar queda solo el pedido
+    # (RF-20, RF-21; CHG-010).
     base = servidor_web
     _, cliente, paquete = await cliente_web(api, sesion_bd, simulador)
     pagina = await nueva_pagina(navegador)
     await entrar(pagina, base, cliente.usuario, "/inicio")
     await pagina.goto(f"{base}/recargar")
+    assert await pagina.locator("input[name=paquete_id]").count() == 0
     await pagina.fill("input[name=player_id]", "75807448")
-    await pagina.check(f"input[name=paquete_id][value='{paquete.paquete_id}']")
     await pagina.click("form[hx-post='/recargar/validar'] button[type=submit]")
+
+    tarjeta = pagina.locator("article.jugador")
+    await playwright_async.expect(tarjeta).to_contain_text("Nombre de usuario: Jugador7448")
+    await playwright_async.expect(tarjeta).to_contain_text("ID de jugador: 75807448")
+    await playwright_async.expect(pagina.get_by_role("button", name="Verificar ID")).to_have_count(
+        0
+    )
+
+    await pagina.check(f"input[name=paquete_id][value='{paquete.paquete_id}']")
     titulo = pagina.get_by_role("heading", name="Confirma la recarga")
     await playwright_async.expect(titulo).to_be_in_viewport()
-    await playwright_async.expect(pagina.locator("#confirmacion")).to_contain_text("Jugador7448")
 
     await pagina.click("form[hx-post='/recargar/confirmar'] button[type=submit]")
-    await pagina.locator("#confirmacion article[id^=pedido-]").wait_for()
-    await playwright_async.expect(pagina.locator("#datos-recarga")).to_be_hidden()
+    await pagina.locator("#recarga article[id^=pedido-]").wait_for()
+    await playwright_async.expect(tarjeta).to_have_count(0)
+    await playwright_async.expect(pagina.locator("input[name=paquete_id]")).to_have_count(0)
     await pagina.get_by_role("button", name="Nueva recarga").click()
     await pagina.wait_for_url(f"{base}/recargar")
     assert await pagina.input_value("input[name=player_id]") == ""
