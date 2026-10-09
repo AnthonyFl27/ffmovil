@@ -122,3 +122,8 @@ Auditoría previa (2026-10-08, 360 y 390 px): el documento se desbordaba en toda
 ### Abonos por encima del crédito de VentasFF (CHG-011, RF-53, RN-10)
 
 - [x] T-107 Panel con saldo por cubrir: `Panel.saldo_por_cubrir` (`max(saldos − crédito, 0)`), etiqueta "Saldo por cubrir" y nota neutra en lugar del aviso de error; el abono no cambia (RF-53, RN-10, CHG-011) → pruebas: un abono mayor que el crédito se acepta, el panel informa el saldo por cubrir y no muestra error, y la recarga sin crédito sigue fallando con alerta (RF-23, RN-08).
+
+### Últimas recargas en el inicio del cliente (CHG-012, RF-33)
+
+- [x] T-108 Inicio del cliente con sus últimas 5 recargas de cualquier estado, con enlace a cada detalle, "Ver todo" y estado vacío (RF-33, CHG-012) → pruebas web: lista con recargas en distintos estados, estado vacío, solo pedidos propios y sin ningún dato de costo; prueba de navegador a 360 px.
+

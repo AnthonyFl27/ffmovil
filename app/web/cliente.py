@@ -26,6 +26,8 @@ DESTINO_ID = "#mensaje-id"
 DESTINO_CONFIRMACION = "#mensaje-confirmacion"
 # Segundos entre consultas de un pedido en proceso.
 INTERVALO_CONSULTA = 3
+# Recargas que muestra el inicio (RF-33).
+RECIENTES_EN_INICIO = 5
 
 # Opciones del filtro de estado (spec sec. 7): Procesando agrupa CREADO y PROCESANDO.
 OPCIONES_ESTADO = [
@@ -38,9 +40,22 @@ OPCIONES_ESTADO = [
 
 @router.get("/inicio")
 async def inicio(request: Request, actual: ClienteWeb, bd: Bd):
-    """Saldo disponible, gasto total y nº de recargas exitosas (RF-33)."""
+    """Saldo, gasto total, recargas exitosas y las últimas 5 recargas (RF-33)."""
     resumen = await me.resumen(actual, bd)
-    return render(request, "cliente/inicio.html", actual, resumen=resumen)
+    recientes = await me.pedidos(
+        actual,
+        bd,
+        estado=None,
+        desde=None,
+        hasta=None,
+        player_id=None,
+        codigo=None,
+        pagina=1,
+        por_pagina=RECIENTES_EN_INICIO,
+    )
+    return render(
+        request, "cliente/inicio.html", actual, resumen=resumen, recientes=recientes.pedidos
+    )
 
 
 @router.get("/fondos")

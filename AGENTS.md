@@ -110,6 +110,8 @@ VENTASFF_URL=http://127.0.0.1:8099/api/reseller VENTASFF_API_KEY=rv_c_simulador 
 
 Con `--reload` la app se reinicia sola al cambiar el código; al terminar, cerrar la app y el simulador.
 
+**Regla: túnel de Cloudflare.** Cuando el usuario pida arrancar la app, el LLM la levanta y **siempre le pregunta** si quiere abrir el túnel de Cloudflare (`cloudflared tunnel --url http://localhost:8000`, en segundo plano). Sin respuesta afirmativa no se abre. Si se abre, dar la URL temporal (cambia en cada arranque), avisar de que queda pública con las cuentas de la BD de desarrollo y, al terminar la sesión, cerrar el túnel junto con la app y el simulador.
+
 Las variables de entorno tienen prioridad sobre el `.env`: así la app nunca llama a VentasFF real. La BD de desarrollo ya tiene el admin `admin` (creado por CLI) y un cliente de prueba; el catálogo se llena con "Sincronizar ahora" desde `/gestion/paquetes` (3 paquetes ficticios del simulador, inactivos y sin precio).
 
 ### Piezas ya construidas (fases 1 a 7, adaptación a móvil y recarga en tres pasos; spec v0.9.0)

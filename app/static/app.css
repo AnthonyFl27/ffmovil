@@ -309,3 +309,21 @@ main button.ver-clave.visible .oculto { display: inline-block; }
 }
 .vacio .icono { width: 2.25rem; height: 2.25rem; stroke-width: 1.5; }
 .vacio p { margin: 0; }
+
+/* Últimas recargas del inicio: cada una es un enlace al detalle. */
+ul.recientes { list-style: none; margin: 0 0 var(--pico-spacing); padding: 0; display: grid; gap: 0.5rem; }
+ul.recientes li { margin: 0; padding: 0; }
+ul.recientes li a {
+  display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0.15rem 1rem;
+  min-height: var(--area-tactil); padding: 0.75rem 1rem; text-decoration: none; color: inherit;
+  background: var(--pico-card-background-color); border: 1px solid var(--pico-muted-border-color);
+  border-radius: var(--pico-border-radius); transition: border-color 0.15s;
+}
+ul.recientes li a:hover, ul.recientes li a:focus-visible { border-color: var(--pico-primary); }
+ul.recientes .monto { font-weight: 600; text-align: right; }
+ul.recientes .detalle { color: var(--pico-muted-color); overflow-wrap: anywhere; }
+ul.recientes .estado { text-align: right; }
+ul.recientes li { list-style: none; }
+.acciones + h2 { margin-top: 2rem; }
+/* Botones con ícono: ícono y texto separados. */
+a[role=button]:has(.icono), button:has(.icono):not(.copiar):not(.ver-clave) { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; }

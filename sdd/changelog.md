@@ -111,6 +111,14 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.9.0 → 0.10.0
 - **Motivo:** un cliente puede pagar por adelantado 1000 USD aunque el crédito en VentasFF sea menor; consume a medida que el dueño recarga crédito. RN-10 antes lo prohibía y el panel lo mostraba como error. Decisiones del dueño: sin tope de adelanto, sin alerta aparte por saldo por cubrir. Cuando falta crédito para una recarga siguen RF-23 y RN-08 (pedido `FALLIDO`, reserva liberada, alerta). Queda fuera por ahora el mensaje al cliente cuando VentasFF no tiene crédito.
 
+### CHG-012 · 2026-10-09 · Últimas recargas en el inicio del cliente
+- **Origen:** decisión de negocio (mejora de la pantalla de inicio propuesta en la revisión visual)
+- **Spec:** RF-33 modificado
+- **Plan:** sec. 6.1 (ruta `/inicio`)
+- **Tareas:** nueva T-108 (tareas emergentes)
+- **Versión spec:** 0.10.0 → 0.11.0
+- **Motivo:** el inicio quedaba con media pantalla vacía y el cliente (revendedor con muchas recargas a distintos jugadores) quiere ver lo último que hizo sin entrar al Historial. Decisiones del dueño: 5 recargas, de todos los estados (para que una recarga fallida o en revisión se vea de inmediato) y con el nickname del jugador.
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |

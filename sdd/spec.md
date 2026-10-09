@@ -1,6 +1,6 @@
 # Especificación: Plataforma de recargas Free Fire (prepago)
 
-- **Versión:** 0.10.0
+- **Versión:** 0.11.0
 - **Estado:** Borrador aprobado para iniciar desarrollo
 - **Fuente de verdad:** este archivo. El código y el plan se derivan de aquí.
 
@@ -82,7 +82,7 @@ Web de recargas de diamantes de Free Fire para clientes revendedores con cuentas
 - **RF-30** Cada pedido tiene ID propio visible (`FF-000123`), incluidos los fallidos.
 - **RF-31** El cliente ve su historial: fecha, ID de pedido, paquete, Player ID, nickname, monto, estado, referencia (si existe) y motivo del error (si falló).
 - **RF-32** Filtros del cliente: estado, rango de fechas, Player ID, ID de pedido.
-- **RF-33** Pantalla de inicio del cliente: saldo disponible, gasto total, número de recargas, botones Recargar e Historial. Gasto total y número de recargas cuentan solo pedidos `EXITOSO`.
+- **RF-33** Pantalla de inicio del cliente: saldo disponible, gasto total, número de recargas, botones Recargar e Historial y la lista de sus **últimas 5 recargas** de cualquier estado (fecha, paquete, nickname del jugador, monto y estado, cada una enlazada a su detalle; con un enlace "Ver todo" al Historial). Si no tiene recargas, muestra un estado vacío con un acceso a Recargar. Gasto total y número de recargas cuentan solo pedidos `EXITOSO`.
 - **RF-34** Pantalla Fondos: saldo disponible, saldo reservado y los abonos y ajustes con su fecha, monto y nota.
 - **RF-35** El cliente nunca recibe `precio_costo`, ni en pantalla ni en respuestas de la API.
 - **RF-36** Los montos se muestran al cliente en USD con 2 decimales.

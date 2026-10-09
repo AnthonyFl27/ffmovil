@@ -15,4 +15,26 @@
   <a role="button" href="/recargar">{{ icono("recargar") }}Recargar</a>
   <a role="button" class="secondary" href="/historial">{{ icono("historial") }}Historial</a>
 </div>
+<h2>Últimas recargas</h2>
+{% if recientes %}
+<ul class="recientes">
+  {% for p in recientes %}
+  <li>
+    <a href="/historial/{{ p.codigo }}">
+      <strong class="paquete">{{ p.paquete }}</strong>
+      <span class="monto">{{ p.monto | usd }}</span>
+      <small class="detalle">{{ p.nickname | texto }} · {{ p.fecha | fecha }}</small>
+      <span class="estado estado-{{ p.estado }}"><span class="insignia">{{ p.estado_etiqueta }}</span></span>
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+<p><a href="/historial">Ver todo</a></p>
+{% else %}
+<div class="vacio">
+  {{ icono("vacio") }}
+  <p>Todavía no tienes recargas.</p>
+  <a role="button" href="/recargar">{{ icono("recargar") }}Hacer mi primera recarga</a>
+</div>
+{% endif %}
 {% endblock %}

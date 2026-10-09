@@ -284,7 +284,7 @@ Paquete `app/web/`: rutas HTML (sin `include_in_schema`) que llaman a las funcio
 | `/login` (GET/POST) | Login | `/auth/login` |
 | `/clave` (GET/POST) | Cambio de contraseña (obligatorio si `debe_cambiar_clave`) | `/auth/cambiar-clave` |
 | `/salir` (POST) | Cierra sesión | `/auth/logout` |
-| `/inicio` | Inicio del cliente (RF-33) | `/me/resumen` |
+| `/inicio` | Inicio del cliente: cifras y últimas 5 recargas de cualquier estado (RF-33; CHG-012) | `/me/resumen`, `/me/pedidos` (página 1, 5 por página) |
 | `/recargar`, `/recargar/validar`, `/recargar/resumen`, `/recargar/confirmar` | Player ID → tarjeta del jugador y paquetes → resumen → confirmación (RF-20, RF-21, RF-25; CHG-010) | `/paquetes`, `/recargas/validar`, `/recargas` |
 | `/historial`, `/historial/{codigo}` | Historial con filtros y detalle (RF-31, RF-32) | `/me/pedidos` |
 | `/fondos` | Fondos (RF-34) | `/me/fondos` |
