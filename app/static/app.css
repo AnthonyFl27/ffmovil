@@ -189,6 +189,9 @@ main:has(.logo-entrar) > .angosto { width: 100%; }
 details.nuevo-usuario { margin-bottom: var(--pico-spacing); }
 details.nuevo-usuario[open] > summary { margin-bottom: var(--pico-spacing); }
 
+/* Separación entre las acciones del usuario y los movimientos de saldo. */
+#usuario { margin-bottom: 2rem; }
+
 /* Sumar / restar en el ajuste: opciones en una fila. */
 fieldset.sentido { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.5rem; min-height: 2rem; margin-bottom: var(--pico-spacing); }
 fieldset.sentido label { margin: 0; }
