@@ -93,6 +93,7 @@ El código nunca introduce comportamiento que no esté en la spec. Si durante la
 
 ```bash
 uv run pytest                      # pruebas (requiere túnel para las de BD)
+uv run playwright install chromium # una vez: navegador de la prueba móvil (CA-07); sin él se omite
 uv run ruff check . && uv run ruff format --check .
 uv run alembic upgrade head        # migra la BD de DATABASE_URL
 uv run alembic revision -m "..."   # nueva migración (luego editarla a mano)
