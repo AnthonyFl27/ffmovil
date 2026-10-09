@@ -11,29 +11,35 @@
   <script src="/static/app.js" defer></script>
 </head>
 <body{% if csrf %} hx-headers='{{ {"X-CSRF-Token": csrf} | tojson }}'{% endif %}>
+  {%- if rol == "cliente" %}
+  {%- set opciones = [("/inicio", "Inicio"), ("/recargar", "Recargar"), ("/historial", "Historial"), ("/fondos", "Fondos")] %}
+  {%- elif rol == "admin" %}
+  {%- set opciones = [("/gestion", "Panel"), ("/gestion/pedidos", "Pedidos"), ("/gestion/usuarios", "Usuarios"), ("/gestion/paquetes", "Paquetes"), ("/gestion/config", "Configuración"), ("/gestion/auditoria", "Auditoría")] %}
+  {%- else %}
+  {%- set opciones = [] %}
+  {%- endif %}
   <header class="container">
     <nav>
       <ul><li><strong>ffmovil</strong></li></ul>
-      {% if rol == "cliente" %}
-      <ul>
-        <li><a href="/inicio">Inicio</a></li>
-        <li><a href="/recargar">Recargar</a></li>
-        <li><a href="/historial">Historial</a></li>
-        <li><a href="/fondos">Fondos</a></li>
-        <li><button class="outline secondary salir" hx-post="/salir">Salir</button></li>
-      </ul>
-      {% elif rol == "admin" %}
-      <ul>
-        <li><a href="/gestion">Panel</a></li>
-        <li><a href="/gestion/pedidos">Pedidos</a></li>
-        <li><a href="/gestion/usuarios">Usuarios</a></li>
-        <li><a href="/gestion/paquetes">Paquetes</a></li>
-        <li><a href="/gestion/config">Configuración</a></li>
-        <li><a href="/gestion/auditoria">Auditoría</a></li>
-        <li><button class="outline secondary salir" hx-post="/salir">Salir</button></li>
-      </ul>
-      {% elif csrf %}
+      {% if csrf and not opciones %}
       <ul><li><button class="outline secondary salir" hx-post="/salir">Salir</button></li></ul>
+      {% elif csrf %}
+      {# En escritorio el menú va en línea; en pantallas angostas, plegado (RNF-12). #}
+      <ul class="menu-linea">
+        {% for ruta, etiqueta in opciones %}<li><a href="{{ ruta }}">{{ etiqueta }}</a></li>{% endfor %}
+        <li><button class="outline secondary salir" hx-post="/salir">Salir</button></li>
+      </ul>
+      <ul class="menu-plegable">
+        <li>
+          <details class="dropdown">
+            <summary>Menú</summary>
+            <ul dir="rtl">
+              {% for ruta, etiqueta in opciones %}<li><a href="{{ ruta }}">{{ etiqueta }}</a></li>{% endfor %}
+              <li><button class="outline secondary salir" hx-post="/salir">Salir</button></li>
+            </ul>
+          </details>
+        </li>
+      </ul>
       {% endif %}
     </nav>
   </header>

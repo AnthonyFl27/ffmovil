@@ -1,7 +1,23 @@
+/* Mobile-first (RNF-12): estilos base para 360 px; los @media amplían para escritorio. */
+:root { --area-tactil: 44px; }
 .angosto { max-width: 28rem; margin-inline: auto; }
 .mensaje.error { color: var(--pico-del-color); }
 .mensaje.exito { color: var(--pico-ins-color); }
-nav button.salir { padding: 0.25rem 0.75rem; margin: 0; }
+nav button.salir { padding: 0.25rem 0.75rem; margin: 0; min-height: var(--area-tactil); }
+
+/* Navegación: plegada en pantallas angostas, en línea desde 768 px. */
+nav ul.menu-linea { display: none; }
+nav .menu-plegable details.dropdown { margin: 0; }
+nav .menu-plegable details.dropdown > summary { height: var(--area-tactil); }
+nav .menu-plegable details.dropdown > ul { min-width: 12rem; }
+nav .menu-plegable details.dropdown > ul li a { min-height: var(--area-tactil); display: flex; align-items: center; }
+nav .menu-plegable li button.salir { width: 100%; }
+@media (min-width: 768px) {
+  nav ul.menu-linea { display: flex; }
+  nav ul.menu-plegable { display: none; }
+  nav button.salir { min-height: auto; }
+}
+
 .estado { font-weight: 600; white-space: nowrap; }
 .estado-EXITOSO { color: var(--pico-ins-color); }
 .estado-FALLIDO { color: var(--pico-del-color); }

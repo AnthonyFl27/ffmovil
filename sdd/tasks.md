@@ -108,7 +108,7 @@ Se agregan aquí con el siguiente ID libre (`T-1xx`), indicando el cambio de spe
 
 Auditoría previa (2026-10-08, 360 y 390 px): el documento se desbordaba en todas las pantallas (menú sin plegar: 445 px en cliente y 664 px en admin); el historial del cliente mide 900 px y oculta el estado; "Salir" 34 px, radios de paquete 20 px, enlaces de usuario 22 px, casilla "solo pendientes" 20 px.
 
-- [ ] T-100 Navegación plegable (menú desplegable) en pantallas angostas, para cliente y admin (RNF-12, CHG-009) → sin desbordamiento horizontal a 360 px; todas las opciones alcanzables.
+- [x] T-100 Navegación plegable (menú desplegable) en pantallas angostas, para cliente y admin (RNF-12, CHG-009) → sin desbordamiento horizontal a 360 px; todas las opciones alcanzables.
 - [ ] T-101 Historial del cliente y detalle en tarjetas, con filtros plegables y estado visible (RNF-12, RF-31, RF-32, CA-05) → a 360 px el estado se ve sin desplazarse.
 - [ ] T-102 Pantallas admin en móvil: pedidos, usuarios, paquetes y auditoría en tarjetas; ajustes del panel, detalle de pedido y configuración (RNF-12, RF-50 a RF-55) → utilizables a 360 px, sin cambios en escritorio.
 - [ ] T-103 Áreas táctiles de 44 px: botones, enlaces de acción, casillas y opciones de paquete; cifras sin tarjetas huérfanas (RNF-12) → ningún control interactivo < 44 px a 360 px.
