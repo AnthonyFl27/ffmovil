@@ -32,12 +32,14 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Con la recarga creada (llega el fragmento del pedido) se vacía el formulario de
-  // recarga para la siguiente; ante un error se conserva para corregirlo.
+  // Con la recarga creada (llega el fragmento del pedido) se ocultan el saldo y el
+  // formulario y queda solo el pedido; ante un error se conservan para corregirlo.
   document.body.addEventListener("htmx:afterSwap", function (e) {
-    var form = document.getElementById("form-recarga");
-    if (form && e.detail.target.id === "confirmacion" && e.detail.target.querySelector("article[id^=pedido-]")) {
-      form.reset();
+    var datos = document.getElementById("datos-recarga");
+    var pedido = e.detail.target.id === "confirmacion" && e.detail.target.querySelector("article[id^=pedido-]");
+    if (datos && pedido) {
+      datos.hidden = true;
+      pedido.scrollIntoView({ block: "start" });
     }
   });
 

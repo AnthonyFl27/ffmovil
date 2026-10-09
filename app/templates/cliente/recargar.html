@@ -2,9 +2,11 @@
 {% block titulo %}Recargar{% endblock %}
 {% block contenido %}
 <h1>Recargar diamantes</h1>
-<p>Saldo disponible: <strong>{{ resumen.saldo_disponible | usd }}</strong></p>
 {% if paquetes %}
-<form id="form-recarga" hx-post="/recargar/validar" hx-target="#confirmacion" hx-disabled-elt="find button" data-limpia="#confirmacion">
+{# Se oculta cuando la recarga queda creada; "Nueva recarga" vuelve a cargar la página. #}
+<div id="datos-recarga">
+<p>Saldo disponible: <strong>{{ resumen.saldo_disponible | usd }}</strong></p>
+<form hx-post="/recargar/validar" hx-target="#confirmacion" hx-swap="innerHTML show:top" hx-disabled-elt="find button" data-limpia="#confirmacion">
   <label>Player ID
     <input name="player_id" inputmode="numeric" pattern="[0-9]{4,20}" maxlength="20" required
            placeholder="Solo números" autocomplete="off">
@@ -20,8 +22,10 @@
   </fieldset>
   <button type="submit">Verificar ID <span class="htmx-indicator">…</span></button>
 </form>
+</div>
 <div id="confirmacion" aria-live="polite"></div>
 {% else %}
+<p>Saldo disponible: <strong>{{ resumen.saldo_disponible | usd }}</strong></p>
 <p>No hay paquetes disponibles en este momento.</p>
 {% endif %}
 {% endblock %}

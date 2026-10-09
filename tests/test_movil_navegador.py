@@ -186,10 +186,11 @@ async def test_pantallas_en_viewport_movil(servidor_web, navegador, api, sesion_
     assert not problemas, "Problemas a 360 × 740:\n" + "\n".join(problemas)
 
 
-async def test_formulario_se_vacia_tras_recargar(
+async def test_verificar_muestra_la_confirmacion_y_recargar_oculta_el_formulario(
     servidor_web, navegador, api, sesion_bd, simulador
 ):
-    # Con la recarga creada, el formulario de arriba queda listo para otra (RF-21).
+    # Verificar baja hasta la confirmación con el jugador (RF-20); con la recarga
+    # creada queda solo el pedido, y "Nueva recarga" abre el formulario limpio (RF-21).
     base = servidor_web
     _, cliente, paquete = await cliente_web(api, sesion_bd, simulador)
     pagina = await nueva_pagina(navegador)
@@ -198,6 +199,13 @@ async def test_formulario_se_vacia_tras_recargar(
     await pagina.fill("input[name=player_id]", "75807448")
     await pagina.check(f"input[name=paquete_id][value='{paquete.paquete_id}']")
     await pagina.click("form[hx-post='/recargar/validar'] button[type=submit]")
+    titulo = pagina.get_by_role("heading", name="Confirma la recarga")
+    await playwright_async.expect(titulo).to_be_in_viewport()
+    await playwright_async.expect(pagina.locator("#confirmacion")).to_contain_text("Jugador7448")
+
     await pagina.click("form[hx-post='/recargar/confirmar'] button[type=submit]")
     await pagina.locator("#confirmacion article[id^=pedido-]").wait_for()
+    await playwright_async.expect(pagina.locator("#datos-recarga")).to_be_hidden()
+    await pagina.get_by_role("button", name="Nueva recarga").click()
+    await pagina.wait_for_url(f"{base}/recargar")
     assert await pagina.input_value("input[name=player_id]") == ""
