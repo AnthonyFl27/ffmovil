@@ -8,6 +8,24 @@ services:
     networks:
       - ffmovil_net
     restart: unless-stopped
+    init: true                  # recoge procesos zombi y reenvía señales (apagado limpio)
+    stop_grace_period: 110s     # la app espera hasta 100 s las recargas en curso
+    read_only: true             # el código no escribe en disco
+    tmpfs:
+      - /tmp:size=16m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 256m
+    memswap_limit: 256m         # igual a mem_limit: sin swap
+    cpus: 0.5
+    pids_limit: 100
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
   # La crea el dueño del VPS y la comparte con el Compose de PostgreSQL.

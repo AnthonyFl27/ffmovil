@@ -20,3 +20,6 @@ __pycache__/
 tests/
 sdd/
 *.md
+
+# Cachés de Python dentro de migraciones y app
+**/__pycache__/

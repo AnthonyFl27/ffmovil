@@ -331,6 +331,7 @@ Paquete `app/web/`: rutas HTML (sin `include_in_schema`) que llaman a las funcio
 - Desarrollo local: acceso a la BD del VPS por túnel SSH (`localhost:5433`); solo cambia el valor de `DATABASE_URL`.
 - `caddy` (diferido hasta tener dominio): único con puertos publicados, reverse proxy a `app`, volúmenes para certificados.
 - Acceso actual: `http://localhost:8000` o `http://IP_DEL_VPS:8000`.
+- Endurecimiento y recursos (decisión técnica, 2026-10-08): `uvicorn` sin extras `[standard]` (un worker, poco tráfico); `PYTHONOPTIMIZE=1`; en `app`: `mem_limit`/`memswap_limit` 256m, `cpus` 0.5, `pids_limit` 100, `init: true`, `stop_grace_period` 110s (> 100 s de espera de recargas en curso), `read_only` con `tmpfs` en `/tmp`, `cap_drop: ALL`, `no-new-privileges`, logs `json-file` con rotación (10m × 3). Healthcheck a `/health` cada 60 s.
 
 ## 9. Estrategia de pruebas
 
