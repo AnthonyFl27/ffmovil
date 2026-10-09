@@ -10,11 +10,11 @@
       <td data-etiqueta="Fecha">{{ p.fecha | fecha }}</td>
       <td data-etiqueta="Pedido"><a href="/historial/{{ p.codigo }}">{{ p.codigo }}</a></td>
       <td data-etiqueta="Paquete">{{ p.paquete }}</td>
-      <td data-etiqueta="Player ID" class="secundario">{{ p.player_id }}</td>
-      <td data-etiqueta="Jugador" class="secundario">{{ p.nickname | texto }}</td>
+      <td data-etiqueta="Player ID">{{ p.player_id }}</td>
+      <td data-etiqueta="Jugador">{{ p.nickname | texto }}</td>
       <td data-etiqueta="Monto">{{ p.monto | usd }}</td>
       <td data-etiqueta="Estado" class="estado estado-{{ p.estado }}">{{ p.estado_etiqueta }}</td>
-      <td data-etiqueta="Referencia" class="secundario">{{ p.referencia | texto }}</td>
+      <td data-etiqueta="Referencia">{{ p.referencia | texto }}</td>
       <td data-etiqueta="Motivo" class="secundario">{{ p.motivo | texto }}</td>
     </tr>
   {% endfor %}

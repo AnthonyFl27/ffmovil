@@ -87,7 +87,16 @@ async def test_historial_en_tarjetas_con_estado_visible(api, sesion_bd):
     visibles = [
         re.search(r'data-etiqueta="([^"]+)"', td)[1] for td in tds if "secundario" not in td
     ]
-    assert visibles == ["Fecha", "Pedido", "Paquete", "Monto", "Estado"]
+    assert visibles == [
+        "Fecha",
+        "Pedido",
+        "Paquete",
+        "Player ID",
+        "Jugador",
+        "Monto",
+        "Estado",
+        "Referencia",
+    ]
     # Sin filtros activos el formulario va plegado; con filtros, abierto.
     assert '<details class="filtros">' in html
     html = (await http.get("/historial", params={"codigo": pedido.codigo})).text
