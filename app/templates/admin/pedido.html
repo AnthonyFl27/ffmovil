@@ -3,5 +3,5 @@
 {% block contenido %}
 <h1>Pedido {{ pedido.codigo }}</h1>
 <div id="detalle">{% include "admin/_detalle_pedido.html" %}</div>
-<p><a href="/gestion/pedidos">Volver a pedidos</a></p>
+<p class="volver"><a role="button" class="secondary" href="/gestion/pedidos">Volver a pedidos</a></p>
 {% endblock %}

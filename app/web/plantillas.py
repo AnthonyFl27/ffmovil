@@ -1,7 +1,7 @@
 """Infraestructura de las páginas web (plan sec. 6.1): plantillas, filtros y sesión.
 
 Las páginas usan las dependencias de sesión de la API. Sin sesión redirigen a
-`/entrar`; con `debe_cambiar_clave`, a `/clave` (RF-02); con el rol equivocado,
+`/login`; con `debe_cambiar_clave`, a `/clave` (RF-02); con el rol equivocado,
 al inicio de su rol. A una petición HTMX la redirección se indica con `HX-Redirect`.
 """
 
@@ -24,7 +24,7 @@ DIRECTORIO_ESTATICOS = Path(__file__).resolve().parent.parent / "static"
 
 INICIO_CLIENTE = "/inicio"
 INICIO_ADMIN = "/gestion"
-PAGINA_ENTRAR = "/entrar"
+PAGINA_ENTRAR = "/login"
 PAGINA_CLAVE = "/clave"
 
 

@@ -30,14 +30,14 @@ async def raiz(actual: SesionOpcional):
     return RedirectResponse(destino, status_code=303)
 
 
-@router.get("/entrar")
+@router.get("/login")
 async def entrar(request: Request, actual: SesionOpcional):
     if actual is not None:
         return RedirectResponse(inicio_de(actual), status_code=303)
     return render(request, "acceso/entrar.html")
 
 
-@router.post("/entrar")
+@router.post("/login")
 async def entrar_enviar(
     request: Request,
     bd: Bd,

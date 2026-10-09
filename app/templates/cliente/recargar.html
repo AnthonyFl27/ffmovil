@@ -5,7 +5,7 @@
 {% if paquetes %}
 {# Tres pasos (RF-20, RF-21; CHG-010): cada fragmento reemplaza el contenido de #recarga. #}
 <div id="recarga" aria-live="polite">
-<p>Saldo disponible: <strong>{{ resumen.saldo_disponible | usd }}</strong></p>
+{% include "cliente/_saldo.html" %}
 <form hx-post="/recargar/validar" hx-target="#recarga" hx-swap="innerHTML show:window:top" hx-disabled-elt="find button">
   <label>Player ID
     <input name="player_id" inputmode="numeric" pattern="[0-9]{4,20}" maxlength="20" required
@@ -16,7 +16,7 @@
 </form>
 </div>
 {% else %}
-<p>Saldo disponible: <strong>{{ resumen.saldo_disponible | usd }}</strong></p>
+{% include "cliente/_saldo.html" %}
 <p>No hay paquetes disponibles en este momento.</p>
 {% endif %}
 {% endblock %}

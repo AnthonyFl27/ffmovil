@@ -1,12 +1,15 @@
-<dl class="ficha">
-  <dt>Rol</dt><dd>{{ u.rol }}</dd>
-  <dt>Estado</dt><dd>{{ "Activo" if u.activo else "Bloqueado" }}</dd>
-  <dt>Debe cambiar clave</dt><dd>{{ "Sí" if u.debe_cambiar_clave else "No" }}</dd>
-  <dt>Creado en</dt><dd>{{ u.creado_en | fecha }}</dd>
-  <dt>Último login</dt><dd>{{ u.ultimo_login | fecha }}</dd>
-</dl>
+<section class="cifras cifras-chicas">
+  <article><small>Rol</small><strong>{{ u.rol }}</strong></article>
+  <article><small>Estado</small><strong>{{ "Activo" if u.activo else "Bloqueado" }}</strong></article>
+  <article><small>Debe cambiar clave</small><strong>{{ "Sí" if u.debe_cambiar_clave else "No" }}</strong></article>
+  <article><small>Creado en</small><strong>{{ u.creado_en | fecha }}</strong></article>
+  <article><small>Último login</small><strong>{{ u.ultimo_login | fecha }}</strong></article>
+</section>
 {% if u.rol == "cliente" %}
-<p>Saldo disponible: <strong id="saldo-disponible">{{ u.saldo_disponible | usd }}</strong> · Reservado: <span id="saldo-reservado">{{ u.saldo_reservado | usd }}</span></p>
+<section class="cifras cifras-chicas">
+  <article><small>Saldo disponible</small><strong id="saldo-disponible">{{ u.saldo_disponible | usd }}</strong></article>
+  <article><small>Saldo reservado</small><strong id="saldo-reservado">{{ u.saldo_reservado | usd }}</strong></article>
+</section>
 {% endif %}
 <div class="acciones">
   {% if u.activo %}

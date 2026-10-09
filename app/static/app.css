@@ -20,7 +20,23 @@ nav .menu-plegable details.dropdown > ul { min-width: 12rem; }
 nav .menu-plegable details.dropdown > ul li a { min-height: var(--area-tactil); display: flex; align-items: center; }
 nav .menu-plegable li button.salir { width: 100%; }
 @media (min-width: 768px) {
-  nav ul.menu-linea { display: flex; }
+  nav ul.menu-linea { display: flex; align-items: center; gap: 0.25rem; }
+  /* Opciones como botones: relleno suave al pasar el cursor, sólido en la página actual. */
+  nav ul.menu-linea li { padding: 0; }
+  nav ul.menu-linea a {
+    margin: 0;
+    padding: 0.5rem 1rem;
+    border-radius: var(--pico-border-radius);
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.15s, color 0.15s;
+  }
+  nav ul.menu-linea a:hover { background: var(--pico-primary-focus); }
+  nav ul.menu-linea a[aria-current=page] {
+    background: var(--pico-primary-background);
+    color: var(--pico-primary-inverse);
+  }
+  nav ul.menu-linea button.salir { margin-left: 0.5rem; }
   nav ul.menu-plegable { display: none; }
   /* Marca: logo y nombre; lleva al inicio del rol. */
 nav a.marca { display: inline-flex; align-items: center; gap: 0.5rem; color: inherit; text-decoration: none; }
@@ -99,12 +115,10 @@ article.jugador .cambiar-id { margin-left: auto; }
 /* Filtros plegables; app.js los abre en escritorio. */
 details.filtros > summary { font-weight: 600; }
 
-/* Fichas de detalle en móvil: etiqueta a la izquierda, valor a la derecha. */
-@media (max-width: 767.98px) {
-  dl.ficha { display: grid; grid-template-columns: auto 1fr; gap: 0.25rem 1rem; }
-  dl.ficha dt { color: var(--pico-muted-color); font-weight: normal; }
-  dl.ficha dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
-}
+/* Fichas de detalle: etiqueta a la izquierda, valor a la derecha. */
+dl.ficha { display: grid; grid-template-columns: auto 1fr; gap: 0.25rem 1rem; max-width: 32rem; }
+dl.ficha dt { color: var(--pico-muted-color); font-weight: normal; }
+dl.ficha dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
 
 /* Áreas táctiles de 44 px en móvil (RNF-12, CA-07). */
 @media (max-width: 767.98px) {
@@ -134,3 +148,36 @@ details.filtros > summary { font-weight: 600; }
   .cifras article:last-child:nth-child(odd) { grid-column: 1 / -1; }
   .cifras strong { font-size: 1.25rem; overflow-wrap: anywhere; }
 }
+
+/* Recarga: saldo y paquetes en tarjetas. */
+article.saldo { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 0.75rem 1rem; }
+article.saldo small { color: var(--pico-muted-color); }
+article.saldo strong { font-size: 1.25rem; }
+article.paquetes { padding: 1rem; }
+article.paquetes fieldset { margin: 0; }
+article.paquetes legend { font-weight: 600; margin-bottom: 0.5rem; }
+label.paquete {
+  display: flex; align-items: center; gap: 0.75rem;
+  margin: 0 0 0.5rem; padding: 0.5rem 0.75rem; min-height: var(--area-tactil);
+  border: 1px solid var(--pico-muted-border-color); border-radius: var(--pico-border-radius);
+  cursor: pointer;
+}
+label.paquete:last-child { margin-bottom: 0; }
+label.paquete:has(input:checked) { border-color: var(--pico-primary); background: var(--pico-primary-focus); }
+label.paquete input { margin: 0; flex-shrink: 0; }
+label.paquete .nombre-paquete { flex: 1; }
+
+/* Botón de volver: separado del contenido anterior. */
+p.volver { margin-top: 2rem; }
+.titulo-entrar { text-align: center; }
+/* Login sin encabezado: la tarjeta queda centrada en vertical. */
+main:has(.logo-entrar) { display: flex; flex-direction: column; justify-content: center; min-height: 100vh; min-height: 100dvh; }
+main:has(.logo-entrar) > .angosto { width: 100%; }
+
+/* Alta de usuario plegada tras un botón. */
+details.nuevo-usuario { margin-bottom: var(--pico-spacing); }
+details.nuevo-usuario[open] > summary { margin-bottom: var(--pico-spacing); }
+
+/* Sumar / restar en el ajuste: opciones en una fila. */
+fieldset.sentido { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; margin-bottom: var(--pico-spacing); }
+fieldset.sentido label { margin: 0; }

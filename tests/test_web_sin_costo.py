@@ -52,7 +52,7 @@ async def test_paginas_del_cliente_no_contienen_el_costo(api, sesion_bd, simulad
     http = api()
     await iniciar_sesion(http, usuario.usuario)
     respuestas = [
-        await http.get("/entrar", follow_redirects=True),
+        await http.get("/login", follow_redirects=True),
         await http.get("/inicio"),
         await http.get("/recargar"),
         await http.get("/historial"),

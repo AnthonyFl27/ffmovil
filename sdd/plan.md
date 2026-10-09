@@ -280,8 +280,8 @@ Paquete `app/web/`: rutas HTML (sin `include_in_schema`) que llaman a las funcio
 
 | Ruta | Pantalla | Usa |
 |---|---|---|
-| `/` | Redirige según rol (`/inicio` o `/gestion`) o a `/entrar` | — |
-| `/entrar` (GET/POST) | Login | `/auth/login` |
+| `/` | Redirige según rol (`/inicio` o `/gestion`) o a `/login` | — |
+| `/login` (GET/POST) | Login | `/auth/login` |
 | `/clave` (GET/POST) | Cambio de contraseña (obligatorio si `debe_cambiar_clave`) | `/auth/cambiar-clave` |
 | `/salir` (POST) | Cierra sesión | `/auth/logout` |
 | `/inicio` | Inicio del cliente (RF-33) | `/me/resumen` |
@@ -295,7 +295,7 @@ Paquete `app/web/`: rutas HTML (sin `include_in_schema`) que llaman a las funcio
 | `/gestion/config` | Umbral de crédito bajo (RN-11) | `/admin/config` |
 | `/gestion/auditoria` | Registro de acciones (RF-55) | `/admin/auditoria` |
 
-- **Sesión:** las páginas usan las mismas dependencias que la API; sin sesión redirigen a `/entrar`, con `debe_cambiar_clave` a `/clave` y con el rol equivocado al inicio del rol. A una petición HTMX la redirección se le indica con la cabecera `HX-Redirect`.
+- **Sesión:** las páginas usan las mismas dependencias que la API; sin sesión redirigen a `/login`, con `debe_cambiar_clave` a `/clave` y con el rol equivocado al inicio del rol. A una petición HTMX la redirección se le indica con la cabecera `HX-Redirect`.
 - **Formularios:** se envían con HTMX (`hx-post`), que agrega `X-CSRF-Token` desde `hx-headers` del `<body>`. La respuesta es un fragmento HTML; los errores 4xx (y el 502 de "sincronizar ahora") también traen un fragmento con el mensaje y HTMX los muestra (`htmx-config` con `responseHandling`). Si el formulario reemplaza otra parte de la página (resolver un pedido, una fila del catálogo), el error se muestra en su zona de mensajes con `HX-Retarget`.
 - **Recarga (CHG-010):** tres pasos dentro de `#recarga`, cada uno reemplaza al anterior. (1) `/recargar` muestra el saldo y solo el Player ID. (2) `/recargar/validar` llama a `/recargas/validar` con el paquete activo más barato (`validar.php` exige `paquete_id`) y devuelve la tarjeta del jugador (inicial del nickname, nickname, Player ID, advertencia si no se pudo verificar, enlace "Cambiar ID" a `/recargar`) y los paquetes; `no_existe` o un ID mal formado se muestran bajo el campo (`HX-Retarget`). (3) Al tocar un paquete (`hx-trigger="change"`), `/recargar/resumen` devuelve el resumen y genera el `token_idempotencia` (UUID), sin llamar a VentasFF; si el ID no se pudo verificar exige marcar la casilla de continuar sin verificar. `/recargar/confirmar` crea el pedido, que vuelve a validar el ID con el paquete elegido (RN-03), y su fragmento reemplaza toda la pantalla; un error se muestra en el resumen. El botón se deshabilita tras el primer clic (`hx-disabled-elt`); un reenvío con el mismo token devuelve el mismo pedido (CA-02). Un pedido en `Procesando` se consulta cada 3 s hasta su estado final.
 - **Fechas (RNF-09):** se renderizan como `<time datetime="ISO UTC">` y `app/static/app.js` las muestra en la zona del navegador. Los filtros de fecha usan `<input type="date">` y envían el desfase del navegador (`tz`, minutos); la ruta convierte el día local a UTC (`desde` inclusivo, `hasta` hasta el final de ese día).

@@ -30,7 +30,7 @@ def menu(html: str, clase: str) -> str:
 
 
 def rutas(fragmento: str) -> list[str]:
-    return re.findall(r'<a href="([^"]+)">', fragmento)
+    return re.findall(r'<a href="([^"]+)"', fragmento)
 
 
 async def test_menu_plegable_con_todas_las_opciones(api, sesion_bd):

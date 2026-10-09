@@ -21,10 +21,13 @@
   </form>
   <form hx-post="/gestion/usuarios/{{ u.id }}/saldo/ajuste" hx-target="#mensaje-saldo" hx-disabled-elt="find button">
     <h3>Ajuste</h3>
+    <fieldset class="sentido" aria-label="Operación">
+      <label><input type="radio" name="sentido" value="sumar" checked> Sumar</label>
+      <label><input type="radio" name="sentido" value="restar"> Restar</label>
+    </fieldset>
     <label>Monto (USD)
-      <input name="monto" inputmode="decimal" required aria-describedby="ayuda-ajuste">
+      <input name="monto" inputmode="decimal" required>
     </label>
-    <small id="ayuda-ajuste">Positivo suma, negativo resta</small>
     <label>Nota
       <input name="nota" required>
     </label>
@@ -35,5 +38,5 @@
 </div>
 <div id="mensaje-saldo"></div>
 {% endif %}
-<p><a href="/gestion/usuarios">Volver a usuarios</a></p>
+<p class="volver"><a role="button" class="secondary" href="/gestion/usuarios">Volver a usuarios</a></p>
 {% endblock %}

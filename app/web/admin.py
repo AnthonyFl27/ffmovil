@@ -122,12 +122,21 @@ async def mover_saldo(
     bd: Bd,
     monto: Annotated[str, Form()] = "",
     nota: Annotated[str, Form()] = "",
+    sentido: Annotated[str | None, Form()] = None,
 ):
-    """Abono o ajuste con nota obligatoria (RF-40, RF-41)."""
+    """Abono o ajuste con nota obligatoria (RF-40, RF-41).
+
+    En el ajuste, `sentido` (sumar/restar) indica el signo; el monto se escribe sin signo.
+    """
     if tipo not in ("abono", "ajuste"):
         raise ErrorWeb("Acción no válida.", status.HTTP_404_NOT_FOUND)
+    monto = monto.strip()
+    if tipo == "ajuste" and sentido in ("sumar", "restar"):
+        monto = monto.lstrip("+-").strip()
+        if sentido == "restar":
+            monto = f"-{monto}"
     try:
-        datos = MovimientoSaldo(monto=monto.strip(), nota=nota)
+        datos = MovimientoSaldo(monto=monto, nota=nota)
     except ValidationError:
         return error(request, MENSAJE_MONTO, status.HTTP_422_UNPROCESSABLE_CONTENT)
     operacion = saldos.abonar if tipo == "abono" else saldos.ajustar

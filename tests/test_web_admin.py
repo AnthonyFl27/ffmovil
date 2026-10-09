@@ -126,6 +126,17 @@ async def test_abono_y_ajuste(api, sesion_bd):
     saldo = await releer(sesion_bd, Saldo, cliente.id)
     assert saldo.saldo_disponible == Decimal("10.00")
 
+    # El selector Sumar/Restar fija el signo; el monto se escribe sin signo.
+    resta = await htmx_post(
+        http, f"{ruta}/ajuste", {"sentido": "restar", "monto": "3", "nota": "Cobro"}
+    )
+    assert "Ajuste de -3.00 USD registrado" in resta.text
+    suma = await htmx_post(
+        http, f"{ruta}/ajuste", {"sentido": "sumar", "monto": "-3", "nota": "Devolución"}
+    )
+    assert "Ajuste de 3.00 USD registrado" in suma.text
+    assert (await releer(sesion_bd, Saldo, cliente.id)).saldo_disponible == Decimal("10.00")
+
     for datos, tipo in (
         ({"monto": "abc", "nota": "x"}, "abono"),
         ({"monto": "5", "nota": ""}, "abono"),

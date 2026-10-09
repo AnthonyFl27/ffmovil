@@ -20,7 +20,7 @@
   {%- else %}
   {%- set opciones = [] %}
   {%- endif %}
-  <header class="container">
+  {% block cabecera %}<header class="container">
     <nav>
       <ul><li><a href="/" class="marca"><img src="{{ estatico("logo.png") }}" alt="" width="40" height="40"><strong>ffmovil</strong></a></li></ul>
       {% if csrf and not opciones %}
@@ -28,7 +28,7 @@
       {% elif csrf %}
       {# En escritorio el menú va en línea; en pantallas angostas, plegado (RNF-12). #}
       <ul class="menu-linea">
-        {% for ruta, etiqueta in opciones %}<li><a href="{{ ruta }}">{{ etiqueta }}</a></li>{% endfor %}
+        {% for ruta, etiqueta in opciones %}<li><a href="{{ ruta }}"{% if request.url.path == ruta or (ruta != "/gestion" and request.url.path.startswith(ruta ~ "/")) %} aria-current="page"{% endif %}>{{ etiqueta }}</a></li>{% endfor %}
         <li><button class="outline secondary salir" hx-post="/salir">Salir</button></li>
       </ul>
       <ul class="menu-plegable">
@@ -36,7 +36,7 @@
           <details class="dropdown">
             <summary>Menú</summary>
             <ul dir="rtl">
-              {% for ruta, etiqueta in opciones %}<li><a href="{{ ruta }}">{{ etiqueta }}</a></li>{% endfor %}
+              {% for ruta, etiqueta in opciones %}<li><a href="{{ ruta }}"{% if request.url.path == ruta or (ruta != "/gestion" and request.url.path.startswith(ruta ~ "/")) %} aria-current="page"{% endif %}>{{ etiqueta }}</a></li>{% endfor %}
               <li><button class="outline secondary salir" hx-post="/salir">Salir</button></li>
             </ul>
           </details>
@@ -44,7 +44,7 @@
       </ul>
       {% endif %}
     </nav>
-  </header>
+  </header>{% endblock %}
   <main class="container">
     <div id="aviso-global" role="alert"></div>
     {% block contenido %}{% endblock %}

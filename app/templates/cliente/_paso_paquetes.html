@@ -1,4 +1,4 @@
-<p>Saldo disponible: <strong>{{ resumen.saldo_disponible | usd }}</strong></p>
+{% include "cliente/_saldo.html" %}
 <article class="jugador">
   <span class="inicial" aria-hidden="true">{{ inicial }}</span>
   <div class="datos-jugador">
@@ -15,14 +15,17 @@
   <input type="hidden" name="player_id" value="{{ player_id }}">
   <input type="hidden" name="nickname" value="{{ validacion.nickname or '' }}">
   <input type="hidden" name="verificado" value="{{ '' if validacion.advertencia else '1' }}">
-  <fieldset>
-    <legend>Elige un paquete</legend>
-    {% for p in paquetes %}
-    <label>
-      <input type="radio" name="paquete_id" value="{{ p.paquete_id }}" required>
-      {{ p.nombre }} — {{ p.precio_venta | usd }}
-    </label>
-    {% endfor %}
-  </fieldset>
+  <article class="paquetes">
+    <fieldset>
+      <legend>Elige un paquete</legend>
+      {% for p in paquetes %}
+      <label class="paquete">
+        <input type="radio" name="paquete_id" value="{{ p.paquete_id }}" required>
+        <span class="nombre-paquete">{{ p.nombre }}</span>
+        <strong class="precio-paquete">{{ p.precio_venta | usd }}</strong>
+      </label>
+      {% endfor %}
+    </fieldset>
+  </article>
 </form>
 <div id="confirmacion"></div>

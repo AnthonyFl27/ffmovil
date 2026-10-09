@@ -88,7 +88,7 @@ async def nueva_pagina(navegador):
 
 
 async def entrar(pagina, base: str, usuario: str, destino: str) -> None:
-    await pagina.goto(f"{base}/entrar")
+    await pagina.goto(f"{base}/login")
     await pagina.fill("input[name=usuario]", usuario)
     await pagina.fill("input[name=clave]", CLAVE)
     await pagina.click("button[type=submit]")
@@ -146,8 +146,8 @@ async def test_pantallas_en_viewport_movil(servidor_web, navegador, api, sesion_
     problemas: list[str] = []
 
     pagina = await nueva_pagina(navegador)
-    await pagina.goto(f"{base}/entrar")
-    await medir(pagina, "/entrar", problemas)
+    await pagina.goto(f"{base}/login")
+    await medir(pagina, "/login", problemas)
     await entrar(pagina, base, cliente.usuario, "/inicio")
     await recorrer(
         pagina,
