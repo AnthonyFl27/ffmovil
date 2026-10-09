@@ -32,6 +32,15 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
+  // Con la recarga creada (llega el fragmento del pedido) se vacía el formulario de
+  // recarga para la siguiente; ante un error se conserva para corregirlo.
+  document.body.addEventListener("htmx:afterSwap", function (e) {
+    var form = document.getElementById("form-recarga");
+    if (form && e.detail.target.id === "confirmacion" && e.detail.target.querySelector("article[id^=pedido-]")) {
+      form.reset();
+    }
+  });
+
   function avisar(texto) {
     var aviso = document.getElementById("aviso-global");
     if (aviso) aviso.innerHTML = '<p class="mensaje error"></p>';

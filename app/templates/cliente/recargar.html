@@ -4,7 +4,7 @@
 <h1>Recargar diamantes</h1>
 <p>Saldo disponible: <strong>{{ resumen.saldo_disponible | usd }}</strong></p>
 {% if paquetes %}
-<form hx-post="/recargar/validar" hx-target="#confirmacion" hx-disabled-elt="find button" data-limpia="#confirmacion">
+<form id="form-recarga" hx-post="/recargar/validar" hx-target="#confirmacion" hx-disabled-elt="find button" data-limpia="#confirmacion">
   <label>Player ID
     <input name="player_id" inputmode="numeric" pattern="[0-9]{4,20}" maxlength="20" required
            placeholder="Solo números" autocomplete="off">

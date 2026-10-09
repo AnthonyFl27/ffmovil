@@ -184,3 +184,20 @@ async def test_pantallas_en_viewport_movil(servidor_web, navegador, api, sesion_
     )
 
     assert not problemas, "Problemas a 360 × 740:\n" + "\n".join(problemas)
+
+
+async def test_formulario_se_vacia_tras_recargar(
+    servidor_web, navegador, api, sesion_bd, simulador
+):
+    # Con la recarga creada, el formulario de arriba queda listo para otra (RF-21).
+    base = servidor_web
+    _, cliente, paquete = await cliente_web(api, sesion_bd, simulador)
+    pagina = await nueva_pagina(navegador)
+    await entrar(pagina, base, cliente.usuario, "/inicio")
+    await pagina.goto(f"{base}/recargar")
+    await pagina.fill("input[name=player_id]", "75807448")
+    await pagina.check(f"input[name=paquete_id][value='{paquete.paquete_id}']")
+    await pagina.click("form[hx-post='/recargar/validar'] button[type=submit]")
+    await pagina.click("form[hx-post='/recargar/confirmar'] button[type=submit]")
+    await pagina.locator("#confirmacion article[id^=pedido-]").wait_for()
+    assert await pagina.input_value("input[name=player_id]") == ""
