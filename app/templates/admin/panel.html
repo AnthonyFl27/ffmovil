@@ -12,10 +12,13 @@
 {% if panel.error_proveedor %}
 <p class="mensaje error">{{ panel.error_proveedor }}</p>
 {% endif %}
-{% if panel.cubierto is sameas false %}
-<p><small>Los saldos de clientes superan el crédito en VentasFF: el saldo por cubrir es lo adelantado que aún no respalda tu crédito.</small></p>
-{% endif %}
 <h2>Alertas</h2>
+{% if panel.cubierto is sameas false %}
+<article class="aviso">
+  <strong>Saldo por cubrir: {{ panel.saldo_por_cubrir | usd }}</strong>
+  <p>Los saldos de clientes superan el crédito en VentasFF. Es lo adelantado que aún no respalda tu crédito.</p>
+</article>
+{% endif %}
 {% set alertas = panel.alertas %}
 <div id="alertas">{% include "admin/_alertas.html" %}</div>
 {% endblock %}

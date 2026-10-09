@@ -42,7 +42,7 @@ async def test_cliente_no_entra_a_gestion(api, sesion_bd):
 
 
 async def test_panel_con_credito_saldos_y_alertas(api, sesion_bd, simulador):
-    http, _ = await admin_web(api, sesion_bd)
+    http, admin = await admin_web(api, sesion_bd)
     simulador.credito = Decimal("1000000.00")
     respuesta = await http.get("/gestion")
     assert respuesta.status_code == 200
@@ -51,10 +51,16 @@ async def test_panel_con_credito_saldos_y_alertas(api, sesion_bd, simulador):
     assert 'id="saldos-clientes"' in html and 'id="ganancia-total"' in html
     assert 'href="/gestion/pedidos?solo_pendientes=1"' in html
     assert 'id="saldo-por-cubrir"' in html and 'id="diferencia"' not in html
-    # RN-10: con el crédito por debajo de los saldos solo hay una nota informativa.
+    assert 'class="aviso"' not in html
+    # RN-10: con el crédito por debajo de los saldos hay una tarjeta informativa en Alertas.
+    cliente = await crear_usuario_con_clave(sesion_bd)
+    await ledger.abonar(
+        sesion_bd, cliente.id, Decimal("50.00"), nota="Adelanto", creado_por=admin.id
+    )
+    await sesion_bd.commit()
     simulador.credito = Decimal("0.00")
     html = (await http.get("/gestion")).text
-    assert "no cubre los saldos" not in html
+    assert 'class="aviso"' in html and "Saldo por cubrir:" in html
 
 
 async def test_atender_alerta(api, sesion_bd):

@@ -52,6 +52,10 @@ nav a.marca img { width: 40px; height: 40px; }
 nav button.salir { min-height: auto; }
 }
 
+/* Aviso informativo del panel (RN-10): tarjeta con borde de acento, sin ser un error. */
+article.aviso { border-left: 0.25rem solid var(--pico-primary); }
+article.aviso p { margin: 0.25rem 0 0; }
+
 .estado { font-weight: 600; white-space: nowrap; }
 .estado-EXITOSO { color: var(--pico-ins-color); }
 .estado-FALLIDO { color: var(--pico-del-color); }
