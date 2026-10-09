@@ -133,7 +133,7 @@ async def test_pantallas_admin_en_tarjetas(api, sesion_bd):
     await iniciar_sesion(http, admin.usuario)
 
     pedidos = (await http.get("/gestion/pedidos", params={"usuario": cliente.usuario})).text
-    assert '<table class="tarjetas">' in pedidos
+    assert '<table class="tarjetas ancha">' in pedidos
     tablas_en_tarjetas(pedidos)
     estado = next(td for td in celdas(pedidos) if 'data-etiqueta="Estado"' in td)
     assert "secundario" not in estado
