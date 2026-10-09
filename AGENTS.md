@@ -105,12 +105,14 @@ uv run uvicorn app.main:app --reload
 ```bash
 uv run python -m tests.fake_ventasff --port 8099          # simulador (crédito ficticio 100.00)
 VENTASFF_URL=http://127.0.0.1:8099/api/reseller VENTASFF_API_KEY=rv_c_simulador \
-  uv run uvicorn app.main:app --host 127.0.0.1 --port 8000
+  uv run uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload --reload-dir app
 ```
+
+Con `--reload` la app se reinicia sola al cambiar el código; al terminar, cerrar la app y el simulador.
 
 Las variables de entorno tienen prioridad sobre el `.env`: así la app nunca llama a VentasFF real. La BD de desarrollo ya tiene el admin `admin` (creado por CLI) y un cliente de prueba; el catálogo se llena con "Sincronizar ahora" desde `/gestion/paquetes` (3 paquetes ficticios del simulador, inactivos y sin precio).
 
-### Piezas ya construidas (fases 1 a 7, spec v0.7.1)
+### Piezas ya construidas (fases 1 a 7, adaptación a móvil y recarga en tres pasos; spec v0.9.0)
 
 Detalle de diseño en `sdd/plan.md` (sec. 3 modelo, 4.2 fases A/B/C, 4.2.1 alertas, 4.5 cliente VentasFF, 4.6 transacciones y rutas de recarga, 6 endpoints, 7 seguridad). Migración head: `ea509abd049b` (`sesiones`, aplicada en desarrollo).
 
@@ -124,16 +126,19 @@ Detalle de diseño en `sdd/plan.md` (sec. 3 modelo, 4.2 fases A/B/C, 4.2.1 alert
   - `catalogo` (`fijar_precio_venta` con aviso bajo costo, `activar`, `desactivar`, `sincronizar_catalogo`); `tareas` (job diario y "sincronizar ahora").
   - `estados` (máquina de estados), `codigos` (`FF-000123`), `recarga_service` (`validar_jugador`, `crear_pedido` = Fase A, `llamar_proveedor` = Fase B, `resolver_pedido` = Fase C, `procesar_pedido` = B+C+alertas, `resolver_pendiente` = admin), `recuperacion`, `alertas`, `consultas_pedidos` (filtros y paginación comunes).
 - **Rutas** (`app/routers/`): `dependencias.py` (`Bd`, `EnSesion`, `Actual`, `Cliente`, `Admin`; CSRF por cabecera `X-CSRF-Token` en métodos no seguros), `auth` (login, logout, sesión, cambiar-clave), `me` (resumen, fondos, pedidos), `paquetes`, `recargas` (validar y crear; B+C en tarea propia), `admin/` (usuarios, saldos, pedidos + resolver, panel + alertas + config, paquetes + sincronizar, auditoría; `require_admin` a nivel de router).
-- **Web** (`app/web/`, plan sec. 6.1; Q-05 → Jinja2 + HTMX 2 + Pico.css 2, ambos en `app/static`): las rutas HTML llaman a las funciones de las rutas JSON y renderizan sus esquemas (el cliente nunca recibe uno con costo). `plantillas.py` (filtros `usd`, `fecha` → `<time>` que `app.js` pasa a la zona del navegador, `texto`; `render`, `error(..., destino)` con `HX-Retarget`; `Redirigir`/`ErrorWeb`; dependencias `SesionWeb`, `ClienteWeb`, `AdminWeb`), `filtros.py` (día local + `tz` → UTC), `acceso.py` (`/`, `/entrar`, `/clave`, `/salir`), `cliente.py` (`/inicio`, `/recargar*`, `/historial*`, `/fondos`), `admin.py` (`/gestion*`). CSRF en `<body hx-headers>`; HTMX intercambia también los 4xx y el 502. Plantillas en `app/templates/` (`admin/` solo para el admin).
+- **Web** (`app/web/`, plan sec. 6.1; Q-05 → Jinja2 + HTMX 2 + Pico.css 2, ambos en `app/static`): las rutas HTML llaman a las funciones de las rutas JSON y renderizan sus esquemas (el cliente nunca recibe uno con costo). `plantillas.py` (filtros `usd`, `fecha` → `<time>` que `app.js` pasa a la zona del navegador, `texto`; `render`, `error(..., destino)` con `HX-Retarget`; `Redirigir`/`ErrorWeb`; dependencias `SesionWeb`, `ClienteWeb`, `AdminWeb`), `filtros.py` (día local + `tz` → UTC), `acceso.py` (`/`, `/entrar`, `/clave`, `/salir`), `cliente.py` (`/inicio`, `/recargar*`, `/historial*`, `/fondos`), `admin.py` (`/gestion*`). CSRF en `<body hx-headers>`; HTMX intercambia también los 4xx y el 502. Plantillas en `app/templates/` (`admin/` solo para el admin). Los estáticos se enlazan con `estatico("archivo")` (añade `?v=<hash>`).
+- **Recarga en tres pasos** (CHG-010, plan sec. 6.1): todo ocurre dentro de `#recarga`. `/recargar` (solo Player ID) → `/recargar/validar` (valida con el paquete activo más barato; `_paso_paquetes.html` = tarjeta del jugador con la inicial y paquetes; errores en `#mensaje-id`) → `/recargar/resumen` (al tocar un paquete; `_confirmacion.html` con el token, sin llamar a VentasFF) → `/recargar/confirmar` (el pedido reemplaza toda la pantalla; errores en `#mensaje-confirmacion`).
+- **Móvil** (CHG-009, plan sec. 6.2): `app/static/app.css` mobile-first con corte en 768 px: menú plegable (`ul.menu-plegable`), listados `table.tarjetas` con `data-etiqueta` (`td.secundario` se oculta, `td.accion` sin etiqueta), `dl.ficha`, `details.filtros`, áreas de 44 px (`--area-tactil`). Logo en `app/static/logo.png` (más `favicon.png` y `apple-touch-icon.png`).
 - **Esquemas:** los de cliente van en `app/schemas/` (cualquier módulo que no empiece por `admin`) y una prueba falla si declaran algo con "costo"; los de admin, en `app/schemas/admin*.py`. Montos con el tipo `Monto` (texto con 2 decimales) y `moneda: "USD"` (RF-36).
 
 ### Pruebas: cómo escribirlas
 
 - Simulador: `tests/fake_ventasff.py` → `SimuladorVentasFF(escenario_recarga=…, escenario_validar=…, credito=…, busy_restantes=…)`; cliente con `ClienteVentasFF(sim.api_key, "http://simulador/api/reseller", transport=sim.transporte())`. `sim.recargas` dice si el proveedor cobró.
 - API: fixture `api` (fábrica de `httpx.AsyncClient` contra la app; `api(ip)` fija la IP; un tarro de cookies por cliente) y fixture `simulador` (el VentasFF de la app en la prueba). `tests/utilidades_api.py`: `crear_usuario_con_clave` (confirma; clientes con saldo en cero) e `iniciar_sesion` (deja la cabecera CSRF en el cliente). Los pedidos creados con `crear_pedido` no tienen `codigo`: asignar `codigo_pedido(pedido.id)` si la prueba lo usa. Usar precios ficticios (0.50/0.75; el simulador cuesta 0.50).
-- Web: `tests/utilidades_web.py` (`cliente_web` = cliente con sesión, saldo y paquete; `htmx_post`/`htmx_get` con `HX-Request`; `csrf_de(html)`).
+- Web: `tests/utilidades_web.py` (`cliente_web` = cliente con sesión, saldo y paquete; `htmx_post`/`htmx_get` con `HX-Request`; `csrf_de(html)`). Estructura móvil de las plantillas en `tests/test_web_movil.py`.
+- Navegador (CA-07): `tests/test_movil_navegador.py`, fixtures `servidor_web` (uvicorn en el loop de pytest) y `navegador` (Chromium; se omite sin él); `medir(pagina, nombre, problemas)` comprueba desbordamiento y controles < 44 px a 360 × 740. Toda pantalla nueva debe sumarse a su recorrido.
 - El esquema `test` se crea **una vez por sesión** de pytest y lo comparten todas las pruebas: usar ids/nombres únicos (`tests/utilidades.py`: `crear_usuario`, `crear_paquete`, `crear_pedido`; fixtures `cuenta`, `admin_id`), aserciones solo sobre lo propio y `rollback` cuando no haga falta persistir. Releer con `execution_options(populate_existing=True)`; tras un `rollback` no acceder a atributos de objetos ORM (expiran → `MissingGreenlet`).
-- Motor y event loop son de alcance sesión. El enlace al VPS es lento (~0.5 s por consulta): minimizar ida y vuelta. Suite completa ≈ 14 min (570 pruebas al cerrar la fase 7).
+- Motor y event loop son de alcance sesión. El enlace al VPS es lento (~0.5 s por consulta): minimizar ida y vuelta. Suite completa ≈ 15 min (≈ 580 pruebas tras la adaptación a móvil).
 - Dos procesos de pytest con BD a la vez se pisan (cada sesión recrea `test`): no correr pruebas de BD en paralelo.
 
 ### Forma de trabajo acordada con el usuario
@@ -141,15 +146,18 @@ Detalle de diseño en `sdd/plan.md` (sec. 3 modelo, 4.2 fases A/B/C, 4.2.1 alert
 - Al terminar cada tarea: marcar `[x]`, commit y **push** a `origin/main` (repositorio público: revisar que no haya secretos antes). Avisar al usuario al terminar cada fase.
 - El LLM principal orquesta y delega tareas básicas y acotadas a subagentes Haiku (simuladores, utilidades puras, servicios con contrato exacto, tablas de pruebas). La lógica contable, transaccional y de clasificación la hace el principal. A cada subagente: lista cerrada de archivos, sin git, sin leer `.env`, sin suite completa; revisar e integrar antes del commit.
 
-### Pendientes y decisiones abiertas (al cerrar la fase 7)
+### Pendientes y decisiones abiertas (2026-10-08, tras CHG-009 y CHG-010)
 
-- **Próxima sesión:** el usuario quiere conversar sobre cosas que desea revisar y cambiar respecto al plan. Antes de tocar código, clasificar cada pedido (significativo / menor / técnico) y, si es significativo, proponer el texto exacto en `sdd/` y esperar aprobación. La fase 8 (T-080…) queda en espera hasta entonces.
+- **Hecho en esta sesión:** T-100 a T-104 (adaptación a móvil) y T-106 (recarga en tres pasos, CHG-010, spec 0.9.0), más ajustes visuales pedidos por el dueño: Player ID, jugador y referencia visibles en las tarjetas del historial; logo; resumen legible de la última sincronización; menú alineado en Firefox; estáticos con versión.
+- **T-105:** revisión en un celular real, a cargo del dueño. Sus hallazgos se registran como tareas nuevas.
+- **Próximo paso:** el dueño sigue revisando la web y avisará de inconsistencias. Clasificar cada pedido (significativo / menor / técnico) antes de tocar código. La fase 8 (T-080…) queda en espera hasta que el dueño lo indique.
+- **Propuesto y sin respuesta:** mensaje propio en rojo con el Player ID vacío (hoy solo el aviso del navegador); mostrar el motivo del fallo en las tarjetas del historial; nickname mientras se escribe (descartado por ahora: CHG-010 lo resolvió con el botón).
 - Acordado con el usuario (2026-10-08): proponer un cambio de spec para que, si `productos.php` llega vacío, la sincronización no desactive todo el catálogo (p. ej. no desactivar nada y generar alerta). Presentar el texto exacto antes de aplicarlo.
-- Las pruebas ya usan precios ficticios (commit `Ajuste:` de 2026-10-08).
+- La BD de desarrollo tiene 3 paquetes ficticios del simulador con precio de prueba: nunca conectar la API real a esa BD (un `paquete_id` real igual heredaría ese precio). Producción usa otra base.
 - Un fallo inesperado (excepción) en la tarea de fases B/C deja el pedido en `PROCESANDO` hasta el siguiente arranque (RN-09); se registra en el log.
-- El usuario probó la web en su navegador (2026-10-08): login, cambio de clave, alta de cliente y abono funcionaron; sin hallazgos. "No hay paquetes disponibles" se debía a que el catálogo no se había sincronizado (comportamiento esperado, RF-13).
 - Producción: usuario de BD dedicado con clave fuerte; rotar la API Key de VentasFF que se compartió en un chat; `--workers 1` (limitadores de login y de VentasFF en memoria).
-- Las sesiones en segundo plano pueden no tener credenciales para `git push`; si falla, pedir al usuario `! git push origin main`.
+- `.preview/` (local, ignorado por `.git/info/exclude`): arnés de vista previa (`render.py` genera las páginas con datos ficticios y `medir.py` mide a un ancho dado). No es parte del repo.
+- Las sesiones en segundo plano pueden no tener credenciales para `git push`; si falla, pedir al usuario `! git push origin main`. En esta sesión el usuario hace el push.
 
 ## Convenciones
 

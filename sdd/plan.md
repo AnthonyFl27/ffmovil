@@ -310,6 +310,9 @@ Paquete `app/web/`: rutas HTML (sin `include_in_schema`) que llaman a las funcio
 - **Áreas táctiles:** variable CSS de altura mínima de 44 px para botones, enlaces de acción, casillas y opciones de paquete (radio con etiqueta que ocupa toda la fila).
 - **Cifras** (`.cifras`): una o dos columnas en móvil, sin tarjetas huérfanas a mitad de ancho.
 - **Prueba (CA-07):** Playwright como dependencia de desarrollo (Chromium se instala con `playwright install chromium`; nunca entra en la imagen Docker). La prueba levanta la app contra el esquema `test` y el simulador, entra como cliente y como admin con viewport 360 × 740 y táctil, recorre cada pantalla y comprueba `scrollWidth ≤ clientWidth` y que todo control interactivo mida ≥ 44 px. Se omite con aviso si Chromium no está instalado.
+- **Implementación (T-100 a T-104):** punto de corte único de 768 px. El menú se renderiza dos veces desde la misma lista (`ul.menu-linea` y `ul.menu-plegable` con `details.dropdown` de Pico); el `details` se fuerza a bloque posicionado para que la lista quede alineada al botón también en Firefox. Las tarjetas usan `table.tarjetas`, `data-etiqueta` y `td.secundario`/`td.accion`; los detalles, `dl.ficha` (solo en móvil). Filtros en `details.filtros`, abiertos si hay alguno activo y, en escritorio, por `app.js`. Las reglas de 44 px (`--area-tactil`) solo aplican bajo 768 px, así el escritorio no cambia.
+- **Estáticos con versión:** las plantillas enlazan `app/static` con `estatico("archivo")`, que añade `?v=<hash del contenido>`; un CSS o JS nuevo nunca se mezcla con uno viejo en la caché del navegador.
+- **Prueba (detalle):** `tests/test_movil_navegador.py` sirve la app con uvicorn como tarea del event loop de pytest (fixture `servidor_web`, mismo estado que la fixture `api`) y usa Playwright async en ese loop; al medir abre y cierra el menú plegable.
 - **Verificación manual:** un celular real (T-105), a cargo del dueño.
 
 ## 7. Seguridad (RNF-01 a RNF-06)
