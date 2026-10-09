@@ -255,6 +255,20 @@ fieldset.sentido label { margin: 0; }
 /* Botón de ícono para copiar un dato (código, Player ID, referencia). */
 .con-copia { display: inline-flex; align-items: center; gap: 0.25rem; }
 dl.ficha dd.con-copia { display: flex; justify-content: flex-end; }
+/* Detalle del admin: la ficha ocupa todo el ancho, con dos pares etiqueta/valor por fila. */
+@media (min-width: 768px) {
+  #detalle dl.ficha { max-width: none; grid-template-columns: auto 1fr auto 1fr; gap: 0.5rem 1rem; }
+  #detalle dl.ficha dd:nth-of-type(odd) { margin-right: 2rem; }
+}
+
+/* Tablas: fila resaltada al pasar el cursor; encabezado fijo dentro de listas largas (escritorio). */
+@media (min-width: 768px) {
+  .overflow-auto:has(> table.tarjetas) { max-height: 75vh; }
+  table.tarjetas thead th { position: sticky; top: 0; z-index: 1; background: var(--pico-background-color); }
+}
+@media (hover: hover) {
+  table.tarjetas tbody tr:hover > td { background: color-mix(in srgb, var(--pico-primary) 7%, transparent); }
+}
 main button.copiar {
   display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
   width: 1.5rem; height: 1.5rem; padding: 0; margin: 0;

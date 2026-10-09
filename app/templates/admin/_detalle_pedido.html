@@ -1,16 +1,18 @@
 {% from "parciales/iconos.html" import icono, copiar, vacio %}
+<section class="cifras cifras-chicas">
+  <article><small>Estado</small><strong class="estado estado-{{ pedido.estado }}"><span class="insignia">{{ pedido.estado }}</span></strong></article>
+  <article><small>Precio de venta</small><strong>{{ pedido.precio_venta | usd }}</strong></article>
+  <article><small>Precio de costo</small><strong>{{ pedido.precio_costo | usd }}</strong></article>
+  <article class="{{ 'acento' if pedido.estado == 'EXITOSO' else '' }}"><small>Ganancia</small><strong>{{ pedido.ganancia | usd }}</strong></article>
+</section>
 <dl class="ficha">
   <dt>Código</dt><dd class="con-copia">{{ pedido.codigo }}{{ copiar(pedido.codigo, "código") }}</dd>
-  <dt>Estado</dt><dd class="estado estado-{{ pedido.estado }}"><span class="insignia">{{ pedido.estado }}</span></dd>
   <dt>Fecha</dt><dd>{{ pedido.fecha | fecha }}</dd>
   <dt>Actualizado</dt><dd>{{ pedido.actualizado_en | fecha }}</dd>
   <dt>Usuario</dt><dd><a href="/gestion/usuarios/{{ pedido.usuario_id }}">{{ pedido.usuario }}</a></dd>
   <dt>Paquete</dt><dd>{{ pedido.paquete | texto }}</dd>
   <dt>Player ID</dt><dd class="con-copia">{{ pedido.player_id | texto }}{{ copiar(pedido.player_id, "Player ID") }}</dd>
   <dt>Nickname</dt><dd>{{ pedido.nickname | texto }}</dd>
-  <dt>Precio de venta</dt><dd>{{ pedido.precio_venta | usd }}</dd>
-  <dt>Precio de costo</dt><dd>{{ pedido.precio_costo | usd }}</dd>
-  <dt>Ganancia</dt><dd>{{ pedido.ganancia | usd }}</dd>
   <dt>Referencia</dt><dd class="con-copia">{{ pedido.referencia | texto }}{{ copiar(pedido.referencia, "referencia") }}</dd>
   <dt>Error</dt><dd>{{ pedido.error | texto }}</dd>
   <dt>Código de error</dt><dd>{{ pedido.error_code | texto }}</dd>
