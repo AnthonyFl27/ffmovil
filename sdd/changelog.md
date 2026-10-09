@@ -119,6 +119,14 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.10.0 → 0.11.0
 - **Motivo:** el inicio quedaba con media pantalla vacía y el cliente (revendedor con muchas recargas a distintos jugadores) quiere ver lo último que hizo sin entrar al Historial. Decisiones del dueño: 5 recargas, de todos los estados (para que una recarga fallida o en revisión se vea de inmediato) y con el nickname del jugador.
 
+### CHG-013 · 2026-10-09 · Inicio del cliente sin enlace "Ver todo"
+- **Origen:** decisión de negocio (revisión visual del dueño)
+- **Spec:** RF-33 modificado (se retira el enlace "Ver todo"; el botón Historial basta)
+- **Plan:** sin cambios
+- **Tareas:** T-108 ajustada (criterio sin "Ver todo")
+- **Versión spec:** 0.11.0 → 0.12.0
+- **Motivo:** las últimas recargas del inicio son solo una referencia rápida; el botón Historial ya lleva al listado completo.
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |

@@ -74,5 +74,5 @@ async def test_inicio_ultimas_cinco_recargas_de_cualquier_estado(api, sesion_bd)
     assert f'href="/historial/{pedidos[0].codigo}"' not in html
     assert f'href="/historial/{ajeno_pedido.codigo}"' not in html
     assert "Fallido" in html and "En revisión" in html and "Jugador6" in html
-    assert 'href="/historial">Ver todo</a>' in html
+    assert "Ver todo" not in html  # CHG-013: el botón Historial basta
     assert "costo" not in html.lower() and "ganancia" not in html.lower()

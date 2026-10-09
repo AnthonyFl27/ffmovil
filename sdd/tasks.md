@@ -125,5 +125,5 @@ Auditoría previa (2026-10-08, 360 y 390 px): el documento se desbordaba en toda
 
 ### Últimas recargas en el inicio del cliente (CHG-012, RF-33)
 
-- [x] T-108 Inicio del cliente con sus últimas 5 recargas de cualquier estado, con enlace a cada detalle, "Ver todo" y estado vacío (RF-33, CHG-012) → pruebas web: lista con recargas en distintos estados, estado vacío, solo pedidos propios y sin ningún dato de costo; prueba de navegador a 360 px.
+- [x] T-108 Inicio del cliente con sus últimas 5 recargas de cualquier estado, con enlace a cada detalle y estado vacío; sin "Ver todo" (RF-33, CHG-012, CHG-013) → pruebas web: lista con recargas en distintos estados, estado vacío, solo pedidos propios y sin ningún dato de costo; prueba de navegador a 360 px.
 

@@ -11,7 +11,7 @@
 {% if resumen.saldo_reservado > 0 %}
 <p><small>Reservado en recargas en proceso o en revisión: {{ resumen.saldo_reservado | usd }}</small></p>
 {% endif %}
-<div class="acciones" style="margin-top: 1.5rem">
+<div class="acciones acciones-anchas">
   <a role="button" href="/recargar">{{ icono("recargar") }}Recargar</a>
   <a role="button" class="secondary" href="/historial">{{ icono("historial") }}Historial</a>
 </div>
@@ -29,7 +29,6 @@
   </li>
   {% endfor %}
 </ul>
-<p><a href="/historial">Ver todo</a></p>
 {% else %}
 <div class="vacio">
   {{ icono("vacio") }}
