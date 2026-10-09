@@ -1,4 +1,5 @@
+{% from "parciales/iconos.html" import icono, copiar, vacio %}
 <article class="saldo">
-  <small>Saldo disponible</small>
+  <small>{{ icono("fondos") }}Saldo disponible</small>
   <strong>{{ resumen.saldo_disponible | usd }}</strong>
 </article>

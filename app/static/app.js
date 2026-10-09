@@ -32,6 +32,47 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
+  // Copiar un dato (botón .copiar) y mostrar/ocultar la contraseña (botón .ver-clave).
+  function copiarTexto(texto) {
+    if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(texto);
+    return new Promise(function (ok, fallo) {
+      var t = document.createElement("textarea");
+      t.value = texto;
+      t.setAttribute("readonly", "");
+      t.style.cssText = "position:fixed;opacity:0";
+      document.body.appendChild(t);
+      t.select();
+      try {
+        if (document.execCommand("copy")) ok();
+        else fallo();
+      } catch (e) {
+        fallo(e);
+      } finally {
+        document.body.removeChild(t);
+      }
+    });
+  }
+  document.addEventListener("click", function (e) {
+    var copiar = e.target.closest("button.copiar");
+    if (copiar) {
+      copiarTexto(copiar.dataset.copiar).then(function () {
+        copiar.classList.add("listo");
+        setTimeout(function () {
+          copiar.classList.remove("listo");
+        }, 1500);
+      });
+      return;
+    }
+    var ver = e.target.closest("button.ver-clave");
+    if (ver) {
+      var campo = ver.parentElement.querySelector("input");
+      var visible = campo.type === "password";
+      campo.type = visible ? "text" : "password";
+      ver.classList.toggle("visible", visible);
+      ver.setAttribute("aria-label", visible ? "Ocultar contraseña" : "Mostrar contraseña");
+    }
+  });
+
   function avisar(texto) {
     var aviso = document.getElementById("aviso-global");
     if (aviso) aviso.innerHTML = '<p class="mensaje error"></p>';

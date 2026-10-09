@@ -1,5 +1,11 @@
 /* Mobile-first (RNF-12): estilos base para 360 px; los @media amplían para escritorio. */
-:root { --area-tactil: 44px; }
+/* --color-aviso: ámbar de "requiere atención", legible en tema claro y oscuro. */
+:root { --area-tactil: 44px; --color-aviso: #b26a00; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme=light]) { --color-aviso: #f0b24a; } }
+:root[data-theme=dark] { --color-aviso: #f0b24a; }
+
+/* Íconos de trazo en línea (parciales/iconos.html). */
+.icono { width: 1.1em; height: 1.1em; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: -0.2em; }
 .angosto { max-width: 28rem; margin-inline: auto; }
 .mensaje.error { color: var(--pico-del-color); }
 .mensaje.exito { color: var(--pico-ins-color); }
@@ -24,13 +30,16 @@ nav .menu-plegable details.dropdown { display: block; position: relative; margin
 nav .menu-plegable details.dropdown > summary + ul { right: 0; left: auto; }
 nav .menu-plegable details.dropdown > summary { height: var(--area-tactil); }
 nav .menu-plegable details.dropdown > ul { min-width: 12rem; }
-nav .menu-plegable details.dropdown > ul li a { min-height: var(--area-tactil); display: flex; align-items: center; }
+nav .menu-plegable details.dropdown > ul li a { min-height: var(--area-tactil); display: flex; align-items: center; gap: 0.5rem; }
 nav .menu-plegable li button.salir { width: 100%; }
 @media (min-width: 768px) {
   nav ul.menu-linea { display: flex; align-items: center; gap: 0.25rem; }
   /* Opciones como botones: relleno suave al pasar el cursor, sólido en la página actual. */
   nav ul.menu-linea li { padding: 0; }
   nav ul.menu-linea a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
     margin: 0;
     padding: 0.5rem 1rem;
     border-radius: var(--pico-border-radius);
@@ -55,10 +64,22 @@ article.aviso p { margin: 0.25rem 0 0; }
 .estado { font-weight: 600; white-space: nowrap; }
 .estado-EXITOSO { color: var(--pico-ins-color); }
 .estado-FALLIDO { color: var(--pico-del-color); }
-.estado-PENDIENTE_VERIFICAR { color: #c27c0e; }
+.estado-PENDIENTE_VERIFICAR { color: var(--color-aviso); }
+.estado-CREADO, .estado-PROCESANDO { color: var(--pico-primary); }
+/* Estado como etiqueta: fondo suave del mismo color que el texto. */
+.insignia { display: inline-block; padding: 0.15rem 0.65rem; border-radius: 999px; font-size: 0.85em; font-weight: 600; line-height: 1.4; background: color-mix(in srgb, currentColor 14%, transparent); }
 .cifras { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 1rem; margin-bottom: var(--pico-spacing); }
 .cifras + h2 { margin-top: 2rem; }
 .cifras strong:has(time) { white-space: nowrap; }
+.cifras small { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; }
+.cifras small .icono { width: 1.25em; height: 1.25em; opacity: 0.85; }
+/* Cifras que piden atención: borde superior y número en el color del aviso. */
+.cifras article.atencion { border-top: 3px solid var(--color-aviso); }
+.cifras article.atencion strong, .cifras article.atencion strong a { color: var(--color-aviso); }
+.cifras article.critica { border-top: 3px solid var(--pico-del-color); }
+.cifras article.critica strong { color: var(--pico-del-color); }
+.cifras article.acento { border-top: 3px solid var(--pico-primary); }
+.cifras article.acento strong { color: var(--pico-primary); }
 .cifras article { margin: 0; text-align: center; }
 .cifras strong { display: block; font-size: 1.5rem; }
 .cifras-chicas { margin-bottom: var(--pico-spacing); }
@@ -132,8 +153,11 @@ article.jugador .cambiar-id { margin-left: auto; }
   table.tarjetas td[data-etiqueta="Monto"], table.tarjetas td[data-etiqueta="Referencia"],
   table.tarjetas td[data-etiqueta="Estado"] { white-space: nowrap; }
   /* Pedidos del admin (12 columnas): un poco más compacta para que quepa en una laptop. */
-  table.tarjetas.ancha { font-size: 0.85rem; }
-  table.tarjetas.ancha th, table.tarjetas.ancha td { padding-inline: 0.4rem; }
+  table.tarjetas.ancha { font-size: 0.82rem; }
+  table.tarjetas.ancha th, table.tarjetas.ancha td { padding-inline: 0.3rem; }
+  table.tarjetas.ancha .insignia { padding-inline: 0.45rem; }
+  table.tarjetas.ancha .con-copia { gap: 0.1rem; }
+  table.tarjetas.ancha button.copiar { width: 1.25rem; height: 1.25rem; }
   /* Precio y botones de un paquete en una fila. */
   table.tarjetas td.accion .acciones-fila { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
   table.tarjetas td.accion .acciones-fila form,
@@ -185,21 +209,30 @@ dl.ficha dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
 
 /* Recarga: saldo y paquetes en tarjetas. */
 article.saldo { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 0.75rem 1rem; }
-article.saldo small { color: var(--pico-muted-color); }
+article.saldo small { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--pico-muted-color); }
 article.saldo strong { font-size: 1.25rem; }
 article.paquetes { padding: 1rem; }
 article.paquetes fieldset { margin: 0; }
 article.paquetes legend { font-weight: 600; margin-bottom: 0.5rem; }
-label.paquete {
-  display: flex; align-items: center; gap: 0.75rem;
-  margin: 0 0 0.5rem; padding: 0.5rem 0.75rem; min-height: var(--area-tactil);
-  border: 1px solid var(--pico-muted-border-color); border-radius: var(--pico-border-radius);
-  cursor: pointer;
+/* Paquetes como tarjetas en cuadrícula; el radio cubre toda la tarjeta (accesible y táctil). */
+article.paquetes fieldset { display: grid; grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr)); gap: 0.75rem; width: 100%; min-width: 0; }
+@media (min-width: 768px) {
+  article.paquetes fieldset { grid-template-columns: repeat(auto-fill, 11rem); }
 }
-label.paquete:last-child { margin-bottom: 0; }
-label.paquete:has(input:checked) { border-color: var(--pico-primary); background: var(--pico-primary-focus); }
-label.paquete input { margin: 0; flex-shrink: 0; }
-label.paquete .nombre-paquete { flex: 1; }
+article.paquetes label.paquete {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 0.25rem; margin: 0; padding: 1rem 0.5rem; min-height: 7rem; text-align: center;
+  border: 1px solid var(--pico-muted-border-color); border-radius: var(--pico-border-radius);
+  cursor: pointer; transition: border-color 0.15s, background-color 0.15s;
+}
+article.paquetes label.paquete:hover { border-color: var(--pico-primary); }
+article.paquetes label.paquete:has(input:checked) { border-color: var(--pico-primary); background: var(--pico-primary-focus); }
+article.paquetes label.paquete:has(input:checked)::after { content: "✓"; position: absolute; top: 0.35rem; right: 0.6rem; color: var(--pico-primary); font-weight: 700; }
+article.paquetes label.paquete:has(input:focus-visible) { outline: 2px solid var(--pico-primary); outline-offset: 2px; }
+article.paquetes label.paquete input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+article.paquetes label.paquete .gema { width: 1.75rem; height: 1.75rem; color: var(--pico-primary); }
+article.paquetes label.paquete .nombre-paquete { flex: none; font-weight: 600; }
+article.paquetes label.paquete .precio-paquete { font-size: 1.15rem; }
 
 /* Botón de volver: separado del contenido anterior. */
 p.volver { margin-top: 2rem; }
@@ -218,3 +251,47 @@ details.nuevo-usuario[open] > summary { margin-bottom: var(--pico-spacing); }
 /* Sumar / restar en el ajuste: opciones en una fila. */
 fieldset.sentido { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.5rem; min-height: 2rem; margin-bottom: var(--pico-spacing); }
 fieldset.sentido label { margin: 0; }
+
+/* Botón de ícono para copiar un dato (código, Player ID, referencia). */
+.con-copia { display: inline-flex; align-items: center; gap: 0.25rem; }
+dl.ficha dd.con-copia { display: flex; justify-content: flex-end; }
+main button.copiar {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 1.5rem; height: 1.5rem; padding: 0; margin: 0;
+  background: transparent; border: 0; box-shadow: none; border-radius: var(--pico-border-radius);
+  color: var(--pico-muted-color); cursor: pointer;
+}
+main button.copiar:hover, main button.copiar:focus-visible { color: var(--pico-primary); background: var(--pico-primary-focus); }
+main button.copiar .copiado, main button.copiar.listo .icono:not(.copiado) { display: none; }
+main button.copiar.listo .copiado { display: inline-block; }
+main button.copiar.listo { color: var(--pico-ins-color); }
+@media (max-width: 767.98px) {
+  /* Área táctil de 44 px sin agrandar la fila de la tarjeta. */
+  main button.copiar { width: var(--area-tactil); height: var(--area-tactil); margin-block: -0.6rem; }
+}
+
+/* Login: degradado suave y contraseña con ojo. */
+body:has(.logo-entrar) {
+  background:
+    radial-gradient(ellipse at 50% -10%, color-mix(in srgb, var(--pico-primary) 22%, transparent), transparent 65%),
+    var(--pico-background-color);
+}
+.campo-clave { position: relative; display: block; margin-bottom: var(--pico-spacing); }
+.campo-clave input { margin-bottom: 0; padding-right: 3.25rem; }
+main button.ver-clave {
+  position: absolute; top: 0; right: 0; width: var(--area-tactil); height: 100%; padding: 0; margin: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; border: 0; box-shadow: none; color: var(--pico-muted-color); cursor: pointer;
+}
+main button.ver-clave:hover, main button.ver-clave:focus-visible { color: var(--pico-primary); }
+main button.ver-clave .oculto, main button.ver-clave.visible .icono:not(.oculto) { display: none; }
+main button.ver-clave.visible .oculto { display: inline-block; }
+
+/* Estado vacío: ícono y una frase. */
+.vacio {
+  display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-align: center;
+  padding: 2rem 1rem; color: var(--pico-muted-color);
+  border: 1px dashed var(--pico-muted-border-color); border-radius: var(--pico-border-radius);
+}
+.vacio .icono { width: 2.25rem; height: 2.25rem; stroke-width: 1.5; }
+.vacio p { margin: 0; }

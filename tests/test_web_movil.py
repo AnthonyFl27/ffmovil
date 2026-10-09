@@ -137,6 +137,8 @@ async def test_pantallas_admin_en_tarjetas(api, sesion_bd):
     tablas_en_tarjetas(pedidos)
     estado = next(td for td in celdas(pedidos) if 'data-etiqueta="Estado"' in td)
     assert "secundario" not in estado
+    assert '<span class="insignia">PENDIENTE_VERIFICAR</span>' in pedidos
+    assert f'data-copiar="{pedido.codigo}"' in pedidos  # botón de copiar con ícono
     assert '<details class="filtros" open>' in pedidos
 
     for ruta in (
@@ -165,3 +167,9 @@ async def test_ultima_sincronizacion_en_cifras(api, sesion_bd, simulador):
     for cifra in ("Recibidos", "Nuevos", "Actualizados", "Desactivados"):
         assert f"<small>{cifra}</small>" in html
     assert "<time datetime=" in html and "bajo_costo" not in html
+
+
+async def test_login_con_ojo_para_la_clave(api):
+    html = (await api().get("/login")).text
+    assert 'class="ver-clave"' in html and 'aria-label="Mostrar contraseña"' in html
+    assert 'name="clave" type="password"' in html

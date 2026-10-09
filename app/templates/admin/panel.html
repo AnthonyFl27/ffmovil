@@ -1,13 +1,15 @@
 {% extends "base.html" %}
 {% block titulo %}Panel{% endblock %}
+{% from "parciales/iconos.html" import icono, copiar, vacio %}
 {% block contenido %}
 <h1>Panel</h1>
+{% set credito_bajo = panel.alertas | selectattr("tipo", "equalto", "credito_bajo") | list %}
 <section class="cifras">
-  <article><small>Crédito en VentasFF</small><strong id="credito-ventasff">{{ panel.credito_ventasff | usd }}</strong></article>
-  <article><small>Saldos de clientes</small><strong id="saldos-clientes">{{ panel.saldos_clientes | usd }}</strong></article>
-  <article><small>Saldo por cubrir</small><strong id="saldo-por-cubrir">{{ panel.saldo_por_cubrir | usd }}</strong></article>
-  <article><small>Pendientes de verificar</small><strong id="pendientes"><a href="/gestion/pedidos?solo_pendientes=1">{{ panel.pendientes_verificar }}</a></strong></article>
-  <article><small>Ganancia total</small><strong id="ganancia-total">{{ panel.ganancia_total | usd }}</strong></article>
+  <article class="{{ "critica" if credito_bajo else "" }}"><small>{{ icono("dolar") }}Crédito en VentasFF</small><strong id="credito-ventasff">{{ panel.credito_ventasff | usd }}</strong></article>
+  <article><small>{{ icono("usuarios") }}Saldos de clientes</small><strong id="saldos-clientes">{{ panel.saldos_clientes | usd }}</strong></article>
+  <article class="{{ "acento" if panel.cubierto is sameas false else "" }}"><small>{{ icono("fondos") }}Saldo por cubrir</small><strong id="saldo-por-cubrir">{{ panel.saldo_por_cubrir | usd }}</strong></article>
+  <article class="{{ "atencion" if panel.pendientes_verificar else "" }}"><small>{{ icono("aviso") }}Pendientes de verificar</small><strong id="pendientes"><a href="/gestion/pedidos?solo_pendientes=1">{{ panel.pendientes_verificar }}</a></strong></article>
+  <article><small>{{ icono("tendencia") }}Ganancia total</small><strong id="ganancia-total">{{ panel.ganancia_total | usd }}</strong></article>
 </section>
 {% if panel.error_proveedor %}
 <p class="mensaje error">{{ panel.error_proveedor }}</p>

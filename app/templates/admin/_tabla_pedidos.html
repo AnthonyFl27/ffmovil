@@ -1,3 +1,4 @@
+{% from "parciales/iconos.html" import icono, copiar, vacio %}
 <section class="cifras">
   <article><small>Exitosos</small><strong>{{ lista.totales.exitosos }}</strong></article>
   <article><small>Venta</small><strong>{{ lista.totales.venta | usd }}</strong></article>
@@ -14,7 +15,7 @@
   {% for p in lista.pedidos %}
     <tr>
       <td data-etiqueta="Fecha">{{ p.fecha | fecha }}</td>
-      <td data-etiqueta="Código"><a href="/gestion/pedidos/{{ p.id }}">{{ p.codigo }}</a></td>
+      <td data-etiqueta="Código"><span class="con-copia"><a href="/gestion/pedidos/{{ p.id }}">{{ p.codigo }}</a>{{ copiar(p.codigo, "código") }}</span></td>
       <td data-etiqueta="Usuario">{{ p.usuario | texto }}</td>
       <td data-etiqueta="Paquete">{{ p.paquete | texto }}</td>
       <td data-etiqueta="Player ID" class="secundario">{{ p.player_id | texto }}</td>
@@ -22,8 +23,8 @@
       <td data-etiqueta="Venta">{{ p.precio_venta | usd }}</td>
       <td data-etiqueta="Costo" class="secundario">{{ p.precio_costo | usd }}</td>
       <td data-etiqueta="Ganancia">{{ p.ganancia | usd }}</td>
-      <td data-etiqueta="Estado" class="estado estado-{{ p.estado }}">{{ p.estado }}</td>
-      <td data-etiqueta="Referencia" class="secundario">{{ p.referencia | texto }}</td>
+      <td data-etiqueta="Estado" class="estado estado-{{ p.estado }}"><span class="insignia">{{ p.estado }}</span></td>
+      <td data-etiqueta="Referencia" class="secundario"><span class="con-copia">{{ p.referencia | texto }}{{ copiar(p.referencia, "referencia") }}</span></td>
       <td data-etiqueta="Error" class="secundario">{{ p.error | texto }}</td>
     </tr>
   {% endfor %}
@@ -41,5 +42,5 @@
   {% endif %}
 </nav>
 {% else %}
-<p>No hay pedidos con estos filtros.</p>
+{{ vacio("No hay pedidos con estos filtros.") }}
 {% endif %}

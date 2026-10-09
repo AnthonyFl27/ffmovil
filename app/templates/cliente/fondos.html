@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% block titulo %}Fondos{% endblock %}
+{% from "parciales/iconos.html" import icono, copiar, vacio %}
 {% block contenido %}
 <h1>Fondos</h1>
 <section class="cifras">
-  <article><small>Saldo disponible</small><strong id="saldo-disponible">{{ fondos.saldo_disponible | usd }}</strong></article>
-  <article><small>Saldo reservado</small><strong id="saldo-reservado">{{ fondos.saldo_reservado | usd }}</strong></article>
+  <article><small>{{ icono("fondos") }}Saldo disponible</small><strong id="saldo-disponible">{{ fondos.saldo_disponible | usd }}</strong></article>
+  <article><small>{{ icono("historial") }}Saldo reservado</small><strong id="saldo-reservado">{{ fondos.saldo_reservado | usd }}</strong></article>
 </section>
 <h2>Abonos y ajustes</h2>
 {% if fondos.movimientos %}
@@ -24,6 +25,6 @@
 </table>
 </div>
 {% else %}
-<p>Todavía no tienes abonos.</p>
+{{ vacio("Todavía no tienes abonos.") }}
 {% endif %}
 {% endblock %}

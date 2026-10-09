@@ -1,3 +1,4 @@
+{% from "parciales/iconos.html" import icono, copiar, vacio %}
 {% if alertas %}
 <div class="overflow-auto">
 <table class="tarjetas">
@@ -17,5 +18,5 @@
 </table>
 </div>
 {% else %}
-<p>No hay alertas activas.</p>
+{{ vacio("No hay alertas activas.") }}
 {% endif %}

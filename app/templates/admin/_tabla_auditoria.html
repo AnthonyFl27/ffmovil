@@ -1,3 +1,4 @@
+{% from "parciales/iconos.html" import icono, copiar, vacio %}
 {% if lista.registros %}
 <div class="overflow-auto">
 <table class="tarjetas">
@@ -28,5 +29,5 @@
   {% endif %}
 </nav>
 {% else %}
-<p>No hay registros.</p>
+{{ vacio("No hay registros.") }}
 {% endif %}

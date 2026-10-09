@@ -1,7 +1,8 @@
+{% from "parciales/iconos.html" import icono, copiar, vacio %}
 <article id="pedido-{{ pedido.codigo }}"
   {% if en_proceso %}hx-get="/historial/{{ pedido.codigo }}" hx-trigger="every {{ intervalo }}s" hx-swap="outerHTML"{% endif %}>
   <h2>Pedido {{ pedido.codigo }}</h2>
-  <p class="estado estado-{{ pedido.estado }}">{{ pedido.estado_etiqueta }}</p>
+  <p class="estado estado-{{ pedido.estado }}"><span class="insignia">{{ pedido.estado_etiqueta }}</span></p>
   {% if pedido.estado == "EXITOSO" %}
   <p>La recarga se realizó correctamente.</p>
   {% elif pedido.estado == "FALLIDO" %}
@@ -14,10 +15,10 @@
   <dl class="ficha">
     <dt>Fecha</dt><dd>{{ pedido.fecha | fecha }}</dd>
     <dt>Paquete</dt><dd>{{ pedido.paquete }}</dd>
-    <dt>Player ID</dt><dd>{{ pedido.player_id }}</dd>
+    <dt>Player ID</dt><dd class="con-copia">{{ pedido.player_id }}{{ copiar(pedido.player_id, "Player ID") }}</dd>
     <dt>Jugador</dt><dd>{{ pedido.nickname | texto }}</dd>
     <dt>Monto</dt><dd>{{ pedido.monto | usd }}</dd>
-    <dt>Referencia</dt><dd>{{ pedido.referencia | texto }}</dd>
+    <dt>Referencia</dt><dd class="con-copia">{{ pedido.referencia | texto }}{{ copiar(pedido.referencia, "referencia") }}</dd>
   </dl>
   <div class="acciones">
     <a role="button" href="/recargar">Nueva recarga</a>

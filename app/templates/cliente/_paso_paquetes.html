@@ -1,3 +1,4 @@
+{% from "parciales/iconos.html" import icono, copiar, vacio %}
 {% include "cliente/_saldo.html" %}
 <article class="jugador">
   <span class="inicial" aria-hidden="true">{{ inicial }}</span>
@@ -21,6 +22,7 @@
       {% for p in paquetes %}
       <label class="paquete">
         <input type="radio" name="paquete_id" value="{{ p.paquete_id }}" required>
+        {{ icono("paquetes", "gema") }}
         <span class="nombre-paquete">{{ p.nombre }}</span>
         <strong class="precio-paquete">{{ p.precio_venta | usd }}</strong>
       </label>

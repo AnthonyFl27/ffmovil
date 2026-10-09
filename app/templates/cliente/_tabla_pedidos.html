@@ -1,3 +1,4 @@
+{% from "parciales/iconos.html" import icono, copiar, vacio %}
 {% if lista.pedidos %}
 <div class="overflow-auto">
 <table class="tarjetas">
@@ -8,13 +9,13 @@
   {% for p in lista.pedidos %}
     <tr>
       <td data-etiqueta="Fecha">{{ p.fecha | fecha }}</td>
-      <td data-etiqueta="Pedido"><a href="/historial/{{ p.codigo }}">{{ p.codigo }}</a></td>
+      <td data-etiqueta="Pedido"><span class="con-copia"><a href="/historial/{{ p.codigo }}">{{ p.codigo }}</a>{{ copiar(p.codigo, "código") }}</span></td>
       <td data-etiqueta="Paquete">{{ p.paquete }}</td>
-      <td data-etiqueta="Player ID">{{ p.player_id }}</td>
+      <td data-etiqueta="Player ID"><span class="con-copia">{{ p.player_id }}{{ copiar(p.player_id, "Player ID") }}</span></td>
       <td data-etiqueta="Jugador">{{ p.nickname | texto }}</td>
       <td data-etiqueta="Monto">{{ p.monto | usd }}</td>
-      <td data-etiqueta="Estado" class="estado estado-{{ p.estado }}">{{ p.estado_etiqueta }}</td>
-      <td data-etiqueta="Referencia">{{ p.referencia | texto }}</td>
+      <td data-etiqueta="Estado" class="estado estado-{{ p.estado }}"><span class="insignia">{{ p.estado_etiqueta }}</span></td>
+      <td data-etiqueta="Referencia"><span class="con-copia">{{ p.referencia | texto }}{{ copiar(p.referencia, "referencia") }}</span></td>
       <td data-etiqueta="Motivo" class="secundario">{{ p.motivo | texto }}</td>
     </tr>
   {% endfor %}
@@ -32,5 +33,5 @@
   {% endif %}
 </nav>
 {% else %}
-<p>No hay pedidos con estos filtros.</p>
+{{ vacio("No hay pedidos con estos filtros.") }}
 {% endif %}
