@@ -80,3 +80,32 @@ details.filtros > summary { font-weight: 600; }
   dl.ficha dt { color: var(--pico-muted-color); font-weight: normal; }
   dl.ficha dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
 }
+
+/* Áreas táctiles de 44 px en móvil (RNF-12, CA-07). */
+@media (max-width: 767.98px) {
+  main a:not([role=button]) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--area-tactil);
+    min-height: var(--area-tactil);
+  }
+  details.filtros > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: var(--area-tactil);
+  }
+  /* Opciones y casillas: la etiqueta ocupa toda la fila y es el área táctil. */
+  label:has(> input[type=radio]), label:has(> input[type=checkbox]) {
+    display: flex;
+    align-items: center;
+    min-height: var(--area-tactil);
+  }
+  label > input[type=radio], label > input[type=checkbox] { flex-shrink: 0; }
+  /* Cifras en dos columnas; la última, si queda sola, ocupa la fila entera. */
+  .cifras { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .cifras article { padding: 0.75rem; }
+  .cifras article:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .cifras strong { font-size: 1.25rem; overflow-wrap: anywhere; }
+}
