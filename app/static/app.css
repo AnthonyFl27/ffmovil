@@ -36,6 +36,10 @@ nav button.salir { min-height: auto; }
 .cifras { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 1rem; }
 .cifras article { margin: 0; text-align: center; }
 .cifras strong { display: block; font-size: 1.5rem; }
+.cifras-chicas { margin-bottom: var(--pico-spacing); }
+.cifras-chicas article { padding: 0.75rem; }
+.cifras-chicas strong { font-size: 1.25rem; }
+#catalogo > h2 { margin-top: 2rem; }
 .acciones { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .acciones > * { margin: 0; }
 .bajo-costo { color: var(--pico-del-color); font-weight: 600; }

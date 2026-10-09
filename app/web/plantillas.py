@@ -35,10 +35,15 @@ def usd(monto: Decimal | str | None) -> str:
     return f"{Decimal(monto):.2f} USD"
 
 
-def fecha(valor: datetime | None) -> Markup:
-    """Fecha UTC en `<time>`; `app.js` la muestra en la zona del navegador (RNF-09)."""
+def fecha(valor: datetime | str | None) -> Markup:
+    """Fecha UTC en `<time>`; `app.js` la muestra en la zona del navegador (RNF-09).
+
+    Acepta también texto ISO 8601 (fechas guardadas en JSON, como la última sincronización).
+    """
     if valor is None:
         return Markup("—")
+    if isinstance(valor, str):
+        valor = datetime.fromisoformat(valor)
     if valor.tzinfo is None:
         valor = valor.replace(tzinfo=UTC)
     valor = valor.astimezone(UTC)

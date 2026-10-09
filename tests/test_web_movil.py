@@ -10,7 +10,7 @@ import re
 from app.services.codigos import codigo_pedido
 from tests.utilidades import crear_paquete, crear_pedido
 from tests.utilidades_api import crear_usuario_con_clave, iniciar_sesion
-from tests.utilidades_web import cliente_web
+from tests.utilidades_web import cliente_web, htmx_post
 
 OPCIONES_CLIENTE = ["/inicio", "/recargar", "/historial", "/fondos"]
 OPCIONES_ADMIN = [
@@ -154,3 +154,15 @@ async def test_pantallas_admin_en_tarjetas(api, sesion_bd):
     assert '<dl class="ficha">' in detalle
     auditoria = (await http.get("/gestion/auditoria")).text
     assert '<details class="filtros">' in auditoria
+
+
+async def test_ultima_sincronizacion_en_cifras(api, sesion_bd, simulador):
+    # Resumen legible: fecha local, resultado y cifras; no la lista cruda de claves.
+    admin = await crear_usuario_con_clave(sesion_bd, rol="admin")
+    http = api()
+    await iniciar_sesion(http, admin.usuario)
+    html = (await htmx_post(http, "/gestion/catalogo/sincronizar")).text
+    assert "Correcta" in html and '<section class="cifras cifras-chicas">' in html
+    for cifra in ("Recibidos", "Nuevos", "Actualizados", "Desactivados"):
+        assert f"<small>{cifra}</small>" in html
+    assert "<time datetime=" in html and "bajo_costo" not in html

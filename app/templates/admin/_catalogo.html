@@ -2,14 +2,26 @@
 <p class="mensaje exito">Catálogo sincronizado.</p>
 {% endif %}
 <h2>Última sincronización</h2>
-{% if catalogo.ultima_sincronizacion %}
-<dl class="ficha">
-  {% for clave, valor in catalogo.ultima_sincronizacion.items() %}
-  <dt>{{ clave }}</dt><dd>{{ valor }}</dd>
-  {% endfor %}
-</dl>
+{% set s = catalogo.ultima_sincronizacion %}
+{% if s %}
+<p>{{ s.fecha | fecha }} ·
+  {% if s.resultado == "ok" %}<strong class="mensaje exito">Correcta</strong>{% else %}<strong class="mensaje error">Fallida</strong>{% endif %}
+</p>
+{% if s.resultado == "ok" %}
+<section class="cifras cifras-chicas">
+  <article><small>Recibidos</small><strong>{{ s.recibidos }}</strong></article>
+  <article><small>Nuevos</small><strong>{{ s.nuevos }}</strong></article>
+  <article><small>Actualizados</small><strong>{{ s.actualizados }}</strong></article>
+  <article><small>Desactivados</small><strong>{{ s.desactivados }}</strong></article>
+</section>
+{% if s.bajo_costo %}
+<p class="bajo-costo">Precio de venta igual o menor al costo en los paquetes {{ s.bajo_costo | join(", ") }}.</p>
+{% endif %}
 {% else %}
-<p>Sin sincronizaciones todavía</p>
+<p class="mensaje error">{{ s.detalle | texto }}</p>
+{% endif %}
+{% else %}
+<p>Sin sincronizaciones todavía.</p>
 {% endif %}
 <div class="overflow-auto">
 <table class="tarjetas">
