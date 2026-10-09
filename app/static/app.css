@@ -3,6 +3,10 @@
 .angosto { max-width: 28rem; margin-inline: auto; }
 .mensaje.error { color: var(--pico-del-color); }
 .mensaje.exito { color: var(--pico-ins-color); }
+/* Marca: logo y nombre; lleva al inicio del rol. */
+nav a.marca { display: inline-flex; align-items: center; gap: 0.5rem; color: inherit; text-decoration: none; }
+nav a.marca img { width: 40px; height: 40px; }
+.logo-entrar { display: block; margin: 0 auto 1rem; }
 nav button.salir { padding: 0.25rem 0.75rem; margin: 0; min-height: var(--area-tactil); }
 
 /* Navegación: plegada en pantallas angostas, en línea desde 768 px. */
@@ -15,7 +19,11 @@ nav .menu-plegable li button.salir { width: 100%; }
 @media (min-width: 768px) {
   nav ul.menu-linea { display: flex; }
   nav ul.menu-plegable { display: none; }
-  nav button.salir { min-height: auto; }
+  /* Marca: logo y nombre; lleva al inicio del rol. */
+nav a.marca { display: inline-flex; align-items: center; gap: 0.5rem; color: inherit; text-decoration: none; }
+nav a.marca img { width: 40px; height: 40px; }
+.logo-entrar { display: block; margin: 0 auto 1rem; }
+nav button.salir { min-height: auto; }
 }
 
 .estado { font-weight: 600; white-space: nowrap; }
