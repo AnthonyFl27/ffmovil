@@ -339,5 +339,5 @@ a[role=button]:has(.icono), button:has(.icono):not(.copiar):not(.ver-clave) { di
 .precio-venta { width: 7rem; }
 
 /* Sello de Cloudflare: esquina inferior derecha de la página */
-.pie { display: flex; justify-content: flex-end; padding-top: 0; padding-bottom: 1rem; }
-.pie img { display: block; width: 140px; height: auto; }
+.pie { padding-top: 0; padding-bottom: 1rem; text-align: right; }
+.pie img { display: block; width: 140px; height: auto; margin-left: auto; margin-right: 0; }
