@@ -143,6 +143,22 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.13.0 → 0.14.0
 - **Motivo:** corrige la decisión de CHG-014 (todos los tipos): el dueño quiere la misma vista que el cliente tiene en Fondos, con abonos y ajustes. Las reservas, liberaciones y cargos se consultan en el detalle de cada pedido.
 
+### CHG-016 · 2026-10-09 · Límites de entrada (revisión de seguridad T-082)
+- **Origen:** hallazgo en implementación (revisión de seguridad T-082: sin tope de tamaño de cuerpo ni de largo en el login; con 256 MB de memoria, un cuerpo enorme tumba la app para todos)
+- **Spec:** RNF-13 añadido
+- **Plan:** sec. 7 (middleware de límite de cuerpo y rechazo temprano en el login)
+- **Tareas:** nueva T-110 (tareas emergentes)
+- **Versión spec:** 0.14.0 → 0.15.0
+- **Motivo:** cerrar un vector de caída por agotamiento de memoria y evitar hashear contraseñas gigantes. El resto de hallazgos de T-082 (cabeceras, documentación pública, IP tras proxy, límite de validación) se tratan en un cambio aparte.
+
+### CHG-017 · 2026-10-09 · Endurecimiento web: cabeceras, documentación, IP del cliente y límite de validación (T-082)
+- **Origen:** hallazgo en implementación (revisión de seguridad T-082) y decisión del dueño (aprobó los cuatro puntos y sus valores)
+- **Spec:** RNF-14, RNF-15, RNF-16 y RF-56 añadidos
+- **Plan:** sec. 7 (middleware de cabeceras, documentación desactivada, resolución de la IP del cliente), sec. 4.1/6 (límite de validación por usuario) y sec. 7 de variables de entorno (`CLIENT_IP_HEADER`)
+- **Tareas:** nuevas T-111 a T-114 (tareas emergentes)
+- **Versión spec:** 0.15.0 → 0.16.0
+- **Motivo:** sin cabeceras de seguridad ni `no-store`; `/docs` y `/openapi.json` públicos exponían todo el mapa de la API; tras el túnel de Cloudflare el limitador de login vería una sola IP y 20 fallos de cualquiera bloquearían a todos; un cliente podía agotar el cupo de VentasFF con validaciones. Valores aprobados: 10 validaciones/min por usuario (también en la web), `CLIENT_IP_HEADER` solo con conexión de loopback o red privada, documentación desactivada sin opción de reactivarla.
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |

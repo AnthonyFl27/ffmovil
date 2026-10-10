@@ -1,6 +1,6 @@
 # Tareas
 
-- **Spec:** `sdd/spec.md` v0.9.0 · **Plan:** `sdd/plan.md`
+- **Spec:** `sdd/spec.md` v0.16.0 · **Plan:** `sdd/plan.md`
 - **Formato:** `- [ ] T-XXX descripción (refs) → criterio de hecho`
 - **Estados:** `[ ]` pendiente · `[~]` en curso · `[x]` hecha · `[!]` bloqueada
 - Cada tarea referencia requisitos (RF/RN/RNF/CA). Una tarea sin referencia no debería existir: o falta un requisito en la spec, o sobra la tarea.
@@ -86,8 +86,8 @@
 ## Fase 8 — Endurecimiento y pruebas
 
 - [x] T-080 Suite de integración completa por escenario del simulador → todos pasan (`tests/test_integracion_escenarios.py`: recorrido HTTP completo por cada escenario, resolución manual de pendientes, secuencia mixta y saldo insuficiente).
-- [ ] T-081 Revisión de logs: sin API Key ni contraseñas (RNF-05).
-- [ ] T-082 Revisión de seguridad: CSRF, cookies, cabeceras, límites (RNF-03).
+- [x] T-081 Revisión de logs: sin API Key ni contraseñas (RNF-05) → `tests/test_logs_flujos.py`: flujos reales sin enmascarar no emiten secretos; `hide_parameters=True` en el motor.
+- [x] T-082 Revisión de seguridad: CSRF, cookies, cabeceras, límites (RNF-03) → `tests/test_seguridad_rutas.py` recorre todas las rutas (sesión, CSRF y rol); hallazgos resueltos en T-110 a T-114 (CHG-016, CHG-017).
 - [ ] T-083 Verificación de trazabilidad: cada RF/RN/CA tiene al menos una tarea y una prueba → tabla en `changelog.md` o script.
 
 ## Fase 9 — Despliegue
@@ -130,3 +130,15 @@ Auditoría previa (2026-10-08, 360 y 390 px): el documento se desbordaba en toda
 ### Historial de movimientos del cliente en el admin (CHG-014, RF-43)
 
 - [x] T-109 Historial de abonos y ajustes en la ficha del cliente: `GET /admin/usuarios/{id}/movimientos` y tabla en `/gestion/usuarios/{id}` (fecha, tipo, monto, nota) con filtros (tipo, fechas) y paginación (RF-43, RF-42, CHG-014, CHG-015) → pruebas: solo abonos y ajustes (sin reservas, liberaciones ni cargos), orden descendente, paginación, filtros por tipo y fechas, 404 para un id inexistente, 403 para un cliente y solo movimientos del usuario consultado; prueba de navegador a 360 px.
+
+### Límites de entrada (CHG-016, RNF-13)
+
+- [x] T-110 Límite de 64 KB al cuerpo de las peticiones (413) y rechazo temprano de `usuario` > 30 o `clave` > 128 en el login (RNF-13, CHG-016) → pruebas: 413 por `Content-Length` y por flujo sin cabecera, un cuerpo de 64 KB exactos pasa, login largo = 401 genérico que cuenta como fallo y no llama a `autenticar`, y las rutas normales no cambian.
+
+### Endurecimiento web (CHG-017, RNF-14 a RNF-16, RF-56)
+
+- [x] T-111 Cabeceras de seguridad y `Cache-Control: no-store` en todas las respuestas; sin estilos ni scripts en línea (RNF-14, CHG-017) → pruebas: cada cabecera presente en páginas, API, errores (401, 413) y ausencia de `no-store` en `/static`; prueba de navegador sin violaciones de CSP en todo el recorrido.
+- [x] T-112 Desactivar `/docs`, `/redoc` y `/openapi.json` (RNF-15, CHG-017) → las tres rutas responden 404 y el inventario de rutas lo refleja.
+- [x] T-113 IP del cliente tras proxy con `CLIENT_IP_HEADER` (RNF-16, RF-05, RF-55, CHG-017) → pruebas: sin variable se ignora la cabecera; con variable y conexión loopback o privada se usa; con conexión pública se ignora; valor inválido se ignora; el limitador de login distingue dos clientes detrás del mismo proxy; `.env.example` y `config.py` documentan la variable.
+- [x] T-114 Límite de 10 validaciones por minuto por usuario (RF-56, CHG-017) → pruebas: la 11.ª validación recibe 429 sin llamar a VentasFF, otro cliente no se ve afectado, la ventana se libera con el tiempo, y la web muestra el mensaje en `#mensaje-id`.
+

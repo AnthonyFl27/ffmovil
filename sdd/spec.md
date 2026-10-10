@@ -1,6 +1,6 @@
 # Especificación: Plataforma de recargas Free Fire (prepago)
 
-- **Versión:** 0.14.0
+- **Versión:** 0.16.0
 - **Estado:** Borrador aprobado para iniciar desarrollo
 - **Fuente de verdad:** este archivo. El código y el plan se derivan de aquí.
 
@@ -77,6 +77,7 @@ Web de recargas de diamantes de Free Fire para clientes revendedores con cuentas
 - **RF-25** Cada intento de recarga lleva un token de idempotencia único; un reenvío con el mismo token no crea otro pedido.
 - **RF-26** El nickname se guarda desde `validar.php`, no desde `recargar.php`.
 - **RF-27** El Player ID debe ser numérico de 4 a 20 dígitos.
+- **RF-56** Cada cliente puede validar un Player ID (RF-20) como máximo 10 veces por minuto, en la API y en la web. Superado el tope recibe 429 con el mensaje «Demasiadas verificaciones. Espera un momento e inténtalo de nuevo.» y no se llama a VentasFF. El tope es por usuario: un cliente no consume el cupo de VentasFF (RN-07) de los demás.
 
 ### 5.4 Historial del cliente
 - **RF-30** Cada pedido tiene ID propio visible (`FF-000123`), incluidos los fallidos.
@@ -147,6 +148,10 @@ Transiciones permitidas:
   - Los controles interactivos (botones, enlaces de acción, casillas, opciones de paquete) miden al menos 44 × 44 px de área táctil.
   - Los filtros de los listados se pliegan en móvil y se pueden expandir.
   - Los campos de entrada usan letra de al menos 16 px y el Player ID abre el teclado numérico.
+- **RNF-13** Límites de entrada: el cuerpo de una petición no puede superar 64 KB (413 Payload Too Large; no se procesa) y en el login un `usuario` de más de 30 caracteres o una `clave` de más de 128 se rechazan como credenciales incorrectas, sin verificar la contraseña. Los topes coinciden con RF-07 y RF-08, así que no afectan a ningún uso legítimo.
+- **RNF-14** Todas las respuestas llevan cabeceras de seguridad: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: same-origin` y `Content-Security-Policy: default-src 'self'; img-src 'self' data:; frame-ancestors 'none'; form-action 'self'; base-uri 'none'` (sin scripts ni estilos en línea). Las respuestas que no son archivos estáticos llevan además `Cache-Control: no-store`, para que «Atrás» no muestre páginas con sesión tras salir.
+- **RNF-15** La app no publica documentación interactiva ni el esquema de la API (`/docs`, `/redoc` y `/openapi.json` no existen).
+- **RNF-16** La IP del cliente (limitador de login RF-05, sesiones y auditoría RF-55) es la de la conexión. Si se define la variable opcional `CLIENT_IP_HEADER` (por ejemplo `CF-Connecting-IP` tras el túnel de Cloudflare), se toma de esa cabecera, pero solo cuando la conexión viene de loopback o de una red privada (proxy local o red de Docker); una cabecera ausente o que no sea una IP válida se ignora. Sin esta variable, tras un proxy todos los clientes comparten IP y el tope por IP de RF-05 bloquearía a todos a la vez.
 
 ## 9. Contrato externo (VentasFF)
 
