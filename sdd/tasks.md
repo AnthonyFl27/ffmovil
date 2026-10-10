@@ -85,7 +85,7 @@
 
 ## Fase 8 — Endurecimiento y pruebas
 
-- [ ] T-080 Suite de integración completa por escenario del simulador → todos pasan.
+- [x] T-080 Suite de integración completa por escenario del simulador → todos pasan (`tests/test_integracion_escenarios.py`: recorrido HTTP completo por cada escenario, resolución manual de pendientes, secuencia mixta y saldo insuficiente).
 - [ ] T-081 Revisión de logs: sin API Key ni contraseñas (RNF-05).
 - [ ] T-082 Revisión de seguridad: CSRF, cookies, cabeceras, límites (RNF-03).
 - [ ] T-083 Verificación de trazabilidad: cada RF/RN/CA tiene al menos una tarea y una prueba → tabla en `changelog.md` o script.
