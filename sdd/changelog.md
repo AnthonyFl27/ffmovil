@@ -175,6 +175,14 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.17.0 → 0.18.0
 - **Motivo:** quien cambiaba de IP seguía probando claves contra una misma cuenta (el tope era por usuario+IP); un cliente con saldo podía llenar la cola global de 8 recargas/min de VentasFF y retrasar a los demás; las rutas con sesión no tenían ningún tope de peticiones. Valores aprobados: 10 fallos/15 min por cuenta (más que los 5 del par, para que nadie bloquee fácilmente a un cliente legítimo), 5 pedidos/min por cliente, 120 peticiones/min por usuario y 60/min por IP sin sesión. Sin aviso de intentos restantes (confirmaría que el usuario existe) y sin persistir los bloqueos en la BD (con un solo worker el riesgo es bajo; se revisa con tráfico real).
 
+### CHG-020 · 2026-10-10 · Dominio ffmovil.com, HTTPS y página «Próximamente»
+- **Origen:** decisión del dueño (dominio `ffmovil.com` comprado y activo en Cloudflare; aprobó la propuesta con su despliegue en dos fases)
+- **Spec:** sec. 2 modificada (dominio y HTTPS pasan de «Fuera» a «Dentro»); RNF-03 y RNF-11 modificados; RNF-18, RNF-19 y CA-09 añadidos
+- **Plan:** sec. 1, 2, 7 (dominio, proxy e IP real) y 8 (servicio `caddy`, fases)
+- **Tareas:** T-090 dividida; nuevas T-119 (fase 1) y T-120 (fase 2, bloqueada hasta el lanzamiento)
+- **Versión spec:** 0.18.0 → 0.19.0
+- **Motivo:** el dominio ya existe y se quiere publicar algo seguro antes del lanzamiento: una página «Próximamente» con HTTPS, mientras la app se sigue desarrollando. Decisiones: `ffmovil.com` canónico y `www` redirige; firewall con 80/443/SSH abiertos (sin limitar a Cloudflare por ahora); Let's Encrypt con Caddy y Cloudflare en Full (strict); la IP real llega por una cabecera propia de Caddy y `CLIENT_IP_HEADER` (RNF-16), sin `--proxy-headers`; HSTS queda para después de unos días de HTTPS estable. La propuesta original se escribió contra la spec 0.12.0 y usaba IDs ya ocupados (CHG-014, RNF-13, RNF-14, CA-08, T-109); se renumeraron.
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |

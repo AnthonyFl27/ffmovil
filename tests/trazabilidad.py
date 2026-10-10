@@ -29,6 +29,7 @@ RE_ID = re.compile(rf"\b({ID})\b")
 SIN_PRUEBA_AUTOMATICA = {
     "RNF-06": "repositorio público sin secretos: revisión previa a cada push (AGENTS.md)",
     "RNF-07": "BD externa por DATABASE_URL: se verifica con el Compose y toda la suite contra el VPS",
+    "RNF-19": "IP real tras Cloudflare y Caddy: se verifica en el despliegue (CA-09); T-120 bloqueada hasta el lanzamiento",
 }
 
 # Tareas de proceso o decisión (T-070 resuelve Q-05) que no implementan un requisito.

@@ -1,6 +1,6 @@
 # Plan técnico
 
-- **Spec de referencia:** `sdd/spec.md` v0.18.0
+- **Spec de referencia:** `sdd/spec.md` v0.19.0
 - **Regla:** este plan implementa la spec. Si el plan contradice la spec, gana la spec.
 
 ---
@@ -16,8 +16,8 @@
 | HTTP cliente | httpx |
 | Hash | argon2-cffi |
 | Tareas programadas | APScheduler (sincronización diaria) |
-| Proxy | Caddy (HTTPS automático), diferido hasta tener dominio |
-| Contenedores | Docker Compose (`app`; `caddy` cuando haya dominio; sin servicio de BD) |
+| Proxy | Caddy (HTTPS automático con Let's Encrypt) detrás de Cloudflare (proxy, SSL/TLS Full strict); CHG-020 |
+| Contenedores | Docker Compose (`app` y `caddy`; sin servicio de BD) |
 | Pruebas | pytest, pytest-asyncio, respx (mock HTTP) |
 | Calidad | ruff, mypy (opcional) |
 
@@ -69,7 +69,10 @@ Monorepo: la API y la web viven en el mismo repositorio.
 │   └── ...
 ├── docker-compose.yml
 ├── Dockerfile
-├── Caddyfile                  # diferido hasta tener dominio
+├── deploy/                    # despliegue con dominio (CHG-020)
+│   ├── Caddyfile.proximamente # fase 1: página estática y redirecciones
+│   ├── Caddyfile.app          # fase 2 (T-120): reverse proxy a `app` e IP real
+│   └── proximamente/          # index.html, estilos y logo de la página
 ├── .env.example
 └── .gitignore
 ```
@@ -334,7 +337,9 @@ Paquete `app/web/`: rutas HTML (sin `include_in_schema`) que llaman a las funcio
 - Pedidos por usuario (RF-57, CHG-019): segunda instancia de `LimitadorPorUsuario` en `app.state.limitador_pedidos` (5/min). `POST /recargas` la consulta antes de nada; la ruta web `/recargar/confirmar` reutiliza esa función y muestra el 429 en `#mensaje-confirmacion`.
 - Tope general (RNF-17, CHG-019): dos instancias más de `LimitadorPorUsuario`: `app.state.limitador_peticiones` (120/min, clave `usuario_id`) y `app.state.limitador_anonimo` (60/min, clave IP). `usuario_en_sesion` consulta el de usuario tras validar la sesión y el anónimo cuando no hay sesión válida, antes del 401; así `GET /`, `GET /login` y toda ruta con sesión quedan cubiertas. `POST /auth/login` y `POST /login` no pasan por esa dependencia: `login()` llama a `limitar_anonimo(request)` al empezar (la web reutiliza esa función y muestra el 429 con `error`). `sesion_opcional` deja pasar el 429 (no lo toma por «sin sesión») y `sesion_web` lo muestra con `ErrorWeb`. `/static` y `/health` no se consultan. Sin `CLIENT_IP_HEADER`, tras el túnel de Cloudflare todos comparten IP anónima (RNF-16).
 - Log estructurado con enmascarado de secretos. Revisión T-081 (decisión técnica, 2026-10-09): ningún `logger.*` de la app recibe claves, cabeceras ni cuerpos de petición; el motor se crea con `hide_parameters=True`, de modo que los errores de SQLAlchemy no copian los valores enlazados (hashes, notas, IDs) a los tracebacks. `tests/test_logs_flujos.py` recorre login, cambio y reseteo de clave, y cada desenlace del proveedor con un manejador sin enmascarar y busca los secretos en el texto emitido.
-- Docker: sin dominio, `app` publica un puerto (ej. 8000). Con dominio, solo Caddy expone 80/443.
+- Docker: en desarrollo, `app` publica un puerto (ej. 8000). En producción (CHG-020) solo Caddy publica 80/443 y `app` usa `expose` (Docker publica sus puertos saltándose UFW, así que un `ports` de `app` quedaría abierto aunque el firewall lo niegue).
+- Dominio y proxy (RNF-18, RNF-19, CHG-020). Cloudflare: `ffmovil.com` y `www` con proxy (nube naranja) y SSL/TLS en Full (strict). Caddy: HTTP→HTTPS automático, certificado de Let's Encrypt (emisión con los DNS en «Solo DNS»; la nube naranja se activa después de comprobar el certificado), `www` con `redir … permanent`, HTTP/3 desactivado (`servers { protocols h1 h2 }`: Cloudflare ya lo ofrece al cliente), cabeceras de RNF-14 y sin cabecera `Server`. El `Caddyfile` no lleva correo ni datos personales (repositorio público).
+- IP real tras Cloudflare y Caddy (RNF-19, fase 2): `servers { trusted_proxies static <rangos de cloudflare.com/ips>; client_ip_headers CF-Connecting-IP }` y, en el `reverse_proxy`, `header_up X-Client-IP {client_ip}`, que reemplaza lo que envíe el cliente. La app arranca con `CLIENT_IP_HEADER=X-Client-IP`; la conexión desde Caddy llega por la red Docker (privada), así que `ip_cliente` (RNF-16) la acepta. No se usa `--proxy-headers` de Uvicorn: reescribiría `request.client` y estorbaría a esa comprobación. Los rangos de Cloudflare van fijos en el archivo y se revisan si Cloudflare los cambia; el nombre del placeholder `{client_ip}` se verifica con la versión de Caddy instalada.
 - La seguridad del servidor PostgreSQL (firewall, TLS, control de acceso) se gestiona fuera del repositorio. La app usa un usuario dedicado.
 
 ## 8. Base de datos y Docker Compose
@@ -352,8 +357,9 @@ Paquete `app/web/`: rutas HTML (sin `include_in_schema`) que llaman a las funcio
 - No hay servicio `db`.
 - Red: `app` se une a la red Docker externa `ffmovil_net` (`external: true`), que crea el dueño y comparte con el Compose de PostgreSQL. En el VPS, `DATABASE_URL` usa como host el nombre del contenedor de PostgreSQL (ej. `@postgres:5432`); PostgreSQL no publica puertos a internet.
 - Desarrollo local: acceso a la BD del VPS por túnel SSH (`localhost:5433`); solo cambia el valor de `DATABASE_URL`.
-- `caddy` (diferido hasta tener dominio): único con puertos publicados, reverse proxy a `app`, volúmenes para certificados.
-- Acceso actual: `http://localhost:8000` o `http://IP_DEL_VPS:8000`.
+- `caddy` (CHG-020): imagen `caddy:2`, único con puertos publicados (80 y 443/tcp), unido a `ffmovil_net`, volúmenes `caddy_data` y `caddy_config` para certificados, `Caddyfile` y página montados solo lectura, `cap_drop: ALL` con `cap_add: NET_BIND_SERVICE`, `no-new-privileges`, límite de memoria y logs con rotación. Sin `depends_on: app`, para poder levantarlo solo (`docker compose up -d caddy`).
+- Despliegue en dos fases (decisión técnica): fase 1 (T-119) monta `deploy/Caddyfile.proximamente` y la página; la variable `CADDYFILE` del Compose elige el archivo. Fase 2 (T-120, al lanzar) cambia a `deploy/Caddyfile.app`, `app` pasa de `ports` a `expose`, `COOKIE_SECURE=true` y `CLIENT_IP_HEADER=X-Client-IP`.
+- Acceso en desarrollo: `http://localhost:8000`.
 - Endurecimiento y recursos (decisión técnica, 2026-10-08): `uvicorn` sin extras `[standard]` (un worker, poco tráfico); `PYTHONOPTIMIZE=1`; en `app`: `mem_limit`/`memswap_limit` 256m, `cpus` 0.5, `pids_limit` 100, `init: true`, `stop_grace_period` 110s (> 100 s de espera de recargas en curso), `read_only` con `tmpfs` en `/tmp`, `cap_drop: ALL`, `no-new-privileges`, logs `json-file` con rotación (10m × 3). Healthcheck a `/health` cada 60 s.
 
 ## 9. Estrategia de pruebas

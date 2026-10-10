@@ -1,6 +1,6 @@
 # Especificación: Plataforma de recargas Free Fire (prepago)
 
-- **Versión:** 0.18.0
+- **Versión:** 0.19.0
 - **Estado:** Borrador aprobado para iniciar desarrollo
 - **Fuente de verdad:** este archivo. El código y el plan se derivan de aquí.
 
@@ -17,6 +17,7 @@ Web de recargas de diamantes de Free Fire para clientes revendedores con cuentas
 - Autenticación con usuario y contraseña temporal.
 - Catálogo, recarga, historial y fondos del cliente.
 - Panel admin: usuarios, abonos manuales, pedidos, configuración, ganancia propia.
+- Publicación en `https://ffmovil.com` con HTTPS (Caddy), detrás de Cloudflare, en dos fases: primero una página «Próximamente» y, al lanzar, la app (RNF-18, RNF-19).
 
 **Fuera (v1):**
 - Mobile Legends (requiere Zone ID; sin probar en VentasFF).
@@ -25,7 +26,6 @@ Web de recargas de diamantes de Free Fire para clientes revendedores con cuentas
 - Registro público de usuarios.
 - Reintentos automáticos de pedidos en `PENDIENTE_VERIFICAR`.
 - Cálculo automático de margen o porcentaje (posible función futura).
-- Dominio y HTTPS (se añaden antes de usar clientes reales; ver RNF-11).
 
 ## 3. Actores
 
@@ -134,7 +134,7 @@ Transiciones permitidas:
 
 - **RNF-01** La API Key de VentasFF solo existe en el backend (variable de entorno).
 - **RNF-02** El saldo se controla solo en servidor, con transacciones y bloqueo de fila.
-- **RNF-03** Contraseñas con argon2 (o bcrypt), protección CSRF, sesión con cookie `HttpOnly`. HTTPS y atributo `Secure` obligatorios en producción con dominio (diferidos, ver RNF-11).
+- **RNF-03** Contraseñas con argon2 (o bcrypt), protección CSRF, sesión con cookie `HttpOnly`. HTTPS y atributo `Secure` obligatorios en producción (RNF-11, RNF-18).
 - **RNF-04** Montos con tipo decimal exacto (nunca float).
 - **RNF-05** Los logs no contienen la API Key ni contraseñas.
 - **RNF-06** Repositorio público: sin secretos, precios de costo reales, datos ni respaldos. Se incluye `.env.example`.
@@ -142,7 +142,7 @@ Transiciones permitidas:
 - **RNF-08** El sistema debe poder probarse sin red mediante un simulador de VentasFF.
 - **RNF-09** Zona horaria almacenada en UTC; mostrada en la zona del usuario.
 - **RNF-10** Las pruebas automáticas usan un esquema `test` aislado, nunca los datos de desarrollo ni de producción.
-- **RNF-11** Mientras no exista dominio, la app corre por HTTP y el atributo `Secure` de la cookie se controla con `COOKIE_SECURE` (`false` en pruebas). No se admiten clientes reales sin HTTPS.
+- **RNF-11** En producción la app se sirve solo por HTTPS en `ffmovil.com` con `COOKIE_SECURE=true`. El acceso por HTTP sin dominio (`COOKIE_SECURE=false`) queda limitado al desarrollo local y a las pruebas. No se admiten clientes reales sin HTTPS.
 - **RNF-12** Uso en móvil (*mobile-first*): todas las pantallas de cliente y de admin se usan sin desplazamiento horizontal de la página y con todo el contenido legible desde 360 px de ancho, y siguen siendo correctas en escritorio.
   - La navegación se pliega en pantallas angostas (menú desplegable) y todas sus opciones son alcanzables.
   - Los listados con muchas columnas (historial, pedidos, usuarios, auditoría, catálogo) se muestran en móvil como tarjetas, con el estado del pedido visible sin desplazamiento horizontal. El detalle completo es accesible desde cada fila.
@@ -154,6 +154,8 @@ Transiciones permitidas:
 - **RNF-15** La app no publica documentación interactiva ni el esquema de la API (`/docs`, `/redoc` y `/openapi.json` no existen).
 - **RNF-16** La IP del cliente (limitador de login RF-05, sesiones y auditoría RF-55) es la de la conexión. Si se define la variable opcional `CLIENT_IP_HEADER` (por ejemplo `CF-Connecting-IP` tras el túnel de Cloudflare), se toma de esa cabecera, pero solo cuando la conexión viene de loopback o de una red privada (proxy local o red de Docker); una cabecera ausente o que no sea una IP válida se ignora. Sin esta variable, tras un proxy todos los clientes comparten IP y el tope por IP de RF-05 bloquearía a todos a la vez.
 - **RNF-17** Tope general de peticiones: con sesión válida, 120 por minuto por usuario; sin sesión válida (login, páginas públicas, sesión vencida o ausente), 60 por minuto por IP (la de RNF-16). Superado el tope se responde 429 con el mensaje «Demasiadas peticiones. Espera un momento e inténtalo de nuevo.»; las peticiones rechazadas no cuentan. Quedan fuera `/static` y `/health`. Los topes de RF-05, RF-56 y RF-57 se aplican además de este. Tras un proxy, el tope por IP solo distingue clientes si se define `CLIENT_IP_HEADER` (RNF-16).
+- **RNF-18** `ffmovil.com` es la dirección canónica y `www.ffmovil.com` redirige a ella con una redirección permanente; el HTTP simple redirige a HTTPS. El tráfico pasa por Cloudflare (proxy, SSL/TLS en Full strict) y Caddy, con certificado válido y renovación automática. Hasta el lanzamiento, `https://ffmovil.com` muestra solo una página estática «Próximamente» y la app no está desplegada ni es accesible desde internet. En el VPS el firewall solo admite SSH, 80 y 443, y la app nunca publica su puerto: solo Caddy la alcanza por la red Docker.
+- **RNF-19** Con la app detrás de Cloudflare y Caddy, Caddy solo acepta `CF-Connecting-IP` de conexiones que vienen de Cloudflare y entrega la IP real a la app en una cabecera propia que reemplaza cualquier valor enviado por el cliente; la app la toma con `CLIENT_IP_HEADER` (RNF-16). Así el límite de login (RF-05) y la auditoría (RF-55) ven la IP del cliente, y una cabecera falsa de quien no pasa por Cloudflare no se acepta.
 
 ## 9. Contrato externo (VentasFF)
 
@@ -190,6 +192,7 @@ Limitaciones: sin endpoint de estado de pedido; `recargar.php` no acepta otros c
 - **CA-06** El admin puede localizar cualquier pedido por ID propio, `referencia` o Player ID.
 - **CA-07** En un viewport de 360 × 740 px, ninguna pantalla de cliente ni de admin hace que el ancho del documento supere el del viewport, y todo control interactivo mide al menos 44 px de lado. Se verifica con una prueba automatizada de navegador.
 - **CA-08** Si `productos.php` responde sin ningún paquete `free_fire`, los paquetes activos siguen activos, el resultado de la sincronización lo indica y queda una alerta activa `catalogo_vacio`; una segunda sincronización vacía no crea otra alerta.
+- **CA-09** Con la página «Próximamente» publicada, `https://ffmovil.com` responde 200 con certificado válido, `http://ffmovil.com` y `https://www.ffmovil.com` redirigen a `https://ffmovil.com`, el puerto 8000 no responde desde internet y la página lleva las cabeceras de seguridad de RNF-14. Con la app desplegada (fase 2), 5 intentos fallidos desde una IP no bloquean al mismo usuario desde otra IP y la auditoría muestra la IP del cliente. Se verifica en el despliegue; los archivos de configuración tienen además pruebas automáticas.
 
 ## 11. Preguntas abiertas
 

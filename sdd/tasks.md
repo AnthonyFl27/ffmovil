@@ -1,6 +1,6 @@
 # Tareas
 
-- **Spec:** `sdd/spec.md` v0.18.0 · **Plan:** `sdd/plan.md`
+- **Spec:** `sdd/spec.md` v0.19.0 · **Plan:** `sdd/plan.md`
 - **Formato:** `- [ ] T-XXX descripción (refs) → criterio de hecho`
 - **Estados:** `[ ]` pendiente · `[~]` en curso · `[x]` hecha · `[!]` bloqueada
 - Cada tarea referencia requisitos (RF/RN/RNF/CA). Una tarea sin referencia no debería existir: o falta un requisito en la spec, o sobra la tarea.
@@ -92,7 +92,7 @@
 
 ## Fase 9 — Despliegue
 
-- [!] T-090 Caddy con dominio e HTTPS; `COOKIE_SECURE=true`; solo 80/443 publicados (RNF-03, RNF-11) → bloqueada hasta tener dominio; requisito previo a clientes reales.
+- [~] T-090 Caddy con dominio e HTTPS; `COOKIE_SECURE=true`; solo 80/443 publicados (RNF-03, RNF-11, RNF-18) → dividida en T-119 (página «Próximamente») y T-120 (la app); se cierra con ambas (CHG-020). Requisito previo a clientes reales.
 - [ ] T-091 Variables reales en el VPS (fuera del repo) (RNF-01, RNF-06).
 - [x] T-092 Respaldo periódico de PostgreSQL fuera del repositorio (RNF-06, RNF-07) → cubierto por el dueño (2026-10-10), fuera del repo.
 - [ ] T-093 Prueba real controlada: una recarga del paquete más barato con ID propio; verificar en el juego y en el panel de VentasFF (RF-24, RN-03).
@@ -151,3 +151,8 @@ Auditoría previa (2026-10-08, 360 y 390 px): el documento se desbordaba en toda
 - [x] T-116 Tope de 10 fallos en 15 min por cuenta en el login, sin importar la IP (RF-05, CHG-019) → pruebas: el 10.º fallo desde IPs distintas bloquea la cuenta 15 min con el mismo 429 genérico, 9 fallos no bloquean, el bloqueo vence a los 15 min sin alargarse por intentos rechazados, un login correcto limpia el par pero no la cuenta, otra cuenta no se ve afectada, una clave correcta durante el bloqueo también se rechaza, el nombre de 64 KB no se guarda entero y los topes de par (5) e IP (20) siguen igual.
 - [x] T-117 Tope de 5 pedidos por minuto por cliente en `POST /recargas` y `/recargar/confirmar` (RF-57, RF-25, CHG-019) → pruebas: la 6.ª solicitud recibe 429 sin reservar saldo, sin crear pedido y sin llamar a VentasFF; otro cliente no se ve afectado; la ventana se libera con el tiempo; un reenvío con el mismo token cuenta; las rechazadas no cuentan; la web muestra el mensaje en `#mensaje-confirmacion`.
 - [x] T-118 Tope general de peticiones: 120/min por usuario y 60/min por IP sin sesión (RNF-17, RNF-16, CHG-019) → pruebas: la petición 121 de un usuario recibe 429 y otro usuario no se ve afectado; 60 peticiones sin sesión desde una IP no afectan a otra; `POST /auth/login` y `POST /login` cuentan por IP; `/static` y `/health` no cuentan; las rechazadas no cuentan; la ventana se libera; con sesión válida un 429 no redirige al login; el inventario de rutas de `test_seguridad_rutas` sigue pasando y la prueba de navegador completa su recorrido sin 429.
+
+### Dominio, HTTPS y página «Próximamente» (CHG-020, RNF-18, RNF-19, CA-09)
+
+- [ ] T-119 Fase 1: Caddy con `ffmovil.com` y página estática «Próximamente»; `www` y HTTP redirigen; firewall solo SSH, 80 y 443; sin la app desplegada (RNF-18, RNF-14, RNF-03, CA-09, CHG-020) → pruebas de los archivos (`tests/test_despliegue.py`): el Caddyfile sirve `ffmovil.com`, redirige `www` de forma permanente, no tiene `reverse_proxy` ni correo, desactiva HTTP/3 y pone las cabeceras de RNF-14; la página no usa scripts ni estilos en línea ni recursos externos; el Compose publica solo 80 y 443 desde `caddy` y no lo hace depender de `app`. Verificación en el VPS (CA-09, primera parte): certificado válido, redirecciones y puerto 8000 cerrado desde fuera.
+- [!] T-120 Fase 2: conectar Caddy con la app; `app` con `expose`, `COOKIE_SECURE=true`, `CLIENT_IP_HEADER=X-Client-IP`, IP real tras Cloudflare (RNF-19, RNF-18, RNF-11, RNF-03, CA-09, CHG-020) → bloqueada hasta el lanzamiento; prueba del `Caddyfile.app` (rangos de Cloudflare, `header_up` que reemplaza la cabecera) y verificación de CA-09 (segunda parte) en el despliegue.

@@ -1,0 +1,24 @@
+# Fase 1 (CHG-020, T-119): solo la página estática «Próximamente». Sin la app: nada se reenvía a ella.
+{
+	# Cloudflare ya ofrece HTTP/3 al cliente; el origen solo habla HTTP/1.1 y HTTP/2.
+	servers {
+		protocols h1 h2
+	}
+}
+
+ffmovil.com {
+	root * /srv/proximamente
+	file_server
+	encode zstd gzip
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy same-origin
+		Content-Security-Policy "default-src 'self'; img-src 'self' data:; frame-ancestors 'none'; form-action 'self'; base-uri 'none'"
+		-Server
+	}
+}
+
+www.ffmovil.com {
+	redir https://ffmovil.com{uri} permanent
+}

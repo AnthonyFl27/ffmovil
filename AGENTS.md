@@ -2,7 +2,7 @@
 
 ## Proyecto
 
-Web de recargas de diamantes de Free Fire con cuentas prepago. Backend FastAPI en Docker; PostgreSQL externo (servidor propio en el VPS) accedido solo por `DATABASE_URL`. API y web en el mismo repositorio. Sin dominio por ahora: la app corre por HTTP y Caddy queda diferido. Consume la API de VentasFF (`https://ventasff.com/api/reseller`). Repositorio público: nunca incluir secretos, precios de costo reales, datos ni respaldos.
+Web de recargas de diamantes de Free Fire con cuentas prepago. Backend FastAPI en Docker; PostgreSQL externo (servidor propio en el VPS) accedido solo por `DATABASE_URL`. API y web en el mismo repositorio. Dominio `ffmovil.com` (Cloudflare + Caddy, CHG-020): primero una página «Próximamente» y la app al lanzar; mientras tanto, en desarrollo la app corre por HTTP. Consume la API de VentasFF (`https://ventasff.com/api/reseller`). Repositorio público: nunca incluir secretos, precios de costo reales, datos ni respaldos.
 
 ## Documentos (orden de autoridad)
 
@@ -159,6 +159,7 @@ Detalle de diseño en `sdd/plan.md` (sec. 3 modelo, 4.2 fases A/B/C, 4.2.1 alert
 - **Sesión 2026-10-10:** T-083 hecha (fase 8 completa). `tests/trazabilidad.py` (`uv run python -m tests.trazabilidad` imprime la tabla requisito → tareas → pruebas) y `tests/test_trazabilidad.py` fallan si un RF/RN/RNF/CA vigente no tiene tarea en `tasks.md` o no lo nombra ninguna prueba (docstring o comentario), o si una tarea no cita requisitos. Al añadir un requisito: citarlo en su tarea y en el docstring de su prueba.
 - **Catálogo vacío (CHG-018, T-115, spec 0.17.0):** si `productos.php` no trae paquetes `free_fire`, `sincronizar_catalogo` no toca nada (`ResumenSincronizacion.catalogo_vacio`), el resultado guardado es `"vacio"` y se registra la alerta `catalogo_vacio` (no se atiende sola). T-105 aprobada y T-092 (respaldos) cubierta por el dueño; la base de producción, el dominio con Cloudflare y la API Key nueva los prepara él fuera del repo. Quedan T-090 (bloqueada por el dominio), T-091, T-093 y T-094; el dueño comentará más endurecimiento de seguridad en la próxima sesión.
 - **Topes (CHG-019, spec 0.18.0, T-116 a T-118):** hechos (2026-10-10). `LimitadorLogin` suma 10 fallos/15 min por cuenta (`max_por_cuenta`; un éxito solo limpia el par); `app.state.limitador_pedidos` (5/min por cliente, RF-57, se consulta al inicio de `crear_recarga`), `limitador_peticiones` (120/min por usuario) y `limitador_anonimo` (60/min por IP; `usuario_en_sesion` y `login()` lo consultan, `/static` y `/health` no). Son `LimitadorPorUsuario`; el fixture `api` los pone holgados (100 000) y `tests/test_topes.py` los reemplaza por topes pequeños. Una ruta pública nueva que no pase por `usuario_en_sesion` debe llamar a `limitar_anonimo(request)`.
+- **Dominio (CHG-020, spec 0.19.0, T-119 y T-120):** escritos y con archivos listos (`deploy/Caddyfile.proximamente`, `deploy/proximamente/`, servicio `caddy` en el Compose; pruebas en `tests/test_despliegue.py`). T-119 queda abierta hasta verificar CA-09 en el VPS. **El dueño ejecuta él mismo los comandos del VPS; el LLM solo lo guía paso a paso** (firewall al final y con una segunda sesión SSH abierta). T-120 (la app) sigue bloqueada hasta el lanzamiento. HSTS después de unos días de HTTPS estable. El `app` del Compose sigue con `ports` (desarrollo): no se levanta en el VPS en la fase 1.
 - **Próximo paso:** el dueño sigue revisando la web y avisará de inconsistencias. Clasificar cada pedido (significativo / menor / técnico) antes de tocar código. La fase 9 (despliegue) sigue bloqueada por el dominio (el dueño avanza con dominio, Cloudflare y la base de producción; hablará de más endurecimiento de seguridad antes de producción).
 - **Propuesto y sin respuesta:** mensaje propio en rojo con el Player ID vacío (hoy solo el aviso del navegador); mostrar el motivo del fallo en las tarjetas del historial; nickname mientras se escribe (descartado por ahora: CHG-010 lo resolvió con el botón).
 - Acordado con el usuario (2026-10-08): proponer un cambio de spec para que, si `productos.php` llega vacío, la sincronización no desactive todo el catálogo (p. ej. no desactivar nada y generar alerta). Presentar el texto exacto antes de aplicarlo.
@@ -180,7 +181,7 @@ Detalle de diseño en `sdd/plan.md` (sec. 3 modelo, 4.2 fases A/B/C, 4.2.1 alert
 ## Qué no hacer
 
 - No ampliar el alcance (p. ej. Mobile Legends) sin un cambio de spec aprobado.
-- No agregar Caddy, dominio ni HTTPS hasta que se apruebe el cambio de spec correspondiente.
+- No desplegar la app ni publicar su puerto en el VPS (T-120 bloqueada hasta el lanzamiento); Caddy solo sirve la página «Próximamente» (CHG-020).
 - No inventar campos o endpoints de VentasFF fuera de la sección 9 de la spec.
 - No modificar migraciones ya aplicadas; crear una nueva.
 - No subir `.env`, volcados de BD ni datos reales.

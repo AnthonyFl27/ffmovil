@@ -1,4 +1,5 @@
-# PostgreSQL es externo (RNF-07): no hay servicio `db`. Caddy queda diferido hasta tener dominio.
+# PostgreSQL es externo (RNF-07): no hay servicio `db`.
+# Fase 1 del dominio (CHG-020, T-119): en el VPS solo se levanta `caddy` (`docker compose up -d caddy`).
 services:
   app:
     build: .
@@ -26,6 +27,40 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
+  # Único servicio con puertos publicados (RNF-18). Sin depends_on: puede levantarse solo.
+  caddy:
+    image: caddy:2
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Fase 1: página «Próximamente». En la fase 2 (T-120) CADDYFILE apunta a deploy/Caddyfile.app.
+      - ${CADDYFILE:-./deploy/Caddyfile.proximamente}:/etc/caddy/Caddyfile:ro
+      - ./deploy/proximamente:/srv/proximamente:ro
+      - caddy_data:/data          # certificados y claves de Let's Encrypt
+      - caddy_config:/config
+    networks:
+      - ffmovil_net
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 128m
+    memswap_limit: 128m
+    pids_limit: 100
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  caddy_data:
+  caddy_config:
 
 networks:
   ffmovil_net:
