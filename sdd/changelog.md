@@ -135,6 +135,14 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.12.0 → 0.13.0
 - **Motivo:** el admin solo veía el saldo actual de un cliente. Decisiones del dueño: se muestran todos los tipos de movimiento (así el historial cuadra con CA-04) y el cliente conserva su pantalla Fondos con abonos y ajustes.
 
+### CHG-015 · 2026-10-09 · El historial del admin solo muestra abonos y ajustes
+- **Origen:** decisión de negocio (revisión del dueño: el historial con reservas y cargos de recargas confundía y no coincidía con lo esperado)
+- **Spec:** RF-43 modificado (solo abonos y ajustes; columnas fecha, tipo, monto y nota; sin pedido, autor ni saldos resultantes)
+- **Plan:** sec. 6 (endpoint `/admin/usuarios/{id}/movimientos`)
+- **Tareas:** T-109 ajustada (criterio y pruebas)
+- **Versión spec:** 0.13.0 → 0.14.0
+- **Motivo:** corrige la decisión de CHG-014 (todos los tipos): el dueño quiere la misma vista que el cliente tiene en Fondos, con abonos y ajustes. Las reservas, liberaciones y cargos se consultan en el detalle de cada pedido.
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |

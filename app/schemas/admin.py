@@ -52,18 +52,14 @@ class MovimientoAdmin(BaseModel):
 
 
 class MovimientoUsuario(BaseModel):
-    """Movimiento del libro en la ficha del cliente (RF-43); `monto` lleva signo."""
+    """Abono o ajuste en la ficha del cliente (RF-43); `monto` lleva signo en el ajuste."""
 
-    id: int
+    model_config = ConfigDict(from_attributes=True)
+
     fecha: datetime
-    tipo: str
+    tipo: Literal["abono", "ajuste"]
     monto: Monto
-    saldo_disponible_resultante: Monto
-    saldo_reservado_resultante: Monto
     nota: str | None
-    pedido_id: int | None
-    pedido_codigo: str | None
-    registrado_por: str
 
 
 class ListaMovimientos(BaseModel):

@@ -1,4 +1,4 @@
-"""T-109: historial de movimientos de saldo en la ficha del cliente (RF-43, RF-42, CHG-014)."""
+"""T-109: historial de abonos y ajustes en la ficha del cliente (RF-43, RF-42, CHG-014, CHG-015)."""
 
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
@@ -36,32 +36,19 @@ async def cliente_con_historial(sesion_bd, admin):
     return cliente, codigo
 
 
-async def test_lista_del_mas_reciente_al_mas_antiguo(api, sesion_bd):
+async def test_lista_solo_abonos_y_ajustes_del_mas_reciente_al_mas_antiguo(api, sesion_bd):
     http, admin = await admin_con_sesion(api, sesion_bd)
-    cliente, codigo = await cliente_con_historial(sesion_bd, admin)
+    cliente, _ = await cliente_con_historial(sesion_bd, admin)
 
     r = await http.get(f"/admin/usuarios/{cliente.id}/movimientos")
     assert r.status_code == 200
     cuerpo = r.json()
-    assert cuerpo["total"] == 4 and cuerpo["moneda"] == "USD"
-    movimientos = cuerpo["movimientos"]
-    assert [m["tipo"] for m in movimientos] == ["cargo", "reserva", "ajuste", "abono"]
-
-    cargo, reserva, ajuste, abono = movimientos
-    # Reserva y cargo salen de la cuenta: se muestran en negativo.
-    assert cargo["monto"] == "-0.75" and reserva["monto"] == "-0.75"
-    assert ajuste["monto"] == "-1.00" and abono["monto"] == "10.00"
-    assert cargo["pedido_codigo"] == codigo and reserva["pedido_codigo"] == codigo
-    assert abono["pedido_id"] is None and abono["pedido_codigo"] is None
-    assert abono["nota"] == "Pago móvil 1" and ajuste["nota"] == "Corrección"
-    # El admin registra abonos y ajustes; las recargas las genera el sistema.
-    assert abono["registrado_por"] == admin.usuario == ajuste["registrado_por"]
-    assert reserva["registrado_por"] == "sistema" == cargo["registrado_por"]
-    # Saldos resultantes: tras el abono y el ajuste 9.00; la reserva pasa 0.75 a reservado.
-    assert abono["saldo_disponible_resultante"] == "10.00"
-    assert reserva["saldo_disponible_resultante"] == "8.25"
-    assert reserva["saldo_reservado_resultante"] == "0.75"
-    assert cargo["saldo_reservado_resultante"] == "0.00"
+    # La reserva y el cargo de la recarga no forman parte del historial (CHG-015).
+    assert cuerpo["total"] == 2 and cuerpo["moneda"] == "USD"
+    ajuste, abono = cuerpo["movimientos"]
+    assert set(ajuste) == {"fecha", "tipo", "monto", "nota"}
+    assert (ajuste["tipo"], ajuste["monto"], ajuste["nota"]) == ("ajuste", "-1.00", "Corrección")
+    assert (abono["tipo"], abono["monto"], abono["nota"]) == ("abono", "10.00", "Pago móvil 1")
 
 
 async def test_paginacion_y_filtros(api, sesion_bd):
@@ -69,20 +56,22 @@ async def test_paginacion_y_filtros(api, sesion_bd):
     cliente, _ = await cliente_con_historial(sesion_bd, admin)
     ruta = f"/admin/usuarios/{cliente.id}/movimientos"
 
-    pagina_1 = (await http.get(ruta, params={"por_pagina": 3})).json()
-    pagina_2 = (await http.get(ruta, params={"por_pagina": 3, "pagina": 2})).json()
-    assert pagina_1["total"] == 4 and len(pagina_1["movimientos"]) == 3
+    pagina_1 = (await http.get(ruta, params={"por_pagina": 1})).json()
+    pagina_2 = (await http.get(ruta, params={"por_pagina": 1, "pagina": 2})).json()
+    assert pagina_1["total"] == 2 and [m["tipo"] for m in pagina_1["movimientos"]] == ["ajuste"]
     assert [m["tipo"] for m in pagina_2["movimientos"]] == ["abono"]
 
     solo_abonos = (await http.get(ruta, params={"tipo": "abono"})).json()
     assert [m["tipo"] for m in solo_abonos["movimientos"]] == ["abono"] and solo_abonos[
         "total"
     ] == 1
-    assert (await http.get(ruta, params={"tipo": "inventado"})).status_code == 422
+    # Reserva, liberación y cargo no son filtros válidos.
+    for tipo in ("reserva", "liberacion", "cargo", "inventado"):
+        assert (await http.get(ruta, params={"tipo": tipo})).status_code == 422
 
     ayer = (datetime.now(UTC) - timedelta(days=1)).isoformat()
     manana = (datetime.now(UTC) + timedelta(days=1)).isoformat()
-    assert (await http.get(ruta, params={"desde": ayer, "hasta": manana})).json()["total"] == 4
+    assert (await http.get(ruta, params={"desde": ayer, "hasta": manana})).json()["total"] == 2
     assert (await http.get(ruta, params={"desde": manana})).json()["total"] == 0
     assert (await http.get(ruta, params={"hasta": ayer})).json()["total"] == 0
 
@@ -131,19 +120,14 @@ async def test_ficha_web_muestra_el_historial(api, sesion_bd):
 
     pagina = await http.get(f"/gestion/usuarios/{cliente.id}")
     assert pagina.status_code == 200
-    assert "Historial de movimientos" in pagina.text
-    for esperado in (
-        "Abono",
-        "Ajuste",
-        "Reserva",
-        "Cargo",
-        "+10.00 USD",
-        "-1.00 USD",
-        "Pago móvil 1",
-    ):
+    assert "Historial de abonos y ajustes" in pagina.text
+    for esperado in ("Abono", "Ajuste", "10.00 USD", "-1.00 USD", "Pago móvil 1", "Corrección"):
         assert esperado in pagina.text
-    assert 'href="/gestion/pedidos/' in pagina.text and codigo in pagina.text
-    assert "sistema" in pagina.text and admin.usuario in pagina.text
+    # Sin reservas ni cargos, sin el pedido y sin columnas de autor o saldos resultantes.
+    for ausente in ('data-etiqueta="Pedido"', 'data-etiqueta="Registrado por"', "Reserva</td>"):
+        assert ausente not in pagina.text
+    assert codigo not in pagina.text
+    assert '<option value="reserva"' not in pagina.text
 
     # El filtro reemplaza solo la tabla (HTMX) y respeta el tipo.
     parcial = await htmx_get(
@@ -152,8 +136,6 @@ async def test_ficha_web_muestra_el_historial(api, sesion_bd):
     assert parcial.status_code == 200
     assert "<html" not in parcial.text and "Pago móvil 1" in parcial.text
     assert "Corrección" not in parcial.text
-    assert '<td data-etiqueta="Tipo">Reserva</td>' not in parcial.text
-    assert '<td data-etiqueta="Tipo">Abono</td>' in parcial.text
 
     vacio = await htmx_get(
         http, f"/gestion/usuarios/{cliente.id}", destino="movimientos", desde="2999-01-01"
@@ -173,11 +155,11 @@ async def test_ficha_web_se_actualiza_tras_un_abono(api, sesion_bd):
     )
     assert abono.status_code == 200
     assert 'id="movimientos" hx-swap-oob="true"' in abono.text
-    assert "Efectivo" in abono.text and "+4.00 USD" in abono.text
+    assert "Efectivo" in abono.text and "4.00 USD" in abono.text
 
 
 async def test_ficha_de_admin_no_tiene_historial(api, sesion_bd):
     http, admin = await admin_con_sesion(api, sesion_bd)
     pagina = await http.get(f"/gestion/usuarios/{admin.id}")
-    assert pagina.status_code == 200 and "Historial de movimientos" not in pagina.text
+    assert pagina.status_code == 200 and "Historial de abonos y ajustes" not in pagina.text
     assert (await http.get("/gestion/usuarios/999999999")).status_code == 404

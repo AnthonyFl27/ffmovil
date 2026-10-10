@@ -260,7 +260,7 @@ Las rutas `/me/*`, `/paquetes` y `/recargas*` son solo para clientes (un admin r
 | GET/POST | `/admin/usuarios` | Listar / crear cliente (clave temporal) |
 | POST | `/admin/usuarios/{id}/bloquear` · `/desbloquear` · `/reset-clave` | Gestión |
 | POST | `/admin/saldos/{usuario_id}/abono` · `/ajuste` | Saldos con nota |
-| GET | `/admin/usuarios/{id}/movimientos` | Historial de movimientos de saldo del cliente (RF-43): filtros `tipo`, `desde`, `hasta`; paginado, del más reciente al más antiguo; incluye `pedido_codigo` y `registrado_por` |
+| GET | `/admin/usuarios/{id}/movimientos` | Historial de abonos y ajustes del cliente (RF-43): filtros `tipo` (`abono` o `ajuste`), `desde`, `hasta`; paginado, del más reciente al más antiguo; campos `fecha`, `tipo`, `monto`, `nota` |
 | GET | `/admin/pedidos` | Filtros completos (RF-50) |
 | GET | `/admin/pedidos/{id}` | Detalle con costo, ganancia e historial (`id` numérico o código `FF-…`) |
 | POST | `/admin/pedidos/{id}/resolver` | Resolver `PENDIENTE_VERIFICAR` |

@@ -35,9 +35,6 @@ OPCIONES_ESTADO = [(e, e.value) for e in Estado if e != Estado.CREADO]
 ETIQUETAS_TIPO_MOVIMIENTO = [
     ("abono", "Abono"),
     ("ajuste", "Ajuste"),
-    ("reserva", "Reserva"),
-    ("liberacion", "Liberación"),
-    ("cargo", "Cargo"),
 ]
 OPCIONES_TIPO_MOVIMIENTO = {valor for valor, _ in ETIQUETAS_TIPO_MOVIMIENTO}
 

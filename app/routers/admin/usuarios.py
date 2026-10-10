@@ -5,9 +5,8 @@ from typing import Annotated, Literal
 
 from fastapi import APIRouter, HTTPException, Query, Request, status
 from sqlalchemy import func, select
-from sqlalchemy.orm import aliased
 
-from app.models import Movimiento, Pedido, Saldo, Usuario
+from app.models import Movimiento, Saldo, Usuario
 from app.routers.dependencias import Admin, Bd, ip_cliente
 from app.schemas.admin import (
     ListaMovimientos,
@@ -24,9 +23,8 @@ router = APIRouter(prefix="/usuarios")
 
 MENSAJE_NO_ENCONTRADO = "Usuario no encontrado."
 MENSAJE_BLOQUEARSE = "No puedes bloquear tu propia cuenta."
-REGISTRADO_POR_SISTEMA = "sistema"
-# Tipos que salen de la cuenta o pasan a reservado se muestran en negativo (RF-43).
-TIPOS_QUE_RESTAN = ("reserva", "cargo")
+# El historial del admin solo trae lo que el admin registra a mano (RF-43, CHG-015).
+TIPOS_HISTORIAL = ("abono", "ajuste")
 
 
 def _usuario_admin(usuario: Usuario, saldo: Saldo | None) -> UsuarioAdmin:
@@ -143,48 +141,24 @@ async def resetear_clave(usuario_id: int, request: Request, actual: Admin, bd: B
     return UsuarioConClave(usuario=_usuario_admin(usuario, saldo), clave_temporal=clave)
 
 
-def _movimiento_usuario(
-    movimiento: Movimiento, pedido_codigo: str | None, registrado_por: str | None
-) -> MovimientoUsuario:
-    monto = movimiento.monto
-    if movimiento.tipo in TIPOS_QUE_RESTAN:
-        monto = -monto
-    return MovimientoUsuario(
-        id=movimiento.id,
-        fecha=movimiento.fecha,
-        tipo=movimiento.tipo,
-        monto=monto,
-        saldo_disponible_resultante=movimiento.saldo_disponible_resultante,
-        saldo_reservado_resultante=movimiento.saldo_reservado_resultante,
-        nota=movimiento.nota,
-        pedido_id=movimiento.pedido_id,
-        pedido_codigo=pedido_codigo,
-        registrado_por=registrado_por or REGISTRADO_POR_SISTEMA,
-    )
-
-
 @router.get("/{usuario_id}/movimientos", response_model=ListaMovimientos)
 async def movimientos(
     usuario_id: int,
     bd: Bd,
-    tipo: Literal["abono", "ajuste", "reserva", "liberacion", "cargo"] | None = None,
+    tipo: Literal["abono", "ajuste"] | None = None,
     desde: datetime | None = None,
     hasta: datetime | None = None,
     pagina: Annotated[int, Query(ge=1)] = 1,
     por_pagina: Annotated[int, Query(ge=1, le=POR_PAGINA_MAXIMO)] = POR_PAGINA,
 ):
-    """Historial de movimientos de saldo del cliente, del más reciente al más antiguo (RF-43).
+    """Historial de abonos y ajustes del cliente, del más reciente al más antiguo (RF-43).
 
     `desde` es inclusivo y `hasta` exclusivo. Solo lectura: no modifica el libro (RF-42).
     """
     if await bd.scalar(select(Usuario.id).where(Usuario.id == usuario_id)) is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, MENSAJE_NO_ENCONTRADO)
-    registrador = aliased(Usuario)
-    consulta = (
-        select(Movimiento, Pedido.codigo, registrador.usuario)
-        .outerjoin(Pedido, Pedido.id == Movimiento.pedido_id)
-        .outerjoin(registrador, registrador.id == Movimiento.creado_por)
-        .where(Movimiento.usuario_id == usuario_id)
+    consulta = select(Movimiento).where(
+        Movimiento.usuario_id == usuario_id, Movimiento.tipo.in_(TIPOS_HISTORIAL)
     )
     if tipo is not None:
         consulta = consulta.where(Movimiento.tipo == tipo)
@@ -199,7 +173,7 @@ async def movimientos(
         .offset((pagina - 1) * por_pagina)
     )
     return ListaMovimientos(
-        movimientos=[_movimiento_usuario(*fila) for fila in filas],
+        movimientos=[MovimientoUsuario.model_validate(m) for m in filas.scalars()],
         total=total or 0,
         pagina=pagina,
         por_pagina=por_pagina,

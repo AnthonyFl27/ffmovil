@@ -3,19 +3,15 @@
 <div class="overflow-auto">
 <table class="tarjetas">
   <thead>
-    <tr><th>Fecha</th><th>Tipo</th><th>Monto</th><th>Disponible</th><th>Reservado</th><th>Nota</th><th>Pedido</th><th>Registrado por</th></tr>
+    <tr><th>Fecha</th><th>Tipo</th><th>Monto</th><th>Nota</th></tr>
   </thead>
   <tbody>
   {% for m in lista.movimientos %}
     <tr>
       <td data-etiqueta="Fecha">{{ m.fecha | fecha }}</td>
       <td data-etiqueta="Tipo">{{ m.tipo | capitalize }}</td>
-      <td data-etiqueta="Monto">{{ "+" if m.monto > 0 }}{{ m.monto | usd }}</td>
-      <td data-etiqueta="Disponible">{{ m.saldo_disponible_resultante | usd }}</td>
-      <td data-etiqueta="Reservado">{{ m.saldo_reservado_resultante | usd }}</td>
+      <td data-etiqueta="Monto">{{ m.monto | usd }}</td>
       <td data-etiqueta="Nota">{{ m.nota | texto }}</td>
-      <td data-etiqueta="Pedido">{% if m.pedido_id %}<a href="/gestion/pedidos/{{ m.pedido_id }}">{{ m.pedido_codigo | texto }}</a>{% else %}—{% endif %}</td>
-      <td data-etiqueta="Registrado por">{{ m.registrado_por }}</td>
     </tr>
   {% endfor %}
   </tbody>
