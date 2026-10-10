@@ -152,7 +152,10 @@ def inicio_de(actual: SesionActual) -> str:
 async def sesion_opcional(request: Request, bd: Bd) -> SesionActual | None:
     try:
         return await usuario_en_sesion(request, bd)
-    except HTTPException:
+    except HTTPException as fallo:
+        if fallo.status_code == status.HTTP_429_TOO_MANY_REQUESTS:
+            # RNF-17: el tope no equivale a «sin sesión» (no debe llevar al login).
+            raise ErrorWeb(fallo.detail, fallo.status_code) from None
         return None
 
 

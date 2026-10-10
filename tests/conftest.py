@@ -119,6 +119,10 @@ async def api(motor_bd, simulador):
     app.state.cookie_secure = False
     app.state.limitador_login = LimitadorLogin()
     app.state.limitador_validaciones = LimitadorPorUsuario(10)
+    # Topes holgados para no estorbar a las pruebas; las de RF-57 y RNF-17 los reemplazan.
+    app.state.limitador_pedidos = LimitadorPorUsuario(100_000)
+    app.state.limitador_peticiones = LimitadorPorUsuario(100_000)
+    app.state.limitador_anonimo = LimitadorPorUsuario(100_000)
     app.state.ventasff = ClienteVentasFF(
         simulador.api_key, "http://simulador/api/reseller", transport=simulador.transporte()
     )

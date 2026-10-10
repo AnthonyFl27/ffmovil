@@ -12,7 +12,10 @@ from app.limite_cuerpo import LimiteCuerpo
 from app.logs import configurar_logs
 from app.routers import admin, auth, me, paquetes, recargas
 from app.services.limitador import (
+    PEDIDOS_POR_MINUTO,
+    PETICIONES_ANONIMAS_POR_MINUTO,
     PETICIONES_POR_MINUTO,
+    PETICIONES_USUARIO_POR_MINUTO,
     RECARGAS_POR_MINUTO,
     VALIDACIONES_POR_MINUTO,
     LimitadorPorUsuario,
@@ -44,6 +47,9 @@ async def lifespan(app: FastAPI):
     app.state.cookie_secure = config.cookie_secure
     app.state.limitador_login = LimitadorLogin()
     app.state.limitador_validaciones = LimitadorPorUsuario(VALIDACIONES_POR_MINUTO)
+    app.state.limitador_pedidos = LimitadorPorUsuario(PEDIDOS_POR_MINUTO)
+    app.state.limitador_peticiones = LimitadorPorUsuario(PETICIONES_USUARIO_POR_MINUTO)
+    app.state.limitador_anonimo = LimitadorPorUsuario(PETICIONES_ANONIMAS_POR_MINUTO)
     app.state.cabecera_ip = config.client_ip_header
     # RN-09: pedidos que quedaron en PROCESANDO por un reinicio pasan a revisión.
     async with app.state.sesiones() as sesion:

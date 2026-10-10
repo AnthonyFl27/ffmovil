@@ -16,6 +16,11 @@ RECARGAS_POR_MINUTO = 8
 PETICIONES_POR_MINUTO = 50
 # RF-56: validaciones de Player ID por cliente y por minuto.
 VALIDACIONES_POR_MINUTO = 10
+# RF-57: pedidos de recarga por cliente y por minuto.
+PEDIDOS_POR_MINUTO = 5
+# RNF-17: peticiones por minuto de un usuario con sesión y de una IP sin sesión.
+PETICIONES_USUARIO_POR_MINUTO = 120
+PETICIONES_ANONIMAS_POR_MINUTO = 60
 
 
 class LimitadorTasa:

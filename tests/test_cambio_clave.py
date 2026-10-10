@@ -29,6 +29,9 @@ def cliente_prueba(cliente_api: httpx.AsyncClient) -> httpx.AsyncClient:
     from app.main import app
 
     app_prueba.state.sesiones = app.state.sesiones
+    # RNF-17: la dependencia de sesión consulta los topes generales.
+    app_prueba.state.limitador_peticiones = app.state.limitador_peticiones
+    app_prueba.state.limitador_anonimo = app.state.limitador_anonimo
     return httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app_prueba),
         base_url="http://test",

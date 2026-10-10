@@ -9,6 +9,7 @@ from app.routers.dependencias import (
     Bd,
     EnSesion,
     ip_cliente,
+    limitar_anonimo,
 )
 from app.schemas.auth import CambioClave, InfoSesion, Login
 from app.services import auth_service, sesiones
@@ -48,6 +49,8 @@ def poner_cookie(request: Request, response: Response, token: str) -> None:
 
 @router.post("/login", response_model=InfoSesion)
 async def login(datos: Login, request: Request, response: Response, bd: Bd):
+    # RNF-17: tope general por IP; la web llama a esta función, así que también lo cumple.
+    limitar_anonimo(request)
     limitador = request.app.state.limitador_login
     ip = ip_cliente(request) or "desconocida"
     # RF-05: con el tope superado no se verifica la clave.

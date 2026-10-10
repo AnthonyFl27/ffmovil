@@ -34,6 +34,7 @@ MENSAJE_SALDO_INSUFICIENTE = "Saldo insuficiente para esta recarga."
 MENSAJE_DEMASIADAS_VALIDACIONES = (
     "Demasiadas verificaciones. Espera un momento e inténtalo de nuevo."
 )
+MENSAJE_DEMASIADAS_RECARGAS = "Demasiadas recargas. Espera un momento e inténtalo de nuevo."
 
 
 @router.post("/validar", response_model=ValidacionJugador)
@@ -83,8 +84,13 @@ def lanzar_procesamiento(app: FastAPI, pedido_id: int) -> asyncio.Task:
 async def crear_recarga(
     datos: SolicitudRecarga, request: Request, response: Response, actual: Cliente, bd: Bd
 ):
-    """Crea la recarga (RF-21 a RF-25). 201 si es nueva; 200 si el token ya se usó (CA-02)."""
+    """Crea la recarga (RF-21 a RF-25). 201 si es nueva; 200 si el token ya se usó (CA-02).
+
+    Tope de 5 por minuto y usuario (RF-57): superado, 429 sin validar, reservar ni crear pedido.
+    """
     app = request.app
+    if not app.state.limitador_pedidos.intentar(actual.usuario_id):
+        raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, MENSAJE_DEMASIADAS_RECARGAS)
     try:
         creado = await recarga_service.crear_pedido(
             bd,

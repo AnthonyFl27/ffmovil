@@ -26,6 +26,7 @@ MENSAJE_CSRF = "Token CSRF ausente o inválido."
 MENSAJE_CAMBIAR_CLAVE = "Debes cambiar tu contraseña antes de continuar."
 MENSAJE_SOLO_ADMIN = "Acceso solo para administradores."
 MENSAJE_SOLO_CLIENTE = "Acceso solo para clientes."
+MENSAJE_DEMASIADAS_PETICIONES = "Demasiadas peticiones. Espera un momento e inténtalo de nuevo."
 
 
 async def obtener_bd(request: Request) -> AsyncIterator[AsyncSession]:
@@ -86,13 +87,24 @@ class SesionActual:
         return self.usuario.id
 
 
+def limitar_anonimo(request: Request) -> None:
+    """Tope general por IP para quien no tiene sesión válida (RNF-17): 429 al superarlo."""
+    ip = ip_cliente(request) or "desconocida"
+    if not request.app.state.limitador_anonimo.intentar(ip):
+        raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, MENSAJE_DEMASIADAS_PETICIONES)
+
+
 async def usuario_en_sesion(request: Request, bd: Bd) -> SesionActual:
     token = request.cookies.get(COOKIE_SESION)
     valida = await sesiones.obtener_sesion(bd, token) if token else None
     # Guarda el refresco de actividad o el borrado de una sesión vencida.
     await bd.commit()
     if valida is None:
+        limitar_anonimo(request)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, MENSAJE_SIN_SESION)
+    # RNF-17: tope general por usuario con sesión válida.
+    if not request.app.state.limitador_peticiones.intentar(valida.usuario.id):
+        raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, MENSAJE_DEMASIADAS_PETICIONES)
     if request.method not in METODOS_SEGUROS:
         enviado = request.headers.get(CABECERA_CSRF, "")
         if not hmac.compare_digest(enviado.encode(), valida.registro.csrf.encode()):
