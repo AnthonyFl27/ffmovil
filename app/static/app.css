@@ -350,7 +350,7 @@ body > main { flex: 1 0 auto; }
   width: 100%; max-width: none; margin: 0; padding: 0;
   background: #f97a28;
 }
-.pie img { display: block; width: 168px; height: auto; }
+.pie img { display: block; width: 130px; height: auto; }
 @media (min-width: 768px) {
   .pie { max-width: none; background: none; padding-bottom: 1rem; }
   .pie img { width: 140px; margin-right: 1rem; }
