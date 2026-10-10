@@ -188,6 +188,11 @@ async def test_pantallas_en_viewport_movil(servidor_web, navegador, api, sesion_
         problemas,
     )
 
+    # Ficha del cliente con el historial de movimientos y sus filtros abiertos (RF-43).
+    await pagina.goto(f"{base}/gestion/usuarios/{cliente.id}")
+    await pagina.click("details.filtros > summary")
+    await medir(pagina, "/gestion/usuarios/{id} (filtros abiertos)", problemas)
+
     assert not problemas, "Problemas a 360 × 740:\n" + "\n".join(problemas)
 
 

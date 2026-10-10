@@ -39,6 +39,33 @@
   </form>
 </div>
 <div id="mensaje-saldo"></div>
+<h2>Historial de movimientos</h2>
+{% set hay_filtros = filtros.tipo or filtros.desde or filtros.hasta %}
+<details class="filtros"{% if hay_filtros %} open{% endif %}>
+<summary>Filtros</summary>
+<form hx-get="/gestion/usuarios/{{ u.id }}" hx-target="#movimientos" hx-push-url="true">
+  <input type="hidden" name="tz" value="{{ filtros.tz or '' }}">
+  <div class="grid">
+    <label>Tipo
+      <select name="tipo">
+        <option value="">Todos</option>
+        {% for valor, etiqueta in opciones_tipo %}
+        <option value="{{ valor }}" {% if filtros.tipo == valor %}selected{% endif %}>{{ etiqueta }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Desde <input type="date" name="desde" value="{{ filtros.desde or '' }}"></label>
+    <label>Hasta <input type="date" name="hasta" value="{{ filtros.hasta or '' }}"></label>
+  </div>
+  <div class="acciones">
+    <button type="submit">Filtrar</button>
+    <a role="button" class="secondary outline" href="/gestion/usuarios/{{ u.id }}">Limpiar</a>
+  </div>
+</form>
+</details>
+<div id="movimientos">
+{% include "admin/_tabla_movimientos.html" %}
+</div>
 {% endif %}
 <p class="volver"><a role="button" class="secondary" href="/gestion/usuarios">Volver a usuarios</a></p>
 {% endblock %}

@@ -127,6 +127,14 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.11.0 → 0.12.0
 - **Motivo:** las últimas recargas del inicio son solo una referencia rápida; el botón Historial ya lleva al listado completo.
 
+### CHG-014 · 2026-10-09 · Historial de movimientos de saldo en la ficha del cliente
+- **Origen:** decisión de negocio (el dueño quiere ver, al entrar a un usuario, todo el historial de sus movimientos)
+- **Spec:** RF-43 añadido (RF-34, Fondos del cliente, sin cambios)
+- **Plan:** sec. 6 (endpoint `GET /admin/usuarios/{id}/movimientos`) y 6.1 (ficha `/gestion/usuarios/{id}`)
+- **Tareas:** nueva T-109 (tareas emergentes)
+- **Versión spec:** 0.12.0 → 0.13.0
+- **Motivo:** el admin solo veía el saldo actual de un cliente. Decisiones del dueño: se muestran todos los tipos de movimiento (así el historial cuadra con CA-04) y el cliente conserva su pantalla Fondos con abonos y ajustes.
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |

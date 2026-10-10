@@ -260,6 +260,7 @@ Las rutas `/me/*`, `/paquetes` y `/recargas*` son solo para clientes (un admin r
 | GET/POST | `/admin/usuarios` | Listar / crear cliente (clave temporal) |
 | POST | `/admin/usuarios/{id}/bloquear` · `/desbloquear` · `/reset-clave` | Gestión |
 | POST | `/admin/saldos/{usuario_id}/abono` · `/ajuste` | Saldos con nota |
+| GET | `/admin/usuarios/{id}/movimientos` | Historial de movimientos de saldo del cliente (RF-43): filtros `tipo`, `desde`, `hasta`; paginado, del más reciente al más antiguo; incluye `pedido_codigo` y `registrado_por` |
 | GET | `/admin/pedidos` | Filtros completos (RF-50) |
 | GET | `/admin/pedidos/{id}` | Detalle con costo, ganancia e historial (`id` numérico o código `FF-…`) |
 | POST | `/admin/pedidos/{id}/resolver` | Resolver `PENDIENTE_VERIFICAR` |
@@ -289,7 +290,7 @@ Paquete `app/web/`: rutas HTML (sin `include_in_schema`) que llaman a las funcio
 | `/historial`, `/historial/{codigo}` | Historial con filtros y detalle (RF-31, RF-32) | `/me/pedidos` |
 | `/fondos` | Fondos (RF-34) | `/me/fondos` |
 | `/gestion` | Panel: crédito, saldos de clientes y saldo por cubrir (informativo, sin aviso de error; CHG-011), pendientes, ganancia, alertas (RF-53, RN-10, RN-11) | `/admin/panel`, `/admin/alertas/{id}/atender` |
-| `/gestion/usuarios`, `/gestion/usuarios/{id}` | Usuarios, abonos y ajustes (RF-03, RF-40, RF-41) | `/admin/usuarios*`, `/admin/saldos/*` |
+| `/gestion/usuarios`, `/gestion/usuarios/{id}` | Usuarios, abonos y ajustes (RF-03, RF-40, RF-41); la ficha de un cliente añade su historial de movimientos con filtros y paginación (RF-43; CHG-014) | `/admin/usuarios*`, `/admin/usuarios/{id}/movimientos`, `/admin/saldos/*` |
 | `/gestion/pedidos`, `/gestion/pedidos/{id}` | Pedidos con filtros, detalle y resolución (RF-50 a RF-52, RF-54) | `/admin/pedidos*` |
 | `/gestion/paquetes` | Catálogo: precio, activación, sincronizar (RF-12, RF-14) | `/admin/paquetes`, `/admin/catalogo/sincronizar` |
 | `/gestion/auditoria` | Umbral de crédito bajo (RN-11; el formulario envía a `POST /gestion/config`, y `GET /gestion/config` redirige aquí) y registro de acciones (RF-55) | `/admin/config`, `/admin/auditoria` |

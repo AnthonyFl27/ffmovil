@@ -51,6 +51,29 @@ class MovimientoAdmin(BaseModel):
     fecha: datetime
 
 
+class MovimientoUsuario(BaseModel):
+    """Movimiento del libro en la ficha del cliente (RF-43); `monto` lleva signo."""
+
+    id: int
+    fecha: datetime
+    tipo: str
+    monto: Monto
+    saldo_disponible_resultante: Monto
+    saldo_reservado_resultante: Monto
+    nota: str | None
+    pedido_id: int | None
+    pedido_codigo: str | None
+    registrado_por: str
+
+
+class ListaMovimientos(BaseModel):
+    movimientos: list[MovimientoUsuario]
+    total: int
+    pagina: int
+    por_pagina: int
+    moneda: Literal["USD"] = "USD"
+
+
 class PedidoAdmin(BaseModel):
     """Pedido con costo y ganancia (RF-50, RF-51, RF-54)."""
 

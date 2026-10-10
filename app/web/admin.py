@@ -32,6 +32,14 @@ MENSAJE_RESOLUCION = "Elige si la recarga fue exitosa o fallida."
 MENSAJE_RESOLVER = "#mensaje-resolucion"
 MENSAJE_CATALOGO = "#mensaje-catalogo"
 OPCIONES_ESTADO = [(e, e.value) for e in Estado if e != Estado.CREADO]
+ETIQUETAS_TIPO_MOVIMIENTO = [
+    ("abono", "Abono"),
+    ("ajuste", "Ajuste"),
+    ("reserva", "Reserva"),
+    ("liberacion", "Liberación"),
+    ("cargo", "Cargo"),
+]
+OPCIONES_TIPO_MOVIMIENTO = {valor for valor, _ in ETIQUETAS_TIPO_MOVIMIENTO}
 
 
 def _rechazo(request: Request, fallo: HTTPException, destino: str | None = None):
@@ -87,9 +95,49 @@ async def _usuario(bd: Bd, usuario_id: int):
 
 
 @router.get("/usuarios/{usuario_id}")
-async def ver_usuario(usuario_id: int, request: Request, actual: AdminWeb, bd: Bd):
-    datos = await _usuario(bd, usuario_id)
-    return render(request, "admin/usuario.html", actual, u=datos, clave_temporal=None)
+async def ver_usuario(
+    usuario_id: int,
+    request: Request,
+    actual: AdminWeb,
+    bd: Bd,
+    tipo: str | None = None,
+    desde: str | None = None,
+    hasta: str | None = None,
+    tz: str | None = None,
+    pagina: str | None = None,
+):
+    """Ficha del usuario; si es cliente, con su historial de movimientos (RF-43)."""
+    parcial = es_parcial(request, "movimientos")
+    datos = None if parcial else await _usuario(bd, usuario_id)
+    lista = None
+    if parcial or datos.rol == "cliente":
+        inicio, fin = filtros.rango_utc(desde, hasta, tz)
+        try:
+            lista = await usuarios.movimientos(
+                usuario_id,
+                bd,
+                tipo=tipo if tipo in OPCIONES_TIPO_MOVIMIENTO else None,
+                desde=inicio,
+                hasta=fin,
+                pagina=filtros.pagina(pagina),
+                por_pagina=POR_PAGINA,
+            )
+        except HTTPException as fallo:
+            raise ErrorWeb(fallo.detail, fallo.status_code) from None
+    valores = {"tipo": tipo, "desde": desde, "hasta": hasta, "tz": tz}
+    plantilla = "admin/_tabla_movimientos.html" if parcial else "admin/usuario.html"
+    return render(
+        request,
+        plantilla,
+        actual,
+        u=datos,
+        clave_temporal=None,
+        lista=lista,
+        usuario_id=usuario_id,
+        filtros=valores,
+        consulta=filtros.consulta,
+        opciones_tipo=ETIQUETAS_TIPO_MOVIMIENTO,
+    )
 
 
 @router.post("/usuarios/{usuario_id}/{accion}")
@@ -145,7 +193,20 @@ async def mover_saldo(
     except HTTPException as fallo:
         return _rechazo(request, fallo)
     usuario = await _usuario(bd, usuario_id)
-    return render(request, "admin/_saldo_movido.html", actual, movimiento=movimiento, u=usuario)
+    lista = await usuarios.movimientos(
+        usuario_id, bd, tipo=None, desde=None, hasta=None, pagina=1, por_pagina=POR_PAGINA
+    )
+    return render(
+        request,
+        "admin/_saldo_movido.html",
+        actual,
+        movimiento=movimiento,
+        u=usuario,
+        lista=lista,
+        usuario_id=usuario_id,
+        filtros={},
+        consulta=filtros.consulta,
+    )
 
 
 # --- Pedidos (RF-50 a RF-52, RF-54, CA-06) ------------------------------------------

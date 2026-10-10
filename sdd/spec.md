@@ -1,6 +1,6 @@
 # Especificación: Plataforma de recargas Free Fire (prepago)
 
-- **Versión:** 0.12.0
+- **Versión:** 0.13.0
 - **Estado:** Borrador aprobado para iniciar desarrollo
 - **Fuente de verdad:** este archivo. El código y el plan se derivan de aquí.
 
@@ -91,6 +91,7 @@ Web de recargas de diamantes de Free Fire para clientes revendedores con cuentas
 - **RF-40** El admin abona saldo a un cliente con una nota obligatoria (método de pago, referencia).
 - **RF-41** El admin puede registrar ajustes (positivos o negativos) con nota obligatoria.
 - **RF-42** Todo cambio de saldo genera un movimiento en el libro contable (solo inserciones).
+- **RF-43** La ficha de cada cliente en el panel admin muestra su **historial de movimientos de saldo**, del más reciente al más antiguo y paginado. Cada movimiento muestra: fecha, tipo (abono, ajuste, reserva, liberación o cargo), monto con signo, nota (si existe), código del pedido enlazado a su detalle (si existe), quién lo registró (el usuario admin, o "sistema" si lo generó una recarga) y los saldos disponible y reservado resultantes. Permite filtrar por tipo y por rango de fechas. Es solo lectura y no modifica el libro (RF-42). La pantalla Fondos del cliente no cambia (RF-34).
 
 ### 5.6 Panel admin
 - **RF-50** Listado de pedidos con filtros: estado, rango de fechas, usuario, Player ID, ID de pedido, `referencia` de VentasFF, solo `PENDIENTE_VERIFICAR`.

@@ -1,0 +1,36 @@
+{% from "parciales/iconos.html" import vacio %}
+{% if lista.movimientos %}
+<div class="overflow-auto">
+<table class="tarjetas">
+  <thead>
+    <tr><th>Fecha</th><th>Tipo</th><th>Monto</th><th>Disponible</th><th>Reservado</th><th>Nota</th><th>Pedido</th><th>Registrado por</th></tr>
+  </thead>
+  <tbody>
+  {% for m in lista.movimientos %}
+    <tr>
+      <td data-etiqueta="Fecha">{{ m.fecha | fecha }}</td>
+      <td data-etiqueta="Tipo">{{ m.tipo | capitalize }}</td>
+      <td data-etiqueta="Monto">{{ "+" if m.monto > 0 }}{{ m.monto | usd }}</td>
+      <td data-etiqueta="Disponible">{{ m.saldo_disponible_resultante | usd }}</td>
+      <td data-etiqueta="Reservado">{{ m.saldo_reservado_resultante | usd }}</td>
+      <td data-etiqueta="Nota">{{ m.nota | texto }}</td>
+      <td data-etiqueta="Pedido">{% if m.pedido_id %}<a href="/gestion/pedidos/{{ m.pedido_id }}">{{ m.pedido_codigo | texto }}</a>{% else %}—{% endif %}</td>
+      <td data-etiqueta="Registrado por">{{ m.registrado_por }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% set paginas = ((lista.total + lista.por_pagina - 1) // lista.por_pagina) %}
+<nav class="acciones" aria-label="Páginas">
+  <small>{{ lista.total }} movimiento{{ "s" if lista.total != 1 }} · página {{ lista.pagina }} de {{ paginas }}</small>
+  {% if lista.pagina > 1 %}
+  <a href="/gestion/usuarios/{{ usuario_id }}?{{ consulta(filtros, pagina=lista.pagina - 1) }}" hx-get="/gestion/usuarios/{{ usuario_id }}?{{ consulta(filtros, pagina=lista.pagina - 1) }}" hx-target="#movimientos" hx-push-url="true">Anterior</a>
+  {% endif %}
+  {% if lista.pagina < paginas %}
+  <a href="/gestion/usuarios/{{ usuario_id }}?{{ consulta(filtros, pagina=lista.pagina + 1) }}" hx-get="/gestion/usuarios/{{ usuario_id }}?{{ consulta(filtros, pagina=lista.pagina + 1) }}" hx-target="#movimientos" hx-push-url="true">Siguiente</a>
+  {% endif %}
+</nav>
+{% else %}
+{{ vacio("No hay movimientos con estos filtros.") }}
+{% endif %}

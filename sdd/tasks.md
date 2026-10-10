@@ -127,3 +127,6 @@ Auditoría previa (2026-10-08, 360 y 390 px): el documento se desbordaba en toda
 
 - [x] T-108 Inicio del cliente con sus últimas 5 recargas de cualquier estado, con enlace a cada detalle y estado vacío; sin "Ver todo" (RF-33, CHG-012, CHG-013) → pruebas web: lista con recargas en distintos estados, estado vacío, solo pedidos propios y sin ningún dato de costo; prueba de navegador a 360 px.
 
+### Historial de movimientos del cliente en el admin (CHG-014, RF-43)
+
+- [x] T-109 Historial de movimientos de saldo en la ficha del cliente: `GET /admin/usuarios/{id}/movimientos` y tabla en `/gestion/usuarios/{id}` con filtros (tipo, fechas) y paginación (RF-43, RF-42, CHG-014) → pruebas: orden descendente, paginación, filtros por tipo y fechas, pedido enlazado y "sistema"/admin como autor, 404 para un id inexistente, 403 para un cliente y solo movimientos del usuario consultado; prueba de navegador a 360 px.
