@@ -1,6 +1,6 @@
 # Tareas
 
-- **Spec:** `sdd/spec.md` v0.16.0 · **Plan:** `sdd/plan.md`
+- **Spec:** `sdd/spec.md` v0.17.0 · **Plan:** `sdd/plan.md`
 - **Formato:** `- [ ] T-XXX descripción (refs) → criterio de hecho`
 - **Estados:** `[ ]` pendiente · `[~]` en curso · `[x]` hecha · `[!]` bloqueada
 - Cada tarea referencia requisitos (RF/RN/RNF/CA). Una tarea sin referencia no debería existir: o falta un requisito en la spec, o sobra la tarea.
@@ -113,7 +113,7 @@ Auditoría previa (2026-10-08, 360 y 390 px): el documento se desbordaba en toda
 - [x] T-102 Pantallas admin en móvil: pedidos, usuarios, paquetes y auditoría en tarjetas; ajustes del panel, detalle de pedido y configuración (RNF-12, RF-50 a RF-55) → utilizables a 360 px, sin cambios en escritorio.
 - [x] T-103 Áreas táctiles de 44 px: botones, enlaces de acción, casillas y opciones de paquete; cifras sin tarjetas huérfanas (RNF-12) → ningún control interactivo < 44 px a 360 px.
 - [x] T-104 Prueba automatizada de viewport móvil con Playwright (dev) sobre todas las pantallas de cliente y admin (CA-07, RNF-12) → la prueba falla ante desbordamiento o un control < 44 px; se omite con aviso sin Chromium.
-- [ ] T-105 Revisión final en un celular real, por el dueño (RNF-12) → sin hallazgos o hallazgos registrados como tareas nuevas.
+- [x] T-105 Revisión final en un celular real, por el dueño (RNF-12) → sin hallazgos (aprobada por el dueño, 2026-10-10).
 
 ### Recarga en tres pasos (CHG-010, RF-20, RF-21)
 
@@ -142,3 +142,6 @@ Auditoría previa (2026-10-08, 360 y 390 px): el documento se desbordaba en toda
 - [x] T-113 IP del cliente tras proxy con `CLIENT_IP_HEADER` (RNF-16, RF-05, RF-55, CHG-017) → pruebas: sin variable se ignora la cabecera; con variable y conexión loopback o privada se usa; con conexión pública se ignora; valor inválido se ignora; el limitador de login distingue dos clientes detrás del mismo proxy; `.env.example` y `config.py` documentan la variable.
 - [x] T-114 Límite de 10 validaciones por minuto por usuario (RF-56, CHG-017) → pruebas: la 11.ª validación recibe 429 sin llamar a VentasFF, otro cliente no se ve afectado, la ventana se libera con el tiempo, y la web muestra el mensaje en `#mensaje-id`.
 
+### Catálogo vacío en la sincronización (CHG-018, RF-10, RN-11, CA-08)
+
+- [x] T-115 Si `productos.php` no trae ningún paquete `free_fire`, la sincronización no modifica el catálogo, el resultado lo indica (`resultado = "vacio"`) y se registra la alerta `catalogo_vacio` (migración que amplía el `CHECK` de `alertas.tipo`) (RF-10, RN-11, CA-08, CHG-018) → pruebas: catálogo vacío conserva paquetes activos y crea la alerta; una lista solo con otros juegos cuenta como vacía; una segunda sincronización vacía no duplica la alerta; con al menos un paquete `free_fire` se desactivan los ausentes como antes; la alerta no se atiende sola tras una sincronización correcta; el panel y `/gestion/paquetes` muestran la alerta y el aviso.

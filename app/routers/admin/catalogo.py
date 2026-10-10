@@ -76,6 +76,12 @@ async def editar(paquete_id: int, datos: CambioPaquete, request: Request, actual
     return _paquete_admin(paquete)
 
 
+def _resultado_auditado(resumen) -> str:
+    if resumen is None:
+        return "error"
+    return "vacio" if resumen.catalogo_vacio else "ok"
+
+
 @router.post("/catalogo/sincronizar", response_model=Catalogo)
 async def sincronizar(request: Request, actual: Admin, bd: Bd):
     """Sincroniza `productos.php` ahora (RF-10); nunca cambia `precio_venta` (RF-14)."""
@@ -85,7 +91,7 @@ async def sincronizar(request: Request, actual: Admin, bd: Bd):
         bd,
         actual.usuario_id,
         "sincronizar_catalogo",
-        {"resultado": "ok" if resumen is not None else "error"},
+        {"resultado": _resultado_auditado(resumen)},
         ip_cliente(request),
     )
     await bd.commit()

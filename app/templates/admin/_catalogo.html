@@ -1,11 +1,11 @@
-{% if sincronizado %}
+{% if sincronizado and catalogo.ultima_sincronizacion and catalogo.ultima_sincronizacion.resultado == "ok" %}
 <p class="mensaje exito">Catálogo sincronizado.</p>
 {% endif %}
 <h2>Última sincronización</h2>
 {% set s = catalogo.ultima_sincronizacion %}
 {% if s %}
 <p>{{ s.fecha | fecha }} ·
-  {% if s.resultado == "ok" %}<strong class="mensaje exito">Correcta</strong>{% else %}<strong class="mensaje error">Fallida</strong>{% endif %}
+  {% if s.resultado == "ok" %}<strong class="mensaje exito">Correcta</strong>{% elif s.resultado == "vacio" %}<strong class="mensaje error">Sin paquetes</strong>{% else %}<strong class="mensaje error">Fallida</strong>{% endif %}
 </p>
 {% if s.resultado == "ok" %}
 <section class="cifras cifras-chicas">
@@ -17,6 +17,8 @@
 {% if s.bajo_costo %}
 <p class="bajo-costo">Precio de venta igual o menor al costo en los paquetes {{ s.bajo_costo | join(", ") }}.</p>
 {% endif %}
+{% elif s.resultado == "vacio" %}
+<p class="mensaje error">VentasFF no devolvió ningún paquete de Free Fire: el catálogo no se modificó. Revisa la alerta en el panel.</p>
 {% else %}
 <p class="mensaje error">{{ s.detalle | texto }}</p>
 {% endif %}

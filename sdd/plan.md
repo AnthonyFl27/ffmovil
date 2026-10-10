@@ -106,7 +106,7 @@ config(clave TEXT PK, valor TEXT)   -- alerta_credito_min (inicial '10.00'), ...
 
 alertas(                                 -- RN-08, RN-11
   id BIGSERIAL PK,
-  tipo TEXT CHECK (tipo IN ('credito_bajo','sin_credito','cuenta')),
+  tipo TEXT CHECK (tipo IN ('credito_bajo','sin_credito','cuenta','catalogo_vacio')),
   mensaje TEXT NOT NULL, creada_en,
   atendida_en TIMESTAMPTZ NULL, atendida_por NULL REFERENCES usuarios
 )  -- índice único parcial (tipo) WHERE atendida_en IS NULL: una activa por tipo
@@ -189,7 +189,7 @@ Antes de la Fase A (y sin bloqueos de BD) el backend vuelve a validar el ID con 
 - `nickname` se toma del pedido (de `validar.php`), no de la respuesta de `recargar.php`.
 
 ### 4.2.1 Alertas al admin (RN-08, RN-11)
-- `sin_credito`: `INSUFFICIENT_CREDIT` o crédito menor que el costo en la Fase B. `cuenta`: errores de cuenta. `credito_bajo`: el crédito informado por `saldo.php` (Fase B) o por `recargar.php` (`data.saldo`) queda por debajo de `config.alerta_credito_min`.
+- `sin_credito`: `INSUFFICIENT_CREDIT` o crédito menor que el costo en la Fase B. `cuenta`: errores de cuenta. `credito_bajo`: el crédito informado por `saldo.php` (Fase B) o por `recargar.php` (`data.saldo`) queda por debajo de `config.alerta_credito_min`. `catalogo_vacio` (CHG-018): la sincronización del catálogo recibió cero paquetes `free_fire`; la registra `tareas.ejecutar_sincronizacion` tras guardar el resultado, en la misma transacción.
 - Se registran tras resolver el pedido, en su propia transacción; si ya hay una activa del mismo tipo no se crea otra (`INSERT … ON CONFLICT DO NOTHING`).
 - El admin las ve en el panel y las marca como atendidas (queda en auditoría).
 
@@ -230,7 +230,7 @@ Solo válido si el estado es `PENDIENTE_VERIFICAR`. Registra evento y auditoría
 - `sincronizar_catalogo()`: GET `productos.php`, filtra `juego = free_fire`, upsert en `paquetes` actualizando solo `nombre`, `diamantes` y `precio_costo` (tomado de `precio`).
 - Paquetes nuevos: se crean con `activo = false` y `precio_venta = NULL`.
 - `precio_venta` nunca se modifica en la sincronización; el panel marca paquetes con `precio_venta <= precio_costo`.
-- Paquetes que desaparecen del proveedor → `activo = false`.
+- Paquetes que desaparecen del proveedor → `activo = false`, salvo que no llegue ningún paquete `free_fire` (CHG-018): entonces `sincronizar_catalogo` no toca la tabla y devuelve `ResumenSincronizacion.catalogo_vacio = True`; `ejecutar_sincronizacion` lo guarda en el resultado (`resultado = "vacio"`), registra la alerta `catalogo_vacio` y `/gestion/paquetes` lo muestra como aviso.
 - Evolución futura: cálculo por porcentaje (requiere cambio de spec).
 - Programada con APScheduler 3.x (`AsyncIOScheduler`) todos los días a las 08:00 UTC, y botón en el admin. El resultado (fecha, contadores, paquetes bajo costo o error) se guarda en `config` con clave `catalogo_ultima_sincronizacion` y se registra en el log.
 - Un solo worker de la aplicación ejecuta el scheduler (evitar duplicados con varios workers).

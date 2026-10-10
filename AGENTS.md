@@ -114,9 +114,9 @@ Con `--reload` la app se reinicia sola al cambiar el código; al terminar, cerra
 
 Las variables de entorno tienen prioridad sobre el `.env`: así la app nunca llama a VentasFF real. La BD de desarrollo ya tiene el admin `admin` (creado por CLI) y un cliente de prueba; el catálogo se llena con "Sincronizar ahora" desde `/gestion/paquetes` (3 paquetes ficticios del simulador, inactivos y sin precio).
 
-### Piezas ya construidas (fases 1 a 8 parcial, móvil, recarga en tres pasos y endurecimiento; spec v0.16.0)
+### Piezas ya construidas (fases 1 a 8 parcial, móvil, recarga en tres pasos y endurecimiento; spec v0.17.0)
 
-Detalle de diseño en `sdd/plan.md` (sec. 3 modelo, 4.2 fases A/B/C, 4.2.1 alertas, 4.5 cliente VentasFF, 4.6 transacciones y rutas de recarga, 6 endpoints, 7 seguridad). Migración head: `ea509abd049b` (`sesiones`, aplicada en desarrollo).
+Detalle de diseño en `sdd/plan.md` (sec. 3 modelo, 4.2 fases A/B/C, 4.2.1 alertas, 4.5 cliente VentasFF, 4.6 transacciones y rutas de recarga, 6 endpoints, 7 seguridad). Migración head: `7c4e1a9b2d05` (`alerta_catalogo_vacio`, aplicada en desarrollo).
 
 - **Arranque** (`app/main.py`, `lifespan`): `configurar_logs` → verificar BD → `recuperar_pedidos_huerfanos` (RN-09) → `app.state`: `sesiones`, `cookie_secure`, `limitador_login`, `ventasff` (cliente único con límite general 50/min), `limitador_recargas` (8/min), `tareas_recarga`, `crear_cliente_ventasff` → programador APScheduler (sincronización diaria 08:00 UTC). Al apagar espera las recargas en curso (100 s) y cierra el cliente.
 - `app/config.py` (`SecretStr`; `VENTASFF_URL` opcional para apuntar al simulador), `app/db.py`, `app/logs.py` (enmascara API Key, `SECRET_KEY`, clave de BD y `Bearer …`), `app/cli.py` (`python -m app.cli crear-admin <usuario>`).
@@ -157,7 +157,8 @@ Detalle de diseño en `sdd/plan.md` (sec. 3 modelo, 4.2 fases A/B/C, 4.2.1 alert
 - **Pruebas de BD: nunca dos procesos de pytest a la vez** (ni siquiera una prueba suelta mientras corre la suite: se recrea el esquema `test`). La suite completa tarda ≈ 27 min (625 pruebas).
 - **T-105:** revisión en un celular real, a cargo del dueño. Sus hallazgos se registran como tareas nuevas.
 - **Sesión 2026-10-10:** T-083 hecha (fase 8 completa). `tests/trazabilidad.py` (`uv run python -m tests.trazabilidad` imprime la tabla requisito → tareas → pruebas) y `tests/test_trazabilidad.py` fallan si un RF/RN/RNF/CA vigente no tiene tarea en `tasks.md` o no lo nombra ninguna prueba (docstring o comentario), o si una tarea no cita requisitos. Al añadir un requisito: citarlo en su tarea y en el docstring de su prueba.
-- **Próximo paso:** el dueño sigue revisando la web y avisará de inconsistencias. Clasificar cada pedido (significativo / menor / técnico) antes de tocar código. La fase 9 (despliegue) sigue bloqueada por el dominio.
+- **Catálogo vacío (CHG-018, T-115, spec 0.17.0):** si `productos.php` no trae paquetes `free_fire`, `sincronizar_catalogo` no toca nada (`ResumenSincronizacion.catalogo_vacio`), el resultado guardado es `"vacio"` y se registra la alerta `catalogo_vacio` (no se atiende sola). T-105 aprobada por el dueño; sus respaldos y base de producción los prepara él fuera del repo.
+- **Próximo paso:** el dueño sigue revisando la web y avisará de inconsistencias. Clasificar cada pedido (significativo / menor / técnico) antes de tocar código. La fase 9 (despliegue) sigue bloqueada por el dominio (el dueño avanza con dominio, Cloudflare y la base de producción; hablará de más endurecimiento de seguridad antes de producción).
 - **Propuesto y sin respuesta:** mensaje propio en rojo con el Player ID vacío (hoy solo el aviso del navegador); mostrar el motivo del fallo en las tarjetas del historial; nickname mientras se escribe (descartado por ahora: CHG-010 lo resolvió con el botón).
 - Acordado con el usuario (2026-10-08): proponer un cambio de spec para que, si `productos.php` llega vacío, la sincronización no desactive todo el catálogo (p. ej. no desactivar nada y generar alerta). Presentar el texto exacto antes de aplicarlo.
 - La BD de desarrollo tiene 3 paquetes ficticios del simulador con precio de prueba: nunca conectar la API real a esa BD (un `paquete_id` real igual heredaría ese precio). Producción usa otra base.

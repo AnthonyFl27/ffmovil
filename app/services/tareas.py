@@ -15,6 +15,7 @@ from apscheduler.triggers.cron import CronTrigger
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.models import Config
+from app.services.alertas import registrar_alerta
 from app.services.catalogo import ResumenSincronizacion, sincronizar_catalogo
 from app.services.ventasff_client import ClienteVentasFF, ErrorVentasFF
 
@@ -22,6 +23,10 @@ logger = logging.getLogger(__name__)
 
 CLAVE_ULTIMA_SINCRONIZACION = "catalogo_ultima_sincronizacion"
 ID_TAREA_SINCRONIZACION = "sincronizar_catalogo"
+MENSAJE_CATALOGO_VACIO = (
+    "VentasFF no devolvió ningún paquete de Free Fire: el catálogo no se modificó. "
+    "Revisa la cuenta del proveedor."
+)
 
 
 def _ahora() -> str:
@@ -60,6 +65,14 @@ async def ejecutar_sincronizacion(
             )
             await sesion.commit()
             return None
+
+        if resumen.catalogo_vacio:
+            await _registrar_resultado(
+                sesion, {"fecha": _ahora(), "resultado": "vacio", "recibidos": 0}
+            )
+            await registrar_alerta(sesion, "catalogo_vacio", MENSAJE_CATALOGO_VACIO)
+            await sesion.commit()
+            return resumen
 
         await _registrar_resultado(
             sesion,

@@ -1,11 +1,11 @@
-"""T-059: catálogo del admin: precio de venta, activación, sincronizar y bajo costo (RF-10 a RF-14)."""
+"""T-059, T-115: catálogo del admin: precio, activación, sincronizar y bajo costo (RF-10 a RF-14, CA-08)."""
 
 import random
 from decimal import Decimal
 
-from sqlalchemy import select
+from sqlalchemy import func, select, update
 
-from app.models import Auditoria, Paquete
+from app.models import Alerta, Auditoria, Paquete
 from tests.utilidades import crear_paquete
 from tests.utilidades_api import crear_usuario_con_clave, iniciar_sesion
 
@@ -123,3 +123,37 @@ async def test_sincronizar_con_proveedor_caido(api, sesion_bd, simulador):
         )
     ).all()
     assert sorted(despues) == sorted(antes)
+
+
+async def test_sincronizar_con_catalogo_vacio(api, sesion_bd, simulador):
+    """RF-10, RN-11 (e), CA-08: no desactiva nada, lo informa, audita y deja la alerta."""
+    c, admin_id = await sesion_admin(api, sesion_bd)
+    paquete = await crear_paquete(sesion_bd, precio_costo="0.50", precio_venta="0.75", activo=True)
+    await sesion_bd.commit()
+    simulador.productos = []
+    try:
+        respuesta = await c.post("/admin/catalogo/sincronizar")
+        assert respuesta.status_code == 200
+        datos = respuesta.json()
+        assert datos["ultima_sincronizacion"]["resultado"] == "vacio"
+        assert next(p for p in datos["paquetes"] if p["paquete_id"] == paquete.paquete_id)["activo"]
+        acciones = (
+            await sesion_bd.execute(
+                select(Auditoria.accion, Auditoria.detalle).where(Auditoria.usuario_id == admin_id)
+            )
+        ).all()
+        assert acciones == [("sincronizar_catalogo", {"resultado": "vacio"})]
+        activas = await sesion_bd.scalar(
+            select(func.count())
+            .select_from(Alerta)
+            .where(Alerta.tipo == "catalogo_vacio", Alerta.atendida_en.is_(None))
+        )
+        assert activas == 1
+        assert "catalogo_vacio" in {a["tipo"] for a in (await c.get("/admin/alertas")).json()}
+    finally:
+        await sesion_bd.execute(
+            update(Alerta)
+            .where(Alerta.tipo == "catalogo_vacio", Alerta.atendida_en.is_(None))
+            .values(atendida_en=func.now())
+        )
+        await sesion_bd.commit()

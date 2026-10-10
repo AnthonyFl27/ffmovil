@@ -1,6 +1,6 @@
 # Especificación: Plataforma de recargas Free Fire (prepago)
 
-- **Versión:** 0.16.0
+- **Versión:** 0.17.0
 - **Estado:** Borrador aprobado para iniciar desarrollo
 - **Fuente de verdad:** este archivo. El código y el plan se derivan de aquí.
 
@@ -57,7 +57,7 @@ Web de recargas de diamantes de Free Fire para clientes revendedores con cuentas
 - **RF-08** La contraseña nueva tiene de 8 a 128 caracteres y debe ser distinta de la actual.
 
 ### 5.2 Catálogo
-- **RF-10** El sistema sincroniza `productos.php` una vez al día y bajo demanda del admin, filtrando `juego = free_fire`. Los paquetes nuevos se crean inactivos y sin `precio_venta`.
+- **RF-10** El sistema sincroniza `productos.php` una vez al día y bajo demanda del admin, filtrando `juego = free_fire`. Los paquetes nuevos se crean inactivos y sin `precio_venta`. Los paquetes que dejan de venir se desactivan, salvo que la respuesta no contenga ningún paquete `free_fire`: en ese caso la sincronización no modifica el catálogo (no desactiva ni actualiza ningún paquete), lo indica en su resultado y genera la alerta de RN-11 (e).
 - **RF-11** El `precio_venta` de cada paquete lo define el admin manualmente. No hay cálculo automático de margen en v1. Un paquete sin `precio_venta` no puede activarse.
 - **RF-12** El admin puede definir o cambiar el `precio_venta` por paquete y activar/desactivar paquetes. Al fijar el precio, el sistema avisa si `precio_venta <= precio_costo`.
 - **RF-13** El cliente solo ve paquetes activos y su `precio_venta`.
@@ -114,7 +114,7 @@ Web de recargas de diamantes de Free Fire para clientes revendedores con cuentas
 - **RN-08** Si la API responde `INSUFFICIENT_CREDIT` (crédito del dueño agotado), el pedido es `FALLIDO` y el admin recibe alerta visible en su panel.
 - **RN-09** Los pedidos que quedan en `PROCESANDO` tras un reinicio del servicio pasan a `PENDIENTE_VERIFICAR`.
 - **RN-10** El admin puede abonar a un cliente un monto mayor que el crédito disponible en VentasFF (pago adelantado). El abono nunca consulta ni modifica el crédito de VentasFF y no tiene tope. Si la suma de saldos de clientes supera el crédito real, el panel muestra el **saldo por cubrir** como dato informativo, sin alerta aparte. Cuando falte crédito en VentasFF para una recarga, aplican RF-23 y RN-08: el pedido pasa a `FALLIDO`, se libera la reserva del cliente y el admin recibe la alerta.
-- **RN-11** El sistema genera una alerta visible para el admin cuando: (a) el crédito en VentasFF queda por debajo del umbral `alerta_credito_min` (valor inicial 10 USD, editable por el admin); (b) VentasFF responde `INSUFFICIENT_CREDIT` o el crédito no cubre el costo de una recarga; (c) VentasFF responde un error de cuenta (`MISSING_KEY`, `INVALID_KEY`, `INACTIVE`, `API_DISABLED`). La alerta sigue activa hasta que el admin la marca como atendida; no se crea otra activa del mismo tipo.
+- **RN-11** El sistema genera una alerta visible para el admin cuando: (a) el crédito en VentasFF queda por debajo del umbral `alerta_credito_min` (valor inicial 10 USD, editable por el admin); (b) VentasFF responde `INSUFFICIENT_CREDIT` o el crédito no cubre el costo de una recarga; (c) VentasFF responde un error de cuenta (`MISSING_KEY`, `INVALID_KEY`, `INACTIVE`, `API_DISABLED`); (e) la sincronización del catálogo recibe una respuesta sin ningún paquete `free_fire` (RF-10). La alerta sigue activa hasta que el admin la marca como atendida; no se crea otra activa del mismo tipo.
 
 ## 7. Estados del pedido
 
@@ -187,6 +187,7 @@ Limitaciones: sin endpoint de estado de pedido; `recargar.php` no acepta otros c
 - **CA-05** Un pedido fallido aparece en el historial del cliente con su ID y motivo.
 - **CA-06** El admin puede localizar cualquier pedido por ID propio, `referencia` o Player ID.
 - **CA-07** En un viewport de 360 × 740 px, ninguna pantalla de cliente ni de admin hace que el ancho del documento supere el del viewport, y todo control interactivo mide al menos 44 px de lado. Se verifica con una prueba automatizada de navegador.
+- **CA-08** Si `productos.php` responde sin ningún paquete `free_fire`, los paquetes activos siguen activos, el resultado de la sincronización lo indica y queda una alerta activa `catalogo_vacio`; una segunda sincronización vacía no crea otra alerta.
 
 ## 11. Preguntas abiertas
 

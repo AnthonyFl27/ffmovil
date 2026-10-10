@@ -159,6 +159,14 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.15.0 → 0.16.0
 - **Motivo:** sin cabeceras de seguridad ni `no-store`; `/docs` y `/openapi.json` públicos exponían todo el mapa de la API; tras el túnel de Cloudflare el limitador de login vería una sola IP y 20 fallos de cualquiera bloquearían a todos; un cliente podía agotar el cupo de VentasFF con validaciones. Valores aprobados: 10 validaciones/min por usuario (también en la web), `CLIENT_IP_HEADER` solo con conexión de loopback o red privada, documentación desactivada sin opción de reactivarla.
 
+### CHG-018 · 2026-10-10 · Catálogo vacío: la sincronización no desactiva todo
+- **Origen:** hallazgo en implementación (vacío en la spec) y decisión del dueño (aprobó la propuesta y sus tres puntos)
+- **Spec:** RF-10 modificado, RN-11 ampliado con el caso (e), CA-08 añadido
+- **Plan:** sec. 3 (`alertas.tipo` admite `catalogo_vacio`), sec. 4.2.1 (nueva alerta), sec. 5 (sincronización con catálogo vacío)
+- **Tareas:** nueva T-115 (tareas emergentes)
+- **Versión spec:** 0.16.0 → 0.17.0
+- **Motivo:** si `productos.php` respondía bien pero sin paquetes `free_fire`, se desactivaba todo el catálogo y los clientes no podían recargar. Decisiones: «vacío» = cero paquetes `free_fire` tras filtrar; se usa una alerta nueva (`catalogo_vacio`); la alerta no se atiende sola, la marca el admin. Una lista parcial sigue desactivando los ausentes.
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |

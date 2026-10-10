@@ -1,4 +1,4 @@
-"""T-032: sincronización del catálogo contra el simulador (RF-10, RF-14)."""
+"""T-032, T-115: sincronización del catálogo contra el simulador (RF-10, RF-14, CA-08)."""
 
 import random
 from decimal import Decimal
@@ -131,3 +131,47 @@ async def test_error_de_api_no_modifica_nada(sesion_bd, ids):
             await catalogo.sincronizar_catalogo(sesion_bd, cliente)
     await sesion_bd.rollback()
     assert (await leer(sesion_bd, a)).precio_costo == D("0.50")
+
+
+@pytest.mark.parametrize("otros_juegos", [False, True], ids=["lista_vacia", "solo_otros_juegos"])
+async def test_catalogo_vacio_no_modifica_nada(sesion_bd, ids, otros_juegos):
+    """RF-10, CHG-018: sin paquetes free_fire no se desactiva ni se actualiza nada."""
+    a, b, ml = ids
+    sim = SimuladorVentasFF(productos=[producto(a, D("0.50")), producto(b, D("2.40"))])
+    await sincronizar(sesion_bd, sim)
+    await catalogo.fijar_precio_venta(sesion_bd, b, D("3.00"))
+    await catalogo.activar(sesion_bd, b)
+    await sesion_bd.commit()
+
+    sim.productos = [producto(ml, D("1.00"), juego="mobile_legends")] if otros_juegos else []
+    resumen = await sincronizar(sesion_bd, sim)
+
+    assert resumen.catalogo_vacio is True
+    assert (resumen.recibidos, resumen.nuevos, resumen.actualizados, resumen.desactivados) == (
+        0,
+        0,
+        0,
+        0,
+    )
+    paquete = await leer(sesion_bd, b)
+    assert (paquete.activo, paquete.precio_venta, paquete.precio_costo) == (
+        True,
+        D("3.00"),
+        D("2.40"),
+    )
+    assert await leer(sesion_bd, ml) is None
+
+
+async def test_lista_parcial_sigue_desactivando_ausentes(sesion_bd, ids):
+    a, b, _ = ids
+    sim = SimuladorVentasFF(productos=[producto(a, D("0.50")), producto(b, D("2.40"))])
+    await sincronizar(sesion_bd, sim)
+    await catalogo.fijar_precio_venta(sesion_bd, b, D("3.00"))
+    await catalogo.activar(sesion_bd, b)
+    await sesion_bd.commit()
+
+    sim.productos = [producto(a, D("0.50"))]
+    resumen = await sincronizar(sesion_bd, sim)
+
+    assert resumen.catalogo_vacio is False
+    assert (await leer(sesion_bd, b)).activo is False

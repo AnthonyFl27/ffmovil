@@ -104,6 +104,8 @@ class ResumenSincronizacion:
     desactivados: int = 0
     # Paquetes con precio de venta <= costo tras la sincronización (RF-14).
     bajo_costo: list[int] = field(default_factory=list)
+    # La respuesta no traía ningún paquete free_fire: no se tocó el catálogo (RF-10, CHG-018).
+    catalogo_vacio: bool = False
 
 
 async def sincronizar_catalogo(
@@ -113,9 +115,15 @@ async def sincronizar_catalogo(
 
     Solo `free_fire`. Actualiza nombre, diamantes y costo; los nuevos se crean
     inactivos y sin precio de venta; los que ya no vienen se desactivan. Nunca
-    modifica `precio_venta`. Si la API falla, propaga el error sin cambios.
+    modifica `precio_venta`. Si la API falla, propaga el error sin cambios. Si no llega
+    ningún paquete `free_fire` no toca nada y devuelve `catalogo_vacio=True`.
     """
     productos = {p.paquete_id: p for p in await cliente.productos() if p.juego == JUEGO_FREE_FIRE}
+    if not productos:
+        logger.warning(
+            "Catálogo vacío: VentasFF no devolvió paquetes %s; no se modifica", JUEGO_FREE_FIRE
+        )
+        return ResumenSincronizacion(catalogo_vacio=True)
 
     existentes = {
         p.paquete_id: p

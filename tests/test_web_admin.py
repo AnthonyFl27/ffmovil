@@ -1,13 +1,13 @@
 """T-076: pantallas admin: usuarios, abonos, pedidos, resolución, panel y configuración.
 
-RF-03, RF-12, RF-40, RF-41, RF-50 a RF-55, RN-10, RN-11.
+RF-03, RF-10, RF-12, RF-40, RF-41, RF-50 a RF-55, RN-10, RN-11, CA-08.
 """
 
 import re
 import uuid
 from decimal import Decimal
 
-from sqlalchemy import select
+from sqlalchemy import func, select, update
 
 from app.models import Alerta, Auditoria, Paquete, Pedido, Saldo, Usuario
 from app.services import ledger
@@ -241,6 +241,27 @@ async def test_catalogo_precio_activar_y_sincronizar(api, sesion_bd, simulador):
 
     sincronizado = await htmx_post(http, "/gestion/catalogo/sincronizar")
     assert sincronizado.status_code == 200 and "Catálogo sincronizado." in sincronizado.text
+
+
+async def test_catalogo_vacio_muestra_aviso_y_alerta(api, sesion_bd, simulador):
+    """RF-10, RN-11 (e): la web avisa en vez de «Catálogo sincronizado» y el panel lista la alerta."""
+    http, _ = await admin_web(api, sesion_bd)
+    simulador.productos = []
+    try:
+        resultado = await htmx_post(http, "/gestion/catalogo/sincronizar")
+        assert resultado.status_code == 200
+        assert "Catálogo sincronizado." not in resultado.text
+        assert "Sin paquetes" in resultado.text
+        assert "no devolvió ningún paquete de Free Fire" in resultado.text
+        panel = await http.get("/gestion")
+        assert "no devolvió ningún paquete de Free Fire" in panel.text
+    finally:
+        await sesion_bd.execute(
+            update(Alerta)
+            .where(Alerta.tipo == "catalogo_vacio", Alerta.atendida_en.is_(None))
+            .values(atendida_en=func.now())
+        )
+        await sesion_bd.commit()
 
 
 async def test_configuracion_del_umbral(api, sesion_bd):

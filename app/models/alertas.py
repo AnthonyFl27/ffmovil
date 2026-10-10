@@ -5,7 +5,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, valores_sql
 
-TIPOS_ALERTA = ("credito_bajo", "sin_credito", "cuenta")
+TIPOS_ALERTA = ("credito_bajo", "sin_credito", "cuenta", "catalogo_vacio")
 
 
 class Alerta(Base):

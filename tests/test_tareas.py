@@ -1,4 +1,4 @@
-"""T-033: sincronización programada y registro de resultado (RF-10, plan sec. 5)."""
+"""T-033, T-115: sincronización programada y registro de resultado (RF-10, RN-11, CA-08)."""
 
 import json
 import random
@@ -7,10 +7,10 @@ from decimal import Decimal
 
 import pytest
 from apscheduler.triggers.cron import CronTrigger
-from sqlalchemy import select
+from sqlalchemy import func, select, update
 
 from app.db import crear_fabrica_sesiones
-from app.models import Config, Paquete
+from app.models import Alerta, Config, Paquete
 from app.services import tareas
 from app.services.ventasff_client import ClienteVentasFF
 from tests.fake_ventasff import SimuladorVentasFF
@@ -109,3 +109,54 @@ async def test_crear_programador_configura_la_tarea_diaria(motor_bd):
 
     otro = tareas.crear_programador(fabrica, crear_cliente, hora_utc=3)
     assert "hour='3'" in str(otro.get_job(tareas.ID_TAREA_SINCRONIZACION).trigger)
+
+
+async def alertas_activas_catalogo_vacio(sesion) -> int:
+    return await sesion.scalar(
+        select(func.count())
+        .select_from(Alerta)
+        .where(Alerta.tipo == "catalogo_vacio", Alerta.atendida_en.is_(None))
+        .execution_options(populate_existing=True)
+    )
+
+
+async def atender_alertas_catalogo_vacio(sesion) -> None:
+    await sesion.execute(
+        update(Alerta)
+        .where(Alerta.tipo == "catalogo_vacio", Alerta.atendida_en.is_(None))
+        .values(atendida_en=func.now())
+    )
+    await sesion.commit()
+
+
+async def test_catalogo_vacio_registra_resultado_y_alerta_sin_duplicar(motor_bd, sesion_bd, ids):
+    """RF-10, RN-11 (e), CA-08: no toca el catálogo y deja una sola alerta activa."""
+    a, b, _ = ids
+    sim = SimuladorVentasFF(productos=[producto(a), producto(b, D("2.40"))])
+    fabrica, crear_cliente = fabrica_y_cliente(motor_bd, sim)
+    await tareas.ejecutar_sincronizacion(fabrica, crear_cliente)
+    await atender_alertas_catalogo_vacio(sesion_bd)
+    await sesion_bd.execute(update(Paquete).where(Paquete.paquete_id == a).values(activo=False))
+    await sesion_bd.commit()
+
+    try:
+        sim.productos = []
+        resumen = await tareas.ejecutar_sincronizacion(fabrica, crear_cliente)
+        assert resumen is not None and resumen.catalogo_vacio is True
+        registro = await leer_config(sesion_bd)
+        assert registro["resultado"] == "vacio"
+        assert registro["recibidos"] == 0
+        datetime.fromisoformat(registro["fecha"])
+        assert await alertas_activas_catalogo_vacio(sesion_bd) == 1
+
+        # Una segunda sincronización vacía no crea otra alerta.
+        await tareas.ejecutar_sincronizacion(fabrica, crear_cliente)
+        assert await alertas_activas_catalogo_vacio(sesion_bd) == 1
+
+        # Una sincronización correcta posterior no atiende la alerta sola.
+        sim.productos = [producto(a)]
+        await tareas.ejecutar_sincronizacion(fabrica, crear_cliente)
+        assert (await leer_config(sesion_bd))["resultado"] == "ok"
+        assert await alertas_activas_catalogo_vacio(sesion_bd) == 1
+    finally:
+        await atender_alertas_catalogo_vacio(sesion_bd)
