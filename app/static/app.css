@@ -238,7 +238,7 @@ article.paquetes label.paquete .precio-paquete { font-size: 1.15rem; }
 p.volver { margin-top: 2rem; }
 .titulo-entrar { text-align: center; }
 /* Login sin encabezado: la tarjeta queda centrada en vertical. */
-main:has(.logo-entrar) { display: flex; flex-direction: column; justify-content: center; min-height: 100vh; min-height: 100dvh; }
+main:has(.logo-entrar) { display: flex; flex-direction: column; justify-content: center; }
 main:has(.logo-entrar) > .angosto { width: 100%; }
 
 /* Alta de usuario plegada tras un botón. */
@@ -338,10 +338,20 @@ a[role=button]:has(.icono), button:has(.icono):not(.copiar):not(.ver-clave) { di
 /* Ancho del precio de venta en la tabla del catálogo (sin estilos en línea: RNF-14). */
 .precio-venta { width: 7rem; }
 
-/* Sello de Cloudflare: en móvil ocupa todo el ancho al final; desde 768 px, esquina inferior derecha */
-.pie { padding-top: 0; padding-bottom: 1rem; }
-.pie img { display: block; width: 100%; max-width: 420px; height: auto; margin: 0 auto; }
+/* La página ocupa al menos la pantalla y el pie queda abajo. */
+body { display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; }
+body > main { flex: 1 0 auto; }
+
+/* Sello de Cloudflare. Móvil: franja naranja de lado a lado al pie, con el sello en la esquina
+   inferior derecha (el color de la franja es el del borde izquierdo de la imagen). Desde 768 px:
+   solo el sello, en la esquina inferior derecha. */
+.pie {
+  display: flex; justify-content: flex-end;
+  width: 100%; max-width: none; margin: 0; padding: 0;
+  background: #f97a28;
+}
+.pie img { display: block; width: 168px; height: auto; }
 @media (min-width: 768px) {
-  .pie { text-align: right; }
-  .pie img { width: 140px; margin-left: auto; margin-right: 0; }
+  .pie { max-width: none; background: none; padding-bottom: 1rem; }
+  .pie img { width: 140px; margin-right: 1rem; }
 }
