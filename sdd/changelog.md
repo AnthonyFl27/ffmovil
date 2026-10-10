@@ -167,6 +167,14 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.16.0 → 0.17.0
 - **Motivo:** si `productos.php` respondía bien pero sin paquetes `free_fire`, se desactivaba todo el catálogo y los clientes no podían recargar. Decisiones: «vacío» = cero paquetes `free_fire` tras filtrar; se usa una alerta nueva (`catalogo_vacio`); la alerta no se atiende sola, la marca el admin. Una lista parcial sigue desactivando los ausentes.
 
+### CHG-019 · 2026-10-10 · Topes de intentos de login, de recargas y de peticiones
+- **Origen:** decisión del dueño (revisión de seguridad previa a producción; aprobó la propuesta y sus valores)
+- **Spec:** RF-05 modificado (tope de 10 fallos por cuenta), RF-57 y RNF-17 añadidos
+- **Plan:** sec. 4.2 (tope de pedidos), sec. 7 (limitador de login, pedidos por usuario, tope general)
+- **Tareas:** nuevas T-116 a T-118 (tareas emergentes)
+- **Versión spec:** 0.17.0 → 0.18.0
+- **Motivo:** quien cambiaba de IP seguía probando claves contra una misma cuenta (el tope era por usuario+IP); un cliente con saldo podía llenar la cola global de 8 recargas/min de VentasFF y retrasar a los demás; las rutas con sesión no tenían ningún tope de peticiones. Valores aprobados: 10 fallos/15 min por cuenta (más que los 5 del par, para que nadie bloquee fácilmente a un cliente legítimo), 5 pedidos/min por cliente, 120 peticiones/min por usuario y 60/min por IP sin sesión. Sin aviso de intentos restantes (confirmaría que el usuario existe) y sin persistir los bloqueos en la BD (con un solo worker el riesgo es bajo; se revisa con tráfico real).
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |

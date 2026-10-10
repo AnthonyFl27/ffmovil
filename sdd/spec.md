@@ -1,6 +1,6 @@
 # Especificación: Plataforma de recargas Free Fire (prepago)
 
-- **Versión:** 0.17.0
+- **Versión:** 0.18.0
 - **Estado:** Borrador aprobado para iniciar desarrollo
 - **Fuente de verdad:** este archivo. El código y el plan se derivan de aquí.
 
@@ -51,7 +51,7 @@ Web de recargas de diamantes de Free Fire para clientes revendedores con cuentas
 - **RF-02** Las cuentas se crean con contraseña temporal y `debe_cambiar_clave = true`. Hasta cambiarla, el usuario solo puede acceder a la pantalla de cambio de contraseña.
 - **RF-03** El admin puede crear, bloquear, desbloquear y resetear la contraseña (nueva temporal) de usuarios. Desde el panel el admin crea solo cuentas de cliente (los admins se crean por CLI) y no puede bloquearse a sí mismo.
 - **RF-04** Un usuario bloqueado no puede iniciar sesión ni usar sesiones existentes.
-- **RF-05** El login limita intentos fallidos: con 5 fallos en 15 min para el mismo usuario desde la misma IP, o 20 fallos en 15 min desde una IP, se rechazan nuevos intentos durante 15 min con un mensaje genérico.
+- **RF-05** El login limita intentos fallidos. Se rechazan nuevos intentos durante 15 min, con un mensaje genérico, cuando hay 5 fallos en 15 min para el mismo usuario desde la misma IP, 10 fallos en 15 min para el mismo usuario desde cualquier IP, o 20 fallos en 15 min desde una IP. Los 15 min cuentan desde el fallo que alcanza el tope y los intentos rechazados no los alargan; durante el bloqueo no se verifica la contraseña, ni siquiera si es correcta. Un login correcto limpia solo el contador del par usuario+IP. Nunca se informa de los intentos que quedan.
 - **RF-06** La sesión expira tras 8 h sin actividad. Cerrar sesión la invalida. Bloquear al usuario, resetear o cambiar su contraseña cierra todas sus sesiones abiertas.
 - **RF-07** El nombre de usuario tiene de 3 a 30 caracteres: letras minúsculas a-z, dígitos, `.`, `_` y `-`. Se guarda en minúsculas y el login no distingue mayúsculas.
 - **RF-08** La contraseña nueva tiene de 8 a 128 caracteres y debe ser distinta de la actual.
@@ -78,6 +78,7 @@ Web de recargas de diamantes de Free Fire para clientes revendedores con cuentas
 - **RF-26** El nickname se guarda desde `validar.php`, no desde `recargar.php`.
 - **RF-27** El Player ID debe ser numérico de 4 a 20 dígitos.
 - **RF-56** Cada cliente puede validar un Player ID (RF-20) como máximo 10 veces por minuto, en la API y en la web. Superado el tope recibe 429 con el mensaje «Demasiadas verificaciones. Espera un momento e inténtalo de nuevo.» y no se llama a VentasFF. El tope es por usuario: un cliente no consume el cupo de VentasFF (RN-07) de los demás.
+- **RF-57** Cada cliente puede crear como máximo 5 pedidos de recarga por minuto, en la API (`POST /recargas`) y en la web (confirmación). Superado el tope recibe 429 con el mensaje «Demasiadas recargas. Espera un momento e inténtalo de nuevo.», sin reservar saldo, sin crear pedido y sin llamar a VentasFF. Cada solicitud de confirmación cuenta, incluido un reenvío con el mismo token (RF-25); las rechazadas por el tope no cuentan. El tope es por usuario: un cliente no puede ocupar el cupo de recargas de VentasFF (RN-07) de los demás.
 
 ### 5.4 Historial del cliente
 - **RF-30** Cada pedido tiene ID propio visible (`FF-000123`), incluidos los fallidos.
@@ -152,6 +153,7 @@ Transiciones permitidas:
 - **RNF-14** Todas las respuestas llevan cabeceras de seguridad: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: same-origin` y `Content-Security-Policy: default-src 'self'; img-src 'self' data:; frame-ancestors 'none'; form-action 'self'; base-uri 'none'` (sin scripts ni estilos en línea). Las respuestas que no son archivos estáticos llevan además `Cache-Control: no-store`, para que «Atrás» no muestre páginas con sesión tras salir.
 - **RNF-15** La app no publica documentación interactiva ni el esquema de la API (`/docs`, `/redoc` y `/openapi.json` no existen).
 - **RNF-16** La IP del cliente (limitador de login RF-05, sesiones y auditoría RF-55) es la de la conexión. Si se define la variable opcional `CLIENT_IP_HEADER` (por ejemplo `CF-Connecting-IP` tras el túnel de Cloudflare), se toma de esa cabecera, pero solo cuando la conexión viene de loopback o de una red privada (proxy local o red de Docker); una cabecera ausente o que no sea una IP válida se ignora. Sin esta variable, tras un proxy todos los clientes comparten IP y el tope por IP de RF-05 bloquearía a todos a la vez.
+- **RNF-17** Tope general de peticiones: con sesión válida, 120 por minuto por usuario; sin sesión válida (login, páginas públicas, sesión vencida o ausente), 60 por minuto por IP (la de RNF-16). Superado el tope se responde 429 con el mensaje «Demasiadas peticiones. Espera un momento e inténtalo de nuevo.»; las peticiones rechazadas no cuentan. Quedan fuera `/static` y `/health`. Los topes de RF-05, RF-56 y RF-57 se aplican además de este. Tras un proxy, el tope por IP solo distingue clientes si se define `CLIENT_IP_HEADER` (RNF-16).
 
 ## 9. Contrato externo (VentasFF)
 

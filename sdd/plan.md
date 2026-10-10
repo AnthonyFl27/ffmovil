@@ -1,6 +1,6 @@
 # Plan técnico
 
-- **Spec de referencia:** `sdd/spec.md` v0.8.0
+- **Spec de referencia:** `sdd/spec.md` v0.18.0
 - **Regla:** este plan implementa la spec. Si el plan contradice la spec, gana la spec.
 
 ---
@@ -158,6 +158,8 @@ sesiones(                                -- RF-06 (CHG-007)
 
 ### 4.2 Confirmar — `POST /recargas`
 Cuerpo: `{paquete_id, player_id, token_idempotencia, confirmar_sin_verificar?}`.
+
+Primero se consulta el tope de 5 pedidos por minuto y usuario (RF-57, `app.state.limitador_pedidos`): superado → 429 sin validar, sin reservar y sin crear pedido.
 
 Antes de la Fase A (y sin bloqueos de BD) el backend vuelve a validar el ID con `validar.php` (RN-03): `no_existe` → 422 sin pedido; `ok` → el nickname se toma de esa respuesta (RF-26), nunca del cliente; `no_disponible` o fallo del validador → solo continúa si `confirmar_sin_verificar = true` (RF-20). Un reenvío con un token ya usado devuelve el pedido existente sin volver a validar.
 
@@ -320,7 +322,7 @@ Paquete `app/web/`: rutas HTML (sin `include_in_schema`) que llaman a las funcio
 - Configuración por variables de entorno: `VENTASFF_API_KEY`, `DATABASE_URL`, `TEST_DATABASE_URL`, `SECRET_KEY`, `COOKIE_SECURE`; opcional `VENTASFF_URL`.
 - Sesión (RF-06, CHG-007): token aleatorio (`secrets.token_urlsafe(32)`) en la cookie `sesion`, `HttpOnly; SameSite=Lax; Path=/`, `Secure` según `COOKIE_SECURE`. En la tabla `sesiones` se guarda solo su SHA-256. Cada petición busca la sesión junto con el usuario: si no existe, venció (8 h desde `ultima_actividad`) o el usuario está inactivo → 401 (y la fila se borra). `ultima_actividad` se actualiza como mucho una vez por minuto. Logout borra la fila; bloquear, resetear o cambiar la clave borran todas las del usuario (al cambiarla, el usuario recibe una sesión nueva). El login borra además las sesiones vencidas.
 - CSRF: cada sesión tiene un token propio que el login y `GET /auth/sesion` devuelven; las peticiones `POST`/`PUT`/`PATCH`/`DELETE` con sesión deben enviarlo en la cabecera `X-CSRF-Token` (comparación en tiempo constante) o reciben 403. Las páginas web lo ponen en `<body hx-headers=…>`, de modo que HTMX lo envía en cada formulario (sec. 6.1).
-- Limitador de login (RF-05) en memoria (un solo worker): ventana deslizante de 15 min por par usuario+IP (5 fallos) y por IP (20 fallos); superado el tope responde 429 durante 15 min con el mismo mensaje genérico. Un login correcto limpia el contador del par.
+- Limitador de login (RF-05, CHG-019) en memoria (un solo worker): ventana deslizante de 15 min por par usuario+IP (5 fallos), por usuario sin importar la IP (10 fallos) y por IP (20 fallos); superado el tope responde 429 durante 15 min con el mismo mensaje genérico. Un login correcto limpia solo el contador del par: el de la cuenta no se toca, para que un acierto del dueño no devuelva intentos a quien adivina desde otras IP. Decisión técnica: `_normalizar` recorta la clave a 31 caracteres (un nombre válido tiene ≤ 30, RF-07), de modo que un `usuario` de 64 KB no se guarda entero en los diccionarios.
 - Usuario (RF-07): `^[a-z0-9._-]{3,30}$` tras pasar a minúsculas; el login compara en minúsculas. Contraseña nueva (RF-08): 8 a 128 caracteres y distinta de la actual.
 - Dependencias de FastAPI (equivalen al middleware): `usuario_en_sesion` (cualquier sesión válida; solo la usan `/auth/logout`, `/auth/sesion` y `/auth/cambiar-clave`), `usuario_actual` (además rechaza con 403 `debe_cambiar_clave`, RF-02) y `require_admin` (además rol admin) para `/admin/*`.
 - Auditoría (RF-55): cada acción admin que cambia datos inserta una fila en `auditoria` en la misma transacción, con la IP del cliente.
@@ -329,6 +331,8 @@ Paquete `app/web/`: rutas HTML (sin `include_in_schema`) que llaman a las funcio
 - Documentación (RNF-15): `FastAPI(docs_url=None, redoc_url=None, openapi_url=None)`. Las pruebas que recorren las rutas usan `app.openapi()`, que sigue disponible por código.
 - IP del cliente (RNF-16): `ip_cliente(request)` usa `request.client.host`, salvo que `app.state.cabecera_ip` (variable `CLIENT_IP_HEADER`, vacía por defecto) nombre una cabecera y la conexión sea loopback o privada (`ipaddress`); entonces toma el último valor de la cabecera si es una IP válida (el que añadió el proxy de confianza). Con el túnel de Cloudflare, publicar el puerto 8000 solo en `127.0.0.1` evita que alguien llegue directo y falsifique la cabecera desde una red privada.
 - Validación por usuario (RF-56, CHG-017): `LimitadorPorUsuario` (`services/limitador.py`, ventana deslizante en memoria, reloj inyectable, no espera: rechaza) en `app.state.limitador_validaciones` (10/min). `POST /recargas/validar` lo consulta antes de llamar a VentasFF; la ruta web reutiliza esa función y muestra el 429 en `#mensaje-id`.
+- Pedidos por usuario (RF-57, CHG-019): segunda instancia de `LimitadorPorUsuario` en `app.state.limitador_pedidos` (5/min). `POST /recargas` la consulta antes de nada; la ruta web `/recargar/confirmar` reutiliza esa función y muestra el 429 en `#mensaje-confirmacion`.
+- Tope general (RNF-17, CHG-019): dos instancias más de `LimitadorPorUsuario`: `app.state.limitador_peticiones` (120/min, clave `usuario_id`) y `app.state.limitador_anonimo` (60/min, clave IP). `usuario_en_sesion` consulta el de usuario tras validar la sesión y el anónimo cuando no hay sesión válida, antes del 401; así `GET /`, `GET /login` y toda ruta con sesión quedan cubiertas. `POST /auth/login` y `POST /login` no pasan por esa dependencia: usan una dependencia `limite_anonimo` propia. `sesion_opcional` deja pasar el 429 (no lo toma por «sin sesión») y `sesion_web` lo muestra con `ErrorWeb`. `/static` y `/health` no se consultan. Sin `CLIENT_IP_HEADER`, tras el túnel de Cloudflare todos comparten IP anónima (RNF-16).
 - Log estructurado con enmascarado de secretos. Revisión T-081 (decisión técnica, 2026-10-09): ningún `logger.*` de la app recibe claves, cabeceras ni cuerpos de petición; el motor se crea con `hide_parameters=True`, de modo que los errores de SQLAlchemy no copian los valores enlazados (hashes, notas, IDs) a los tracebacks. `tests/test_logs_flujos.py` recorre login, cambio y reseteo de clave, y cada desenlace del proveedor con un manejador sin enmascarar y busca los secretos en el texto emitido.
 - Docker: sin dominio, `app` publica un puerto (ej. 8000). Con dominio, solo Caddy expone 80/443.
 - La seguridad del servidor PostgreSQL (firewall, TLS, control de acceso) se gestiona fuera del repositorio. La app usa un usuario dedicado.

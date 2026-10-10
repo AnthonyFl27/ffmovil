@@ -1,6 +1,6 @@
 # Tareas
 
-- **Spec:** `sdd/spec.md` v0.17.0 · **Plan:** `sdd/plan.md`
+- **Spec:** `sdd/spec.md` v0.18.0 · **Plan:** `sdd/plan.md`
 - **Formato:** `- [ ] T-XXX descripción (refs) → criterio de hecho`
 - **Estados:** `[ ]` pendiente · `[~]` en curso · `[x]` hecha · `[!]` bloqueada
 - Cada tarea referencia requisitos (RF/RN/RNF/CA). Una tarea sin referencia no debería existir: o falta un requisito en la spec, o sobra la tarea.
@@ -145,3 +145,9 @@ Auditoría previa (2026-10-08, 360 y 390 px): el documento se desbordaba en toda
 ### Catálogo vacío en la sincronización (CHG-018, RF-10, RN-11, CA-08)
 
 - [x] T-115 Si `productos.php` no trae ningún paquete `free_fire`, la sincronización no modifica el catálogo, el resultado lo indica (`resultado = "vacio"`) y se registra la alerta `catalogo_vacio` (migración que amplía el `CHECK` de `alertas.tipo`) (RF-10, RN-11, CA-08, CHG-018) → pruebas: catálogo vacío conserva paquetes activos y crea la alerta; una lista solo con otros juegos cuenta como vacía; una segunda sincronización vacía no duplica la alerta; con al menos un paquete `free_fire` se desactivan los ausentes como antes; la alerta no se atiende sola tras una sincronización correcta; el panel y `/gestion/paquetes` muestran la alerta y el aviso.
+
+### Topes de intentos y de peticiones (CHG-019, RF-05, RF-57, RNF-17)
+
+- [ ] T-116 Tope de 10 fallos en 15 min por cuenta en el login, sin importar la IP (RF-05, CHG-019) → pruebas: el 10.º fallo desde IPs distintas bloquea la cuenta 15 min con el mismo 429 genérico, 9 fallos no bloquean, el bloqueo vence a los 15 min sin alargarse por intentos rechazados, un login correcto limpia el par pero no la cuenta, otra cuenta no se ve afectada, una clave correcta durante el bloqueo también se rechaza, el nombre de 64 KB no se guarda entero y los topes de par (5) e IP (20) siguen igual.
+- [ ] T-117 Tope de 5 pedidos por minuto por cliente en `POST /recargas` y `/recargar/confirmar` (RF-57, RF-25, CHG-019) → pruebas: la 6.ª solicitud recibe 429 sin reservar saldo, sin crear pedido y sin llamar a VentasFF; otro cliente no se ve afectado; la ventana se libera con el tiempo; un reenvío con el mismo token cuenta; las rechazadas no cuentan; la web muestra el mensaje en `#mensaje-confirmacion`.
+- [ ] T-118 Tope general de peticiones: 120/min por usuario y 60/min por IP sin sesión (RNF-17, RNF-16, CHG-019) → pruebas: la petición 121 de un usuario recibe 429 y otro usuario no se ve afectado; 60 peticiones sin sesión desde una IP no afectan a otra; `POST /auth/login` y `POST /login` cuentan por IP; `/static` y `/health` no cuentan; las rechazadas no cuentan; la ventana se libera; con sesión válida un 429 no redirige al login; el inventario de rutas de `test_seguridad_rutas` sigue pasando y la prueba de navegador completa su recorrido sin 429.
