@@ -338,6 +338,10 @@ a[role=button]:has(.icono), button:has(.icono):not(.copiar):not(.ver-clave) { di
 /* Ancho del precio de venta en la tabla del catálogo (sin estilos en línea: RNF-14). */
 .precio-venta { width: 7rem; }
 
-/* Sello de Cloudflare: esquina inferior derecha de la página */
-.pie { padding-top: 0; padding-bottom: 1rem; text-align: right; }
-.pie img { display: block; width: 140px; height: auto; margin-left: auto; margin-right: 0; }
+/* Sello de Cloudflare: en móvil ocupa todo el ancho al final; desde 768 px, esquina inferior derecha */
+.pie { padding-top: 0; padding-bottom: 1rem; }
+.pie img { display: block; width: 100%; max-width: 420px; height: auto; margin: 0 auto; }
+@media (min-width: 768px) {
+  .pie { text-align: right; }
+  .pie img { width: 140px; margin-left: auto; margin-right: 0; }
+}
