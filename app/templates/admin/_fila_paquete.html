@@ -9,7 +9,7 @@
     <div class="acciones-fila">
     <form hx-post="/gestion/paquetes/{{ p.paquete_id }}" hx-target="#paquete-{{ p.paquete_id }}" hx-swap="outerHTML" hx-disabled-elt="find button">
       <div class="acciones">
-        <input name="precio_venta" inputmode="decimal" aria-label="Precio de venta (USD)" style="width: 7rem" value="{{ '%.2f' | format(p.precio_venta) if p.precio_venta is not none else '' }}">
+        <input class="precio-venta" name="precio_venta" inputmode="decimal" aria-label="Precio de venta (USD)" value="{{ '%.2f' | format(p.precio_venta) if p.precio_venta is not none else '' }}">
         <button type="submit">Guardar precio</button>
       </div>
     </form>

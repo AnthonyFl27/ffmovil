@@ -110,7 +110,7 @@ async def api(motor_bd, simulador):
     import httpx
 
     from app.main import app
-    from app.services.limitador import LimitadorTasa
+    from app.services.limitador import LimitadorPorUsuario, LimitadorTasa
     from app.services.limitador_login import LimitadorLogin
     from app.services.ventasff_client import ClienteVentasFF
 
@@ -118,6 +118,7 @@ async def api(motor_bd, simulador):
     app.state.sesiones = crear_fabrica_sesiones(motor_bd)
     app.state.cookie_secure = False
     app.state.limitador_login = LimitadorLogin()
+    app.state.limitador_validaciones = LimitadorPorUsuario(10)
     app.state.ventasff = ClienteVentasFF(
         simulador.api_key, "http://simulador/api/reseller", transport=simulador.transporte()
     )

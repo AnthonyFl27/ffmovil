@@ -41,7 +41,8 @@ class UsuarioBloqueado(ErrorUsuario):
 
 
 # RF-07: de 3 a 30 caracteres: a-z, dígitos, '.', '_' y '-'; se guarda en minúsculas.
-PATRON_USUARIO = re.compile(r"[a-z0-9._-]{3,30}")
+LARGO_MAXIMO_USUARIO = 30
+PATRON_USUARIO = re.compile(rf"[a-z0-9._-]{{3,{LARGO_MAXIMO_USUARIO}}}")
 # RF-08
 LARGO_MINIMO_CLAVE = 8
 LARGO_MAXIMO_CLAVE = 128

@@ -12,7 +12,12 @@ from app.routers.dependencias import (
 )
 from app.schemas.auth import CambioClave, InfoSesion, Login
 from app.services import auth_service, sesiones
-from app.services.auth_service import ClaveInvalida, UsuarioBloqueado
+from app.services.auth_service import (
+    LARGO_MAXIMO_CLAVE,
+    LARGO_MAXIMO_USUARIO,
+    ClaveInvalida,
+    UsuarioBloqueado,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -48,6 +53,10 @@ async def login(datos: Login, request: Request, response: Response, bd: Bd):
     # RF-05: con el tope superado no se verifica la clave.
     if limitador.bloqueado(datos.usuario, ip):
         raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, MENSAJE_DEMASIADOS_INTENTOS)
+    # RNF-13: datos que no pueden ser válidos no llegan a la BD ni al hash.
+    if len(datos.usuario.strip()) > LARGO_MAXIMO_USUARIO or len(datos.clave) > LARGO_MAXIMO_CLAVE:
+        limitador.registrar_fallo(datos.usuario, ip)
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, MENSAJE_CREDENCIALES)
     try:
         usuario = await auth_service.autenticar(bd, datos.usuario, datos.clave)
     except UsuarioBloqueado as error:

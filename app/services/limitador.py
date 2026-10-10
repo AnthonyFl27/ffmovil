@@ -14,6 +14,8 @@ from collections.abc import Awaitable, Callable
 # y 10 recargas/min). Dejan margen para reintentos y llamadas de sincronización.
 RECARGAS_POR_MINUTO = 8
 PETICIONES_POR_MINUTO = 50
+# RF-56: validaciones de Player ID por cliente y por minuto.
+VALIDACIONES_POR_MINUTO = 10
 
 
 class LimitadorTasa:
@@ -67,3 +69,42 @@ class LimitadorTasa:
         """Cuántas adquisiciones podrían hacerse ahora mismo sin esperar."""
         self._podar(self._reloj())
         return self._maximo - len(self._marcas)
+
+
+class LimitadorPorUsuario:
+    """Tope de usos por clave (usuario) en ventana deslizante; rechaza en lugar de esperar (RF-56)."""
+
+    def __init__(
+        self,
+        maximo: int,
+        ventana: float = 60.0,
+        *,
+        reloj: Callable[[], float] = time.monotonic,
+    ) -> None:
+        if maximo < 1:
+            raise ValueError("maximo debe ser >= 1")
+        if ventana <= 0:
+            raise ValueError("ventana debe ser > 0")
+        self._maximo = maximo
+        self._ventana = ventana
+        self._reloj = reloj
+        self._marcas: dict[object, deque[float]] = {}
+
+    def intentar(self, clave: object) -> bool:
+        """Registra un uso y devuelve True; con el tope superado devuelve False sin registrar."""
+        ahora = self._reloj()
+        self._barrer(ahora)
+        marcas = self._marcas.setdefault(clave, deque())
+        if len(marcas) >= self._maximo:
+            return False
+        marcas.append(ahora)
+        return True
+
+    def _barrer(self, ahora: float) -> None:
+        """Descarta marcas vencidas y claves vacías, para que el diccionario no crezca sin límite."""
+        for clave in list(self._marcas):
+            marcas = self._marcas[clave]
+            while marcas and ahora - marcas[0] >= self._ventana:
+                marcas.popleft()
+            if not marcas:
+                del self._marcas[clave]

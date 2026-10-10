@@ -31,11 +31,19 @@ router = APIRouter(prefix="/recargas", tags=["cliente"])
 # Espera máxima del resultado del proveedor dentro de la petición.
 ESPERA_RESULTADO_SEGUNDOS = 20.0
 MENSAJE_SALDO_INSUFICIENTE = "Saldo insuficiente para esta recarga."
+MENSAJE_DEMASIADAS_VALIDACIONES = (
+    "Demasiadas verificaciones. Espera un momento e inténtalo de nuevo."
+)
 
 
 @router.post("/validar", response_model=ValidacionJugador)
 async def validar(datos: SolicitudValidacion, request: Request, actual: Cliente, bd: Bd):
-    """Valida el Player ID y devuelve el nickname (RF-20, RF-27); `no_existe` → 422."""
+    """Valida el Player ID y devuelve el nickname (RF-20, RF-27); `no_existe` → 422.
+
+    Tope de 10 por minuto y usuario (RF-56): superado, 429 sin llamar a VentasFF.
+    """
+    if not request.app.state.limitador_validaciones.intentar(actual.usuario_id):
+        raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, MENSAJE_DEMASIADAS_VALIDACIONES)
     try:
         resultado = await recarga_service.validar_jugador(
             bd, request.app.state.ventasff, datos.player_id, datos.paquete_id

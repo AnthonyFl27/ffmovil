@@ -23,6 +23,8 @@ class Configuracion(BaseSettings):
     cookie_secure: bool
     # Opcional: en desarrollo puede apuntar al simulador (tests/fake_ventasff.py).
     ventasff_url: str = "https://ventasff.com/api/reseller"
+    # Opcional (RNF-16): cabecera con la IP real del cliente tras un proxy, p. ej. CF-Connecting-IP.
+    client_ip_header: str = ""
     # Solo la necesitan las pruebas (RNF-10); producción no la define.
     test_database_url: SecretStr | None = None
 

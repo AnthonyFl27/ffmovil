@@ -5,11 +5,19 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
+from app.cabeceras import CabecerasSeguridad
 from app.config import obtener_configuracion
 from app.db import ErrorConexionBD, crear_fabrica_sesiones, crear_motor, verificar_conexion
+from app.limite_cuerpo import LimiteCuerpo
 from app.logs import configurar_logs
 from app.routers import admin, auth, me, paquetes, recargas
-from app.services.limitador import PETICIONES_POR_MINUTO, RECARGAS_POR_MINUTO, LimitadorTasa
+from app.services.limitador import (
+    PETICIONES_POR_MINUTO,
+    RECARGAS_POR_MINUTO,
+    VALIDACIONES_POR_MINUTO,
+    LimitadorPorUsuario,
+    LimitadorTasa,
+)
 from app.services.limitador_login import LimitadorLogin
 from app.services.recuperacion import recuperar_pedidos_huerfanos
 from app.services.tareas import crear_programador
@@ -35,6 +43,8 @@ async def lifespan(app: FastAPI):
     app.state.sesiones = crear_fabrica_sesiones(motor)
     app.state.cookie_secure = config.cookie_secure
     app.state.limitador_login = LimitadorLogin()
+    app.state.limitador_validaciones = LimitadorPorUsuario(VALIDACIONES_POR_MINUTO)
+    app.state.cabecera_ip = config.client_ip_header
     # RN-09: pedidos que quedaron en PROCESANDO por un reinicio pasan a revisión.
     async with app.state.sesiones() as sesion:
         await recuperar_pedidos_huerfanos(sesion)
@@ -67,7 +77,11 @@ async def lifespan(app: FastAPI):
     await motor.dispose()
 
 
-app = FastAPI(title="ffmovil", lifespan=lifespan)
+# Sin documentación interactiva ni esquema públicos (RNF-15).
+app = FastAPI(title="ffmovil", lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
+# El último que se añade es el más externo: las cabeceras también cubren los 413 (RNF-14).
+app.add_middleware(LimiteCuerpo)
+app.add_middleware(CabecerasSeguridad)
 app.include_router(auth.router)
 app.include_router(me.router)
 app.include_router(paquetes.router)

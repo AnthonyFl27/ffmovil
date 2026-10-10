@@ -6,6 +6,7 @@
 """
 
 import hmac
+import ipaddress
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from typing import Annotated
@@ -35,8 +36,43 @@ async def obtener_bd(request: Request) -> AsyncIterator[AsyncSession]:
 Bd = Annotated[AsyncSession, Depends(obtener_bd)]
 
 
+# Redes de un proxy local o de Docker. Explícitas: `is_private` de Python también incluye
+# rangos de documentación y otros especiales que no son una red interna.
+REDES_DE_CONFIANZA = tuple(
+    ipaddress.ip_network(red)
+    for red in (
+        "127.0.0.0/8",
+        "::1/128",
+        "10.0.0.0/8",
+        "172.16.0.0/12",
+        "192.168.0.0/16",
+        "fc00::/7",
+    )
+)
+
+
+def _es_proxy_de_confianza(host: str) -> bool:
+    """Loopback o red privada (proxy local o red de Docker); nunca una IP pública."""
+    try:
+        direccion = ipaddress.ip_address(host)
+    except ValueError:
+        return False
+    return any(direccion in red for red in REDES_DE_CONFIANZA if red.version == direccion.version)
+
+
 def ip_cliente(request: Request) -> str | None:
-    return request.client.host if request.client else None
+    """IP del cliente (RNF-16): la de la conexión o, tras un proxy de confianza, la de la cabecera."""
+    host = request.client.host if request.client else None
+    cabecera = getattr(request.app.state, "cabecera_ip", "")
+    if cabecera and host and _es_proxy_de_confianza(host):
+        valor = request.headers.get(cabecera, "")
+        # El último valor es el que añadió nuestro proxy; los anteriores los pone el cliente.
+        candidata = valor.split(",")[-1].strip()
+        try:
+            return str(ipaddress.ip_address(candidata))
+        except ValueError:
+            pass
+    return host
 
 
 @dataclass(frozen=True)

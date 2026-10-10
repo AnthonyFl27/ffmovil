@@ -334,3 +334,6 @@ ul.recientes li { list-style: none; }
 }
 /* Botones con ícono: ícono y texto separados. */
 a[role=button]:has(.icono), button:has(.icono):not(.copiar):not(.ver-clave) { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; }
+
+/* Ancho del precio de venta en la tabla del catálogo (sin estilos en línea: RNF-14). */
+.precio-venta { width: 7rem; }

@@ -84,7 +84,16 @@ async def navegador():
 
 async def nueva_pagina(navegador):
     contexto = await navegador.new_context(viewport=VIEWPORT, has_touch=True, is_mobile=True)
-    return await contexto.new_page()
+    pagina = await contexto.new_page()
+    # RNF-14: Chromium avisa por consola de cada recurso que la CSP bloquea.
+    pagina.violaciones_csp = []
+    pagina.on(
+        "console",
+        lambda m: (
+            pagina.violaciones_csp.append(m.text) if "Content Security Policy" in m.text else None
+        ),
+    )
+    return pagina
 
 
 async def entrar(pagina, base: str, usuario: str, destino: str) -> None:
@@ -146,6 +155,7 @@ async def test_pantallas_en_viewport_movil(servidor_web, navegador, api, sesion_
     problemas: list[str] = []
 
     pagina = await nueva_pagina(navegador)
+    paginas = [pagina]
     await pagina.goto(f"{base}/login")
     await medir(pagina, "/login", problemas)
     await entrar(pagina, base, cliente.usuario, "/inicio")
@@ -172,6 +182,7 @@ async def test_pantallas_en_viewport_movil(servidor_web, navegador, api, sesion_
     await medir(pagina, "/historial (filtros abiertos)", problemas)
 
     pagina = await nueva_pagina(navegador)
+    paginas.append(pagina)
     await entrar(pagina, base, admin.usuario, "/gestion")
     await recorrer(
         pagina,
@@ -194,6 +205,8 @@ async def test_pantallas_en_viewport_movil(servidor_web, navegador, api, sesion_
     await medir(pagina, "/gestion/usuarios/{id} (filtros abiertos)", problemas)
 
     assert not problemas, "Problemas a 360 × 740:\n" + "\n".join(problemas)
+    violaciones = [v for p in paginas for v in p.violaciones_csp]
+    assert not violaciones, "Violaciones de la CSP (RNF-14):\n" + "\n".join(violaciones)
 
 
 async def test_recarga_en_tres_pasos(servidor_web, navegador, api, sesion_bd, simulador):
@@ -227,3 +240,4 @@ async def test_recarga_en_tres_pasos(servidor_web, navegador, api, sesion_bd, si
     await pagina.get_by_role("button", name="Nueva recarga").click()
     await pagina.wait_for_url(f"{base}/recargar")
     assert await pagina.input_value("input[name=player_id]") == ""
+    assert not pagina.violaciones_csp, "\n".join(pagina.violaciones_csp)
