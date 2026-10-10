@@ -13,9 +13,9 @@
 - [x] T-001 Crear repositorio con estructura del plan, `.gitignore` (`.env`, datos, respaldos, logs) y README (RNF-06) → `git status` limpio sin secretos.
 - [x] T-002 `.env.example` con `VENTASFF_API_KEY`, `DATABASE_URL`, `TEST_DATABASE_URL`, `SECRET_KEY`, `COOKIE_SECURE` vacíos (RNF-01, RNF-06, RNF-07, RNF-11) → variables documentadas.
 - [x] T-003 `Dockerfile` y `docker-compose.yml` con `app` (puerto publicado, ej. 8000), sin `caddy` ni `db`, unido a la red externa `ffmovil_net` (RNF-07) → `docker compose up` levanta la app y conecta a la BD externa.
-- [x] T-004 `config.py` con carga de variables de entorno y falla clara si falta alguna → la app no inicia sin configuración.
+- [x] T-004 `config.py` con carga de variables de entorno y falla clara si falta alguna (RNF-01, RNF-07) → la app no inicia sin configuración.
 - [x] T-005 Conexión a la BD externa por `DATABASE_URL`, verificación al arrancar con error claro y Alembic configurado (RNF-07) → migración vacía aplicable.
-- [x] T-006 Endpoint `/health` y configuración de pytest + ruff → `pytest` y `ruff` ejecutan en limpio.
+- [x] T-006 Endpoint `/health` y configuración de pytest + ruff (RNF-10) → `pytest` y `ruff` ejecutan en limpio.
 - [x] T-007 Fixtures de pruebas con esquema `test` aislado, creado y eliminado por sesión, vía `TEST_DATABASE_URL` (RNF-10) → las pruebas no tocan el esquema de desarrollo.
 
 ## Fase 2 — Núcleo contable
@@ -26,7 +26,7 @@
 - [x] T-013 Prueba de invariante: saldo = suma de movimientos (CA-04) → test pasa tras secuencia aleatoria de operaciones.
 - [x] T-014 Prueba de concurrencia: dos reservas simultáneas con saldo para una (CA-01) → solo una prospera.
 - [x] T-015 Servicio de autenticación: argon2, creación de usuario con clave temporal y `debe_cambiar_clave` (RF-01, RF-02, RNF-03) → tests.
-- [x] T-016 Script/comando para crear el primer admin → admin creado por CLI.
+- [x] T-016 Script/comando para crear el primer admin (RF-03, RF-07) → admin creado por CLI.
 
 ## Fase 3 — Cliente VentasFF + simulador
 
@@ -48,8 +48,8 @@
 
 - [x] T-040 Migración `pedidos` y `pedido_eventos` con índices y `UNIQUE (usuario_id, token_idempotencia)` (RF-25, RF-30) → aplicada.
 - [x] T-041 Generación de `codigo` (`FF-000123`) (RF-30) → único y legible.
-- [x] T-042 Máquina de estados con transiciones permitidas (sec. 7 de la spec) → transiciones inválidas lanzan error.
-- [x] T-043 Validación: formato de Player ID, `validar.php`, manejo de `no_existe`/`no_disponible` (RF-20, RF-27) → tests del servicio; la ruta `POST /recargas/validar` con sesión se expone en T-054.
+- [x] T-042 Máquina de estados con transiciones permitidas (sec. 7 de la spec; RF-24, RF-52, RN-04) → transiciones inválidas lanzan error.
+- [x] T-043 Validación: formato de Player ID, `validar.php`, manejo de `no_existe`/`no_disponible`, nickname desde `validar.php` (RF-20, RF-26, RF-27) → tests del servicio; la ruta `POST /recargas/validar` con sesión se expone en T-054.
 - [x] T-044 Fase A: reserva e inserción de pedido en una transacción, con idempotencia (RF-22, RF-25) → tests, incluido reenvío con mismo token (CA-02).
 - [x] T-045 Fase B: candado global (`pg_advisory_lock`), limitador de tasa propio, verificación de `saldo.php`, `recargar.php` con un reintento ante `BUSY` (RF-23, RN-05 a RN-08) → tests contra simulador.
 - [x] T-046 Fase C: resolución según resultado, con contabilidad por caso (RF-24, RN-02) → un test por escenario del simulador.
@@ -74,29 +74,29 @@
 
 ## Fase 7 — Frontend
 
-- [x] T-070 Resolver Q-05 (Jinja2 + HTMX o SPA) y registrar decisión en `changelog.md` → decisión registrada.
-- [x] T-071 Login y cambio de contraseña.
+- [x] T-070 Resolver Q-05 (Jinja2 + HTMX o SPA) y registrar decisión en `changelog.md` (Q-05, CHG-008) → decisión registrada.
+- [x] T-071 Login y cambio de contraseña (RF-01, RF-02, RF-08).
 - [x] T-072 Inicio del cliente: saldo, gasto total, nº de recargas, botones (RF-33).
 - [x] T-073 Pantalla Recargar: Player ID → nickname → paquete → confirmación, con token de idempotencia y botón deshabilitado tras el primer clic (RF-20, RF-21, RF-25).
-- [x] T-074 Historial con filtros y estados visibles, incluidos fallidos y "En revisión" (RF-31, RF-32, CA-05).
+- [x] T-074 Historial con filtros y estados visibles, incluidos fallidos y "En revisión", con fechas en la zona del navegador (RF-31, RF-32, RNF-09, CA-05).
 - [x] T-075 Pantalla Fondos (RF-34).
 - [x] T-076 Pantallas admin: usuarios, abonos, pedidos con filtros, resolución de pendientes, panel, configuración (RF-50 a RF-53).
 - [x] T-077 Verificar que ninguna plantilla muestra `precio_costo` al cliente (CA-03).
 
 ## Fase 8 — Endurecimiento y pruebas
 
-- [x] T-080 Suite de integración completa por escenario del simulador → todos pasan (`tests/test_integracion_escenarios.py`: recorrido HTTP completo por cada escenario, resolución manual de pendientes, secuencia mixta y saldo insuficiente).
+- [x] T-080 Suite de integración completa por escenario del simulador (RF-22, RF-24, RF-25, RF-52, RN-04, RN-08, RN-11, CA-02 a CA-05) → todos pasan (`tests/test_integracion_escenarios.py`: recorrido HTTP completo por cada escenario, resolución manual de pendientes, secuencia mixta y saldo insuficiente).
 - [x] T-081 Revisión de logs: sin API Key ni contraseñas (RNF-05) → `tests/test_logs_flujos.py`: flujos reales sin enmascarar no emiten secretos; `hide_parameters=True` en el motor.
 - [x] T-082 Revisión de seguridad: CSRF, cookies, cabeceras, límites (RNF-03) → `tests/test_seguridad_rutas.py` recorre todas las rutas (sesión, CSRF y rol); hallazgos resueltos en T-110 a T-114 (CHG-016, CHG-017).
-- [ ] T-083 Verificación de trazabilidad: cada RF/RN/CA tiene al menos una tarea y una prueba → tabla en `changelog.md` o script.
+- [x] T-083 Verificación de trazabilidad: cada RF/RN/RNF/CA tiene al menos una tarea y una prueba → `tests/trazabilidad.py` (`uv run python -m tests.trazabilidad` imprime la tabla) y `tests/test_trazabilidad.py` falla ante cualquier hueco; RNF-06 y RNF-07 se verifican por revisión (lista `SIN_PRUEBA_AUTOMATICA`). Una prueba cubre un requisito si lo nombra en su archivo.
 
 ## Fase 9 — Despliegue
 
 - [!] T-090 Caddy con dominio e HTTPS; `COOKIE_SECURE=true`; solo 80/443 publicados (RNF-03, RNF-11) → bloqueada hasta tener dominio; requisito previo a clientes reales.
 - [ ] T-091 Variables reales en el VPS (fuera del repo) (RNF-01, RNF-06).
-- [ ] T-092 Respaldo periódico de PostgreSQL fuera del repositorio.
-- [ ] T-093 Prueba real controlada: una recarga del paquete más barato con ID propio; verificar en el juego y en el panel de VentasFF.
-- [ ] T-094 Alta del primer cliente y primer abono manual de prueba.
+- [ ] T-092 Respaldo periódico de PostgreSQL fuera del repositorio (RNF-06, RNF-07).
+- [ ] T-093 Prueba real controlada: una recarga del paquete más barato con ID propio; verificar en el juego y en el panel de VentasFF (RF-24, RN-03).
+- [ ] T-094 Alta del primer cliente y primer abono manual de prueba (RF-03, RF-40).
 
 ---
 

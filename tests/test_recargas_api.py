@@ -131,6 +131,7 @@ async def test_id_no_verificado_requiere_confirmacion(api, sesion_bd, simulador)
 
 
 async def test_rechazos_sin_crear_pedido(api, sesion_bd, simulador):
+    """RN-03: con el ID inexistente en la revalidación no se crea pedido ni se llama a recargar."""
     c, paquete_id, usuario_id = await preparar(sesion_bd, simulador, api, abono="0.50")
     saldo = await c.post("/recargas", json=solicitud(paquete_id))
     assert saldo.status_code == 422 and "Saldo insuficiente" in saldo.json()["detail"]

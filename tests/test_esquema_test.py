@@ -6,6 +6,7 @@ from tests.conftest import ESQUEMA_TEST, RAIZ
 
 
 async def test_conexion_usa_esquema_test(motor_bd):
+    """RNF-10: las pruebas corren en el esquema `test`, nunca en los de desarrollo."""
     async with motor_bd.connect() as conexion:
         esquema = (await conexion.execute(text("SELECT current_schema()"))).scalar()
     assert esquema == ESQUEMA_TEST
