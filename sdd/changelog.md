@@ -191,10 +191,19 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.19.0 → 0.20.0
 - **Motivo:** hasta ahora `/` solo redirigía a `/login`. Al lanzar (T-120), `ffmovil.com` mostrará una presentación con el botón de login en lugar de entrar directo al formulario. Decisiones: sin precios ni paquetes en la página pública (abrir `/paquetes` a anónimos sería una decisión aparte); pie con nombre, descripción, Términos y Condiciones, Política de Privacidad, correo de contacto, derechos, aviso de marcas de Garena y sello de Cloudflare, y sin idioma, moneda, ayuda ni WhatsApp (el WhatsApp se añade después); el correo viene de la variable `CONTACT_EMAIL`, fuera del repo; tema azul oscuro y blanco solo en las páginas públicas, con CSS propio y sin tocar el resto de la app; animaciones al desplazar con JavaScript propio, solo `transform` y `opacity` y respetando `prefers-reduced-motion` (no se usan animaciones por scroll de CSS porque Firefox aún no las soporta de forma estable). Se abre Q-07: el logo de Free Fire y las imágenes de personajes y objetos son de Garena y el repositorio es público; el dueño decide si se publican en el repo, se sirven solo desde el VPS o se reemplazan por arte propio. Los textos legales son un borrador que el dueño revisa; no sustituyen asesoría legal. La página «Próximamente» (CHG-020) no cambia.
 
+### CHG-022 · 2026-10-11 · Q-07: el arte de Garena se publica en el repositorio
+- **Origen:** pregunta abierta resuelta (Q-07)
+- **Spec:** Q-07 resuelta (sec. 11); sin cambio de requisitos
+- **Plan:** sec. 6.3 (imágenes)
+- **Tareas:** ninguna nueva; T-121 sin cambios
+- **Versión spec:** 0.20.0 → 0.20.1
+- **Motivo:** el dueño decidió publicar en el repositorio los WebP derivados del logo de Free Fire, los personajes y los cofres (`app/static/inicio/`). Los originales siguen fuera del repo y el aviso de marcas de RF-58 se mantiene.
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |
 |---|---|---|---|
+| Q-07 | Arte de Garena (logo de Free Fire, personajes, cofres): los WebP se publican en el repositorio; aviso de marcas en el pie | 2026-10-11 | CHG-022 |
 | Q-05 | Frontend: Jinja2 + HTMX servidos por FastAPI; Pico.css como estilo | 2026-10-08 | CHG-008 |
 | Q-03 | Moneda mostrada al cliente: USD con 2 decimales (RF-36) | 2026-10-08 | CHG-007 |
 | Q-04 | Sesión: expira tras 8 h sin actividad, guardada en BD (RF-06) | 2026-10-08 | CHG-007 |
