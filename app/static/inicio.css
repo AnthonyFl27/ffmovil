@@ -96,11 +96,6 @@ a:focus-visible {
   outline-color: #ffffff;
 }
 
-.boton-grande {
-  min-height: 52px;
-  padding: 0 28px;
-  font-size: 1.1rem;
-}
 
 .marca,
 .marca:visited {
@@ -191,17 +186,25 @@ a:focus-visible {
   width: 100%;
 }
 
-.cofre {
+.portada-imagenes {
+  max-width: 340px;
+  margin: 0 auto;
+}
+
+.portada-personaje {
   width: 100%;
   height: auto;
 }
 
+/* Diamantes sobre la palma de la mano izquierda del personaje (CHG-024). Las
+   posiciones son porcentajes de la imagen, así siguen a la mano en cualquier ancho. */
 .flotar {
   position: absolute;
-  top: 4%;
-  right: 0;
-  width: 45%;
+  top: 15%;
+  left: 0;
+  width: 26%;
   height: auto;
+  filter: drop-shadow(0 0 14px rgba(90, 160, 255, 0.75));
 }
 
 /* Pasos */
@@ -286,7 +289,8 @@ a:focus-visible {
   gap: 24px;
 }
 
-.personaje {
+.personaje,
+.ilustracion {
   width: 100%;
   max-width: 420px;
   height: auto;
@@ -490,6 +494,10 @@ a:focus-visible {
   .portada-texto {
     align-items: flex-start;
     text-align: left;
+  }
+
+  .portada-imagenes {
+    max-width: 440px;
   }
 
   .pasos {

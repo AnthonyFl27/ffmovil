@@ -76,7 +76,7 @@ async def test_sin_sesion_muestra_la_presentacion(api):
     r = await api().get("/", follow_redirects=False)
     assert r.status_code == 200
     html = r.text
-    assert html.count('href="/login"') >= 2  # encabezado y portada
+    assert html.count('href="/login"') >= 2  # encabezado y última sección
     assert "Iniciar sesión" in html and "FFMovil" in html
     assert TEXTO_PORTADA in html
     assert "inicio/diamantes.webp" in html and "inicio/cofre.webp" in html
@@ -85,6 +85,18 @@ async def test_sin_sesion_muestra_la_presentacion(api):
         assert paso in html
     assert html.count("inicio/personaje-") == 2 and "revelar" in html
     _pie_completo(html)
+
+
+async def test_la_portada_lleva_el_personaje_con_el_diamante_y_no_repite_el_boton(api):
+    """RF-58 (b), CHG-024: el botón queda solo en el encabezado; personaje y diamante."""
+    html = (await api().get("/")).text
+    portada = html[html.index('<section class="portada">') : html.index("</section>")]
+    assert TEXTO_PORTADA in portada
+    assert "/login" not in portada
+    assert "inicio/personaje-2.webp" in portada and "inicio/diamantes.webp" in portada
+    assert 'class="flotar"' in portada and "inicio/cofre.webp" not in portada
+    cabecera = html[html.index('<header class="cabecera">') : html.index("</header>")]
+    assert 'href="/login"' in cabecera
 
 
 @pytest.mark.parametrize("ruta", PUBLICAS)
