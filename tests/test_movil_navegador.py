@@ -241,3 +241,79 @@ async def test_recarga_en_tres_pasos(servidor_web, navegador, api, sesion_bd, si
     await pagina.wait_for_url(f"{base}/recargar")
     assert await pagina.input_value("input[name=player_id]") == ""
     assert not pagina.violaciones_csp, "\n".join(pagina.violaciones_csp)
+
+
+# --- T-124: página pública y legales (CA-07, CA-10, RNF-12, RNF-14, RNF-20) ----------
+
+ESTADO_REVELAR = """
+() => [...document.querySelectorAll('.revelar')].map(el => {
+  const estilo = getComputedStyle(el);
+  return {visible: el.classList.contains('visible'), opacidad: estilo.opacity,
+          transformacion: estilo.transform};
+})
+"""
+
+
+async def desplazar_hasta_el_final(pagina) -> None:
+    """Baja de a poco para que el `IntersectionObserver` vea cada sección."""
+    while await pagina.evaluate(
+        "() => window.scrollY + window.innerHeight < document.documentElement.scrollHeight - 2"
+    ):
+        await pagina.mouse.wheel(0, 300)
+        await pagina.wait_for_timeout(120)
+    await pagina.wait_for_timeout(700)  # fin de las transiciones
+
+
+async def test_pagina_publica_en_viewport_movil(servidor_web, navegador):
+    """CA-07 y CA-10 en `/`, `/terminos` y `/privacidad` a 360 × 740, sin violaciones de CSP.
+
+    Botón «Iniciar sesión» visible sin desplazarse; los `.revelar` aparecen al desplazar
+    (RF-58 d, RNF-20). El correo del pie se mide también (área táctil).
+    """
+    from app.main import app
+
+    base = servidor_web
+    app.state.correo_contacto = "contacto-de-prueba-largo@ejemplo.test"
+    problemas: list[str] = []
+    try:
+        pagina = await nueva_pagina(navegador)
+        await pagina.goto(f"{base}/")
+        await pagina.wait_for_load_state("networkidle")
+        boton = pagina.locator(".cabecera a[href='/login']")
+        await playwright_async.expect(boton).to_have_text("Iniciar sesión")
+        await playwright_async.expect(boton).to_be_in_viewport()
+        antes = await pagina.evaluate(ESTADO_REVELAR)
+        assert antes and not all(e["visible"] for e in antes)  # hay secciones bajo el pliegue
+        await desplazar_hasta_el_final(pagina)
+        despues = await pagina.evaluate(ESTADO_REVELAR)
+        assert all(e["visible"] and e["opacidad"] == "1" for e in despues), despues
+        await medir(pagina, "/", problemas)
+        for ruta in ("/terminos", "/privacidad"):
+            await pagina.goto(f"{base}{ruta}")
+            await playwright_async.expect(boton).to_be_in_viewport()
+            await medir(pagina, ruta, problemas)
+    finally:
+        app.state.correo_contacto = ""
+    assert not problemas, "Problemas a 360 × 740:\n" + "\n".join(problemas)
+    assert not pagina.violaciones_csp, "\n".join(pagina.violaciones_csp)
+
+
+async def test_pagina_publica_sin_movimiento_ni_javascript(servidor_web, navegador):
+    """RNF-20: con `prefers-reduced-motion` todo se ve sin animar; sin JavaScript, también."""
+    base = servidor_web
+    for opciones in ({"reduced_motion": "reduce"}, {"java_script_enabled": False}):
+        contexto = await navegador.new_context(viewport=VIEWPORT, **opciones)
+        pagina = await contexto.new_page()
+        await pagina.goto(f"{base}/")
+        await pagina.wait_for_load_state("networkidle")
+        estados = await pagina.evaluate(ESTADO_REVELAR)
+        assert estados, opciones
+        for estado in estados:
+            assert (estado["opacidad"], estado["transformacion"]) == ("1", "none"), opciones
+        if "reduced_motion" in opciones:  # los diamantes tampoco flotan
+            animaciones = await pagina.evaluate(
+                "() => [...document.querySelectorAll('.flotar')]"
+                ".map(el => getComputedStyle(el).animationName)"
+            )
+            assert animaciones and set(animaciones) == {"none"}
+        await contexto.close()
