@@ -51,6 +51,7 @@ async def lifespan(app: FastAPI):
     app.state.limitador_peticiones = LimitadorPorUsuario(PETICIONES_USUARIO_POR_MINUTO)
     app.state.limitador_anonimo = LimitadorPorUsuario(PETICIONES_ANONIMAS_POR_MINUTO)
     app.state.cabecera_ip = config.client_ip_header
+    app.state.correo_contacto = config.contact_email
     # RN-09: pedidos que quedaron en PROCESANDO por un reinicio pasan a revisión.
     async with app.state.sesiones() as sesion:
         await recuperar_pedidos_huerfanos(sesion)

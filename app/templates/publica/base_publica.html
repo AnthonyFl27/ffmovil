@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="FFMovil: plataforma de recargas de diamantes de Free Fire con cuenta prepago.">
+  <title>{% block titulo %}Recargas de diamantes de Free Fire{% endblock %} · FFMovil</title>
+  {# Tema propio de las páginas públicas: no cargan Pico.css, HTMX ni el CSRF (plan sec. 6.3). #}
+  <link rel="stylesheet" href="{{ estatico("inicio.css") }}">
+  <link rel="icon" type="image/png" href="{{ estatico("favicon.png") }}">
+  <link rel="apple-touch-icon" href="{{ estatico("apple-touch-icon.png") }}">
+  <script src="{{ estatico("inicio.js") }}"></script>
+</head>
+<body class="publica">
+  <header class="cabecera">
+    <div class="contenedor cabecera-fila">
+      <a href="/" class="marca"><img src="{{ estatico("inicio/logo-f.webp") }}" alt="" width="47" height="40"><span>FFMovil</span></a>
+      <a href="/login" class="boton">Iniciar sesión</a>
+    </div>
+  </header>
+  <main>
+    {% block contenido %}{% endblock %}
+  </main>
+  {% include "publica/_pie.html" %}
+</body>
+</html>

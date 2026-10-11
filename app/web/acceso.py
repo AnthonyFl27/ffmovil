@@ -17,6 +17,7 @@ from app.web.plantillas import (
     render,
     sesion_opcional,
 )
+from app.web.publica import render_publica
 
 router = APIRouter(include_in_schema=False)
 
@@ -24,10 +25,11 @@ SesionOpcional = Annotated[SesionActual | None, Depends(sesion_opcional)]
 
 
 @router.get("/")
-async def raiz(actual: SesionOpcional):
-    """Lleva al inicio del rol, a cambiar la clave o a entrar."""
-    destino = inicio_de(actual) if actual is not None else PAGINA_ENTRAR
-    return RedirectResponse(destino, status_code=303)
+async def raiz(request: Request, actual: SesionOpcional):
+    """Con sesión lleva al inicio del rol o a cambiar la clave; sin ella, la presentación (RF-58)."""
+    if actual is not None:
+        return RedirectResponse(inicio_de(actual), status_code=303)
+    return render_publica(request, "publica/inicio.html")
 
 
 @router.get("/login")

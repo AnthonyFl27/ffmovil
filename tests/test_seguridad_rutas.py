@@ -17,7 +17,9 @@ PUBLICAS = {
     "/health",
     "/login",
     "/auth/login",
-    "/",  # solo redirige: a /login sin sesión
+    # Páginas públicas (RF-58, RF-59): GET sin efectos, sin datos de cuenta; `/` redirige
+    # a quien tiene sesión.
+    "/",
 }
 
 

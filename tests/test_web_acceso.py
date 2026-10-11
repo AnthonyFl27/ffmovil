@@ -19,9 +19,10 @@ async def test_entrar_muestra_formulario_sin_token(api):
 
 async def test_sin_sesion_redirige_a_entrar(api):
     cliente = api()
-    for ruta in ("/", "/clave"):
-        respuesta = await cliente.get(ruta)
-        assert (respuesta.status_code, respuesta.headers["location"]) == (303, "/login")
+    respuesta = await cliente.get("/clave")
+    assert (respuesta.status_code, respuesta.headers["location"]) == (303, "/login")
+    # Sin sesión, `/` ya no redirige: muestra la presentación (RF-58, tests/test_publica.py).
+    assert (await cliente.get("/")).status_code == 200
     respuesta = await htmx_get(cliente, "/clave")
     assert respuesta.headers["HX-Redirect"] == "/login"
 

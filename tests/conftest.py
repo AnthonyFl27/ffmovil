@@ -131,6 +131,7 @@ async def api(motor_bd, simulador):
         simulador.api_key, "http://simulador/api/reseller", transport=simulador.transporte()
     )
     app.state.tareas_recarga = set()
+    app.state.correo_contacto = ""
     clientes = []
 
     def nuevo(ip: str = "127.0.0.1") -> httpx.AsyncClient:

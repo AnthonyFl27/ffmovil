@@ -1,0 +1,30 @@
+<footer class="pie">
+  <div class="contenedor">
+    <div class="pie-columnas">
+      <div class="pie-marca">
+        <a href="/" class="marca"><img src="{{ estatico("inicio/logo-f.webp") }}" alt="" width="47" height="40" loading="lazy"><span>FFMovil</span></a>
+        <p>Plataforma de recargas de diamantes de Free Fire para revendedores con cuenta prepago.</p>
+      </div>
+      <nav class="pie-columna" aria-labelledby="pie-legal">
+        <h2 id="pie-legal">Legal</h2>
+        <ul>
+          <li><a href="/terminos">Términos y Condiciones</a></li>
+          <li><a href="/privacidad">Política de Privacidad</a></li>
+        </ul>
+      </nav>
+      {% if correo %}
+      <div class="pie-columna">
+        <h2>Contacto</h2>
+        <ul>
+          <li><a href="mailto:{{ correo }}" class="pie-correo">{{ correo }}</a></li>
+        </ul>
+      </div>
+      {% endif %}
+    </div>
+    <p class="aviso-marcas">Free Fire y Garena son marcas registradas de sus titulares. Este sitio no está patrocinado ni avalado por Garena.</p>
+    <div class="pie-final">
+      <p>© {{ anio }} FFMovil • Todos los derechos reservados</p>
+      <a href="https://www.cloudflare.com/" class="sello" rel="noopener noreferrer"><img src="{{ estatico("cloudflare.png") }}" alt="Protected by Cloudflare" width="140" height="52" loading="lazy"></a>
+    </div>
+  </div>
+</footer>

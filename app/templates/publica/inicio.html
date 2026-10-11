@@ -1,0 +1,63 @@
+{% extends "publica/base_publica.html" %}
+{% block contenido %}
+<section class="portada">
+  <div class="contenedor portada-fila">
+    <div class="portada-texto">
+      <img class="logo-juego" src="{{ estatico("inicio/freefire-blanco.webp") }}" alt="Free Fire" width="640" height="145">
+      <h1>Ya puedes vender diamantes a tus propios clientes usando nuestros precios y nuestra plataforma.</h1>
+      <a href="/login" class="boton boton-grande">Iniciar sesión</a>
+    </div>
+    <div class="portada-imagenes">
+      <img class="cofre" src="{{ estatico("inicio/cofre.webp") }}" alt="Cofre lleno de diamantes" width="469" height="295">
+      <img class="flotar" src="{{ estatico("inicio/diamantes.webp") }}" alt="Diamantes de Free Fire" width="332" height="180">
+    </div>
+  </div>
+</section>
+
+<section class="pasos" aria-labelledby="titulo-pasos">
+  <div class="contenedor">
+    <h2 id="titulo-pasos">Recargar es así de simple</h2>
+    <ol class="pasos-lista">
+      <li class="paso revelar">
+        <img src="{{ estatico("inicio/maletin.webp") }}" alt="" width="384" height="169" loading="lazy">
+        <span class="paso-numero">1</span>
+        <h3>Recibe tu cuenta</h3>
+        <p>El administrador crea tu cuenta y te entrega tu usuario y una contraseña temporal.</p>
+      </li>
+      <li class="paso revelar">
+        <img src="{{ estatico("inicio/cofre.webp") }}" alt="" width="469" height="295" loading="lazy">
+        <span class="paso-numero">2</span>
+        <h3>Ten saldo abonado</h3>
+        <p>Tu cuenta es prepago: el administrador abona el saldo que usarás en tus recargas.</p>
+      </li>
+      <li class="paso revelar">
+        <img src="{{ estatico("inicio/diamantes.webp") }}" alt="" width="332" height="180" loading="lazy">
+        <span class="paso-numero">3</span>
+        <h3>Recarga con el Player ID</h3>
+        <p>Escribe el Player ID del jugador, comprueba su nombre, elige el paquete y confirma.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section class="destacado">
+  <div class="contenedor destacado-fila">
+    <img class="personaje revelar desde-izquierda" src="{{ estatico("inicio/personaje-1.webp") }}" alt="Personaje de Free Fire" width="800" height="620" loading="lazy">
+    <div class="destacado-texto revelar">
+      <h2>Tus pedidos, siempre a la vista</h2>
+      <p>Consulta el estado de cada recarga y los movimientos de tu saldo desde tu cuenta.</p>
+    </div>
+  </div>
+</section>
+
+<section class="destacado destacado-invertido">
+  <div class="contenedor destacado-fila">
+    <img class="personaje revelar desde-derecha" src="{{ estatico("inicio/personaje-2.webp") }}" alt="Personaje de Free Fire" width="800" height="834" loading="lazy">
+    <div class="destacado-texto revelar">
+      <h2>Pensada para el celular</h2>
+      <p>Recarga desde tu teléfono, donde estés, con la misma cuenta que usas en la computadora.</p>
+      <a href="/login" class="boton">Iniciar sesión</a>
+    </div>
+  </div>
+</section>
+{% endblock %}
