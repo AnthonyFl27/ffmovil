@@ -1,0 +1,46 @@
+{% extends "publica/base_publica.html" %}
+{% block titulo %}Política de Privacidad{% endblock %}
+{% block contenido %}
+<article class="contenedor legal">
+  <a href="/" class="volver">← Volver al inicio</a>
+  <h1>Política de Privacidad</h1>
+  <p class="actualizado">Última actualización: 10 de octubre de 2026</p>
+  <section>
+    <h2>1. Datos que guardamos</h2>
+    <p>Para operar el servicio guardamos:</p>
+    <ul>
+      <li>Tu nombre de usuario.</li>
+      <li>Tu contraseña, cifrada con un algoritmo de hash. Nunca se guarda en texto plano.</li>
+      <li>Los movimientos de tu saldo.</li>
+      <li>Tus pedidos: Player ID, nombre del jugador y estado.</li>
+      <li>La dirección IP desde la que accedes.</li>
+      <li>Un registro de auditoría de acciones relevantes: inicios de sesión, cambios de contraseña, abonos y ajustes, y acciones del administrador.</li>
+    </ul>
+  </section>
+  <section>
+    <h2>2. Para qué los usamos</h2>
+    <p>Usamos estos datos para operar tu cuenta, ejecutar y registrar las recargas, llevar la contabilidad de tu saldo, proteger la seguridad del servicio y prevenir abusos.</p>
+  </section>
+  <section>
+    <h2>3. Proveedor de recargas y Cloudflare</h2>
+    <p>Las recargas las ejecuta un proveedor externo. Al proveedor solo le enviamos el Player ID y el paquete que compras.</p>
+    <p>El sitio funciona detrás de Cloudflare, que procesa el tráfico para protegerlo.</p>
+  </section>
+  <section>
+    <h2>4. Cookies</h2>
+    <p>Usamos una cookie de sesión de tipo <code>HttpOnly</code>, necesaria para mantener tu sesión iniciada. No usamos cookies de publicidad, de analítica ni rastreadores de terceros.</p>
+  </section>
+  <section>
+    <h2>5. Conservación</h2>
+    <p>Conservamos tus datos mientras tu cuenta exista y mientras el registro contable lo requiera. Los movimientos de saldo no se borran.</p>
+  </section>
+  <section>
+    <h2>6. Tus derechos</h2>
+    <p>Puedes pedir acceso o corrección de tus datos escribiendo al contacto de la sección 7.</p>
+  </section>
+  <section>
+    <h2>7. Contacto</h2>
+    <p>Para consultas o para pedir acceso o corrección de tus datos, contacta con {% if correo %}<a href="mailto:{{ correo }}">{{ correo }}</a>{% else %}el administrador que creó tu cuenta{% endif %}.</p>
+  </section>
+</article>
+{% endblock %}

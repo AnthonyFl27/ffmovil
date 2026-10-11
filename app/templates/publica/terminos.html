@@ -1,0 +1,52 @@
+{% extends "publica/base_publica.html" %}
+{% block titulo %}Términos y Condiciones{% endblock %}
+{% block contenido %}
+<article class="contenedor legal">
+  <a href="/" class="volver">← Volver al inicio</a>
+  <h1>Términos y Condiciones</h1>
+  <p class="actualizado">Última actualización: 10 de octubre de 2026</p>
+  <section>
+    <h2>1. Qué es el servicio</h2>
+    <p>FFMovil es una plataforma web para revendedores de diamantes de Free Fire. Las recargas se ejecutan a través de un proveedor externo de recargas.</p>
+  </section>
+  <section>
+    <h2>2. Cuentas</h2>
+    <p>No hay registro abierto. Tu cuenta la crea el administrador. La cuenta es de uso personal e intransferible: no la compartas ni la cedas a otra persona.</p>
+    <p>Al crear tu cuenta recibes una contraseña temporal. Debes cambiarla en tu primer ingreso; la nueva debe tener de 8 a 128 caracteres.</p>
+    <p>El administrador puede bloquear una cuenta. Si se fallan varios intentos de ingreso, el ingreso se bloquea temporalmente. La sesión vence tras 8 horas sin actividad.</p>
+  </section>
+  <section>
+    <h2>3. Saldo prepago</h2>
+    <p>Tu saldo es prepago. El administrador lo abona de forma manual después de recibir el pago por fuera de la plataforma. En el sitio no hay pasarela de pago y el saldo no se retira de forma automática.</p>
+    <p>El saldo nunca queda en negativo. Cada recarga descuenta el precio de venta vigente al momento de crear el pedido. Cada movimiento de saldo queda registrado y no se borra.</p>
+  </section>
+  <section>
+    <h2>4. Recargas y estados del pedido</h2>
+    <p>Antes de recargar, la plataforma valida el Player ID y muestra el nombre del jugador. Confirmar que el Player ID es el correcto es responsabilidad tuya: una recarga entregada no se puede revertir.</p>
+    <p>Un pedido puede estar en uno de estos estados:</p>
+    <ul>
+      <li><strong>Procesando:</strong> el saldo está reservado.</li>
+      <li><strong>Exitoso:</strong> el saldo quedó cobrado.</li>
+      <li><strong>Fallido:</strong> se muestra el motivo y el saldo reservado se libera.</li>
+      <li><strong>En revisión:</strong> no se pudo confirmar el resultado con el proveedor. El saldo queda retenido mientras el administrador lo revisa y lo resuelve como exitoso o fallido. Un pedido en revisión nunca se reintenta de forma automática.</li>
+    </ul>
+    <p>Los pedidos tienen límites de cantidad por minuto.</p>
+  </section>
+  <section>
+    <h2>5. Disponibilidad</h2>
+    <p>El servicio depende del proveedor de recargas y puede no estar disponible en algún momento, por ejemplo cuando el proveedor está ocupado, cuando el catálogo no tiene paquetes o por mantenimiento.</p>
+  </section>
+  <section>
+    <h2>6. Marcas de Garena</h2>
+    <p>FFMovil no es un servicio de Garena. Free Fire y Garena son marcas registradas de sus titulares. Este sitio no está patrocinado ni avalado por Garena.</p>
+  </section>
+  <section>
+    <h2>7. Cambios en estos términos</h2>
+    <p>Podemos modificar estos términos. Los cambios se publicarán en esta página con la fecha de actualización.</p>
+  </section>
+  <section>
+    <h2>8. Contacto</h2>
+    <p>Para consultas sobre estos términos, contacta con {% if correo %}<a href="mailto:{{ correo }}">{{ correo }}</a>{% else %}el administrador que creó tu cuenta{% endif %}.</p>
+  </section>
+</article>
+{% endblock %}

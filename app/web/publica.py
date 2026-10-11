@@ -25,3 +25,13 @@ def render_publica(request: Request, plantilla: str) -> Response:
         anio=datetime.now(UTC).year,
         correo=getattr(request.app.state, "correo_contacto", ""),
     )
+
+
+@router.get("/terminos")
+async def terminos(request: Request, _actual: SesionOpcional):
+    return render_publica(request, "publica/terminos.html")
+
+
+@router.get("/privacidad")
+async def privacidad(request: Request, _actual: SesionOpcional):
+    return render_publica(request, "publica/privacidad.html")

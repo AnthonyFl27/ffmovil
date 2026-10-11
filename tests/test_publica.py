@@ -16,7 +16,7 @@ from app.main import app
 from tests.utilidades_api import CLAVE, crear_usuario_con_clave, iniciar_sesion
 from tests.utilidades_web import htmx_post
 
-PUBLICAS = ("/",)
+PUBLICAS = ("/", "/terminos", "/privacidad")
 LEGALES = ("/terminos", "/privacidad")
 TITULOS = {"/terminos": "Términos y Condiciones", "/privacidad": "Política de Privacidad"}
 TEXTO_PORTADA = (
@@ -143,10 +143,47 @@ async def test_la_ruta_publica_cuenta_en_el_tope_anonimo(api, simulador):
 
     app.state.limitador_anonimo = LimitadorPorUsuario(3)
     http = api("203.0.113.40")
-    for _ in range(3):
-        assert (await http.get("/")).status_code == 200
+    for ruta in PUBLICAS:
+        assert (await http.get(ruta)).status_code == 200
     r = await http.get("/")
     assert r.status_code == 429 and "Demasiadas peticiones" in r.text
+    assert (await http.get("/terminos")).status_code == 429
+
+
+# --- T-123: páginas legales (RF-59, CA-10) -------------------------------------------
+
+
+@pytest.mark.parametrize("ruta", LEGALES)
+async def test_legales_sin_sesion(api, ruta, correo):
+    """RF-59: 200 sin sesión, mismo encabezado y pie, enlace de vuelta y contacto."""
+    r = await api().get(ruta, follow_redirects=False)
+    assert r.status_code == 200
+    html = r.text
+    assert f"<h1>{TITULOS[ruta]}</h1>" in html
+    assert 'class="volver"' in html and 'href="/"' in html
+    assert 'href="/login"' in html and 'class="cabecera"' in html
+    assert html.count(f'href="mailto:{correo}"') >= 2  # en el texto y en el pie
+    _pie_completo(html)
+
+
+async def test_legales_describen_el_servicio(api):
+    """RF-59: el servicio tal como es y los datos que se guardan."""
+    terminos = (await api().get("/terminos")).text
+    for frase in ("administrador", "prepago", "Player ID", "En revisión", "proveedor"):
+        assert frase in terminos, frase
+    privacidad = (await api().get("/privacidad")).text
+    for frase in ("contraseña", "IP", "auditoría", "Player ID", "HttpOnly", "movimientos"):
+        assert frase in privacidad, frase
+
+
+@pytest.mark.parametrize("ruta", LEGALES)
+async def test_legales_con_sesion_no_redirigen(api, sesion_bd, ruta):
+    """RF-59 y CA-10: con sesión (cliente o con cambio pendiente) también responden 200."""
+    for datos in ({"rol": "cliente"}, {"rol": "admin"}, {"debe_cambiar_clave": True}):
+        usuario = await crear_usuario_con_clave(sesion_bd, **datos)
+        http = api()
+        await iniciar_sesion(http, usuario.usuario)
+        assert (await http.get(ruta, follow_redirects=False)).status_code == 200
 
 
 # --- CA-10: ninguna de las tres usa VentasFF ni lee paquetes, saldos o pedidos -------
@@ -164,6 +201,8 @@ async def test_no_leen_datos_del_negocio_ni_llaman_a_ventasff(api, sesion_bd, mo
         with consultas_sql(motor_bd) as sql:
             for ruta in PUBLICAS:
                 assert (await sin_sesion.get(ruta)).status_code == 200
+            for ruta in LEGALES:
+                assert (await con_sesion.get(ruta)).status_code == 200
     finally:
         app.state.ventasff = real
     for tabla in ("paquetes", "saldos", "pedidos", "movimientos"):
