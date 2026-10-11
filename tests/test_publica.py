@@ -179,13 +179,22 @@ async def test_legales_describen_el_servicio(api):
         "prepago",
         "Player ID",
         "En revisión",
-        "10. Política de reembolsos",
-        "15. Ley aplicable",
+        "9. Clientes menores de edad",
+        "consentimiento de su padre, madre o tutor legal",
+        "11. Política de reembolsos",
+        "16. Ley aplicable",
     ):
         assert frase in terminos, frase
     assert "otras monedas" not in terminos  # la app solo muestra USD (RF-36)
     privacidad = (await api().get("/privacidad")).text
-    for frase in ("contraseña", "dirección IP", "Player ID", "8. Cookies", "registro contable"):
+    for frase in (
+        "contraseña",
+        "dirección IP",
+        "Player ID",
+        "8. Cookies",
+        "registro contable",
+        "tutor legal",
+    ):
         assert frase in privacidad, frase
     # Solo hay cookie de sesión: el CSRF no usa cookie (RF-04).
     assert "una cookie técnica, necesaria para mantener tu sesión iniciada" in privacidad
