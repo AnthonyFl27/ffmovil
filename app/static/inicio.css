@@ -200,9 +200,9 @@ a:focus-visible {
    posiciones son porcentajes de la imagen, así siguen a la mano en cualquier ancho. */
 .flotar {
   position: absolute;
-  top: 15%;
+  top: 21%;
   left: 0;
-  width: 26%;
+  width: 19%;
   height: auto;
   filter: drop-shadow(0 0 14px rgba(90, 160, 255, 0.75));
 }
@@ -570,11 +570,11 @@ a:focus-visible {
   @keyframes flotar {
     0%,
     100% {
-      transform: translateY(-8px);
+      transform: translateY(-5px);
     }
 
     50% {
-      transform: translateY(8px);
+      transform: translateY(5px);
     }
   }
 }

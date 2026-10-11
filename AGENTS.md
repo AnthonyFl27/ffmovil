@@ -109,7 +109,7 @@ VENTASFF_URL=http://127.0.0.1:8099/api/reseller VENTASFF_API_KEY=rv_c_simulador 
   uv run uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload --reload-dir app
 ```
 
-Con `--reload` la app se reinicia sola al cambiar el código; al terminar, cerrar la app y el simulador.
+Con `--reload` la app se reinicia sola al cambiar el código `.py`; un cambio solo en CSS, JS o imágenes no la reinicia y `estatico()` sigue sirviendo la versión vieja (`?v=` se calcula una vez): tocar un `.py` (p. ej. `touch app/web/plantillas.py`) y recargar. Al terminar, cerrar la app y el simulador.
 
 **Regla: túnel de Cloudflare.** Cuando el usuario pida arrancar la app, el LLM la levanta y **siempre le pregunta** si quiere abrir el túnel de Cloudflare (`cloudflared tunnel --url http://localhost:8000`, en segundo plano). Sin respuesta afirmativa no se abre. Si se abre, dar la URL temporal (cambia en cada arranque), avisar de que queda pública con las cuentas de la BD de desarrollo y, al terminar la sesión, cerrar el túnel junto con la app y el simulador.
 
