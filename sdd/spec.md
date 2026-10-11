@@ -1,6 +1,6 @@
 # Especificación: Plataforma de recargas Free Fire (prepago)
 
-- **Versión:** 0.19.0
+- **Versión:** 0.20.0
 - **Estado:** Borrador aprobado para iniciar desarrollo
 - **Fuente de verdad:** este archivo. El código y el plan se derivan de aquí.
 
@@ -18,6 +18,7 @@ Web de recargas de diamantes de Free Fire para clientes revendedores con cuentas
 - Catálogo, recarga, historial y fondos del cliente.
 - Panel admin: usuarios, abonos manuales, pedidos, configuración, ganancia propia.
 - Publicación en `https://ffmovil.com` con HTTPS (Caddy), detrás de Cloudflare, en dos fases: primero una página «Próximamente» y, al lanzar, la app (RNF-18, RNF-19).
+- Página pública de presentación en `/` y páginas legales «Términos y Condiciones» y «Política de Privacidad» (RF-58, RF-59).
 
 **Fuera (v1):**
 - Mobile Legends (requiere Zone ID; sin probar en VentasFF).
@@ -103,6 +104,11 @@ Web de recargas de diamantes de Free Fire para clientes revendedores con cuentas
 - **RF-54** Ganancia propia: `precio_venta − precio_costo` por pedido exitoso, con totales por rango de fechas.
 - **RF-55** Registro de auditoría de acciones del admin.
 
+### 5.7 Página pública y legales
+
+- **RF-58** `GET /` sin sesión válida muestra una página pública de presentación, con tema azul oscuro y blanco, que contiene: (a) un encabezado con el logo, el nombre «FFMovil» y el botón «Iniciar sesión» hacia `/login`, visible sin desplazarse a 360 × 740 px; (b) un bloque principal con el texto «Ya puedes vender diamantes a tus propios clientes usando nuestros precios y nuestra plataforma.», el mismo botón e imágenes de diamantes; (c) los tres pasos para recargar (recibir la cuenta que crea el administrador, tener saldo abonado, recargar con el Player ID); (d) secciones con imágenes de personajes que aparecen con una animación al desplazar la página; (e) un pie con el nombre «FFMovil» y una descripción breve, los enlaces «Términos y Condiciones» y «Política de Privacidad» (RF-59), el correo de contacto, «© <año actual> FFMovil • Todos los derechos reservados», el aviso «Free Fire y Garena son marcas registradas de sus titulares. Este sitio no está patrocinado ni avalado por Garena.» y el sello «Protected by Cloudflare». No muestra precios, importes, paquetes, saldos ni datos de cuenta; no lee paquetes, saldos ni pedidos y no llama a VentasFF. El pie no incluye selector de idioma ni de moneda, sección de ayuda ni WhatsApp. El correo de contacto se define fuera del repositorio (RNF-06); si no está definido, la línea de contacto no se muestra. Con sesión válida, `/` sigue llevando al inicio del rol o a cambiar la clave (RF-02).
+- **RF-59** `GET /terminos` y `GET /privacidad` muestran las páginas «Términos y Condiciones» y «Política de Privacidad», sin requerir sesión y sin redirigir a quien la tiene, con el mismo encabezado y pie que `/` y un enlace de vuelta a `/`. El texto describe el servicio tal como es (cuentas creadas por el administrador, saldo prepago abonado de forma manual, recargas ejecutadas a través de un proveedor, pedidos y sus estados, incluido el pedido en revisión) y los datos que se guardan (usuario, contraseña cifrada, movimientos de saldo, pedidos con su Player ID, IP de acceso y registro de auditoría), para qué se usan y a quién contactar. No promete reembolsos, plazos ni garantías que la spec no defina. El dueño revisa y aprueba el texto antes del lanzamiento; es un borrador de contenido y no sustituye asesoría legal.
+
 ## 6. Reglas de negocio
 
 - **RN-01** El saldo del cliente nunca puede quedar negativo.
@@ -156,6 +162,7 @@ Transiciones permitidas:
 - **RNF-17** Tope general de peticiones: con sesión válida, 120 por minuto por usuario; sin sesión válida (login, páginas públicas, sesión vencida o ausente), 60 por minuto por IP (la de RNF-16). Superado el tope se responde 429 con el mensaje «Demasiadas peticiones. Espera un momento e inténtalo de nuevo.»; las peticiones rechazadas no cuentan. Quedan fuera `/static` y `/health`. Los topes de RF-05, RF-56 y RF-57 se aplican además de este. Tras un proxy, el tope por IP solo distingue clientes si se define `CLIENT_IP_HEADER` (RNF-16).
 - **RNF-18** `ffmovil.com` es la dirección canónica y `www.ffmovil.com` redirige a ella con una redirección permanente; el HTTP simple redirige a HTTPS. El tráfico pasa por Cloudflare (proxy, SSL/TLS en Full strict) y Caddy, con certificado válido y renovación automática. Hasta el lanzamiento, `https://ffmovil.com` muestra solo una página estática «Próximamente» y la app no está desplegada ni es accesible desde internet. En el VPS el firewall solo admite SSH, 80 y 443, y la app nunca publica su puerto: solo Caddy la alcanza por la red Docker.
 - **RNF-19** Con la app detrás de Cloudflare y Caddy, Caddy solo acepta `CF-Connecting-IP` de conexiones que vienen de Cloudflare y entrega la IP real a la app en una cabecera propia que reemplaza cualquier valor enviado por el cliente; la app la toma con `CLIENT_IP_HEADER` (RNF-16). Así el límite de login (RF-05) y la auditoría (RF-55) ven la IP del cliente, y una cabecera falsa de quien no pasa por Cloudflare no se acepta.
+- **RNF-20** Páginas públicas ligeras y accesibles (RF-58, RF-59): cada imagen pesa a lo sumo 150 KB y todas juntas a lo sumo 800 KB; las imágenes bajo el primer pliegue se cargan de forma diferida y todas llevan `width`, `height` y texto alternativo; las animaciones al desplazar solo usan `transform` y `opacity`, se activan con JavaScript propio servido desde `/static` (sin librerías ni scripts en línea, RNF-14) y se desactivan con `prefers-reduced-motion`; sin JavaScript todo el contenido sigue visible; sin fuentes, imágenes ni scripts de otros dominios.
 
 ## 9. Contrato externo (VentasFF)
 
@@ -193,6 +200,7 @@ Limitaciones: sin endpoint de estado de pedido; `recargar.php` no acepta otros c
 - **CA-07** En un viewport de 360 × 740 px, ninguna pantalla de cliente ni de admin hace que el ancho del documento supere el del viewport, y todo control interactivo mide al menos 44 px de lado. Se verifica con una prueba automatizada de navegador.
 - **CA-08** Si `productos.php` responde sin ningún paquete `free_fire`, los paquetes activos siguen activos, el resultado de la sincronización lo indica y queda una alerta activa `catalogo_vacio`; una segunda sincronización vacía no crea otra alerta.
 - **CA-09** Con la página «Próximamente» publicada, `https://ffmovil.com` responde 200 con certificado válido, `http://ffmovil.com` y `https://www.ffmovil.com` redirigen a `https://ffmovil.com`, el puerto 8000 no responde desde internet y la página lleva las cabeceras de seguridad de RNF-14. Con la app desplegada (fase 2), 5 intentos fallidos desde una IP no bloquean al mismo usuario desde otra IP y la auditoría muestra la IP del cliente. Se verifica en el despliegue; los archivos de configuración tienen además pruebas automáticas.
+- **CA-10** `GET /` sin sesión responde 200 y contiene el botón «Iniciar sesión» hacia `/login`, los enlaces a `/terminos` y `/privacidad`, el aviso de marcas y el sello de Cloudflare, y no contiene precios ni importes; con sesión (cliente, admin o con cambio de clave pendiente) redirige como antes. `/terminos` y `/privacidad` responden 200 con y sin sesión. Ninguna de las tres llama a VentasFF ni lee paquetes, saldos o pedidos. Cada imagen pesa ≤ 150 KB y el total ≤ 800 KB (RNF-20). A 360 × 740 px cumplen CA-07, el botón «Iniciar sesión» es visible sin desplazarse y la prueba de navegador no registra violaciones de CSP (RNF-14).
 
 ## 11. Preguntas abiertas
 
@@ -204,6 +212,7 @@ Limitaciones: sin endpoint de estado de pedido; `recargar.php` no acepta otros c
 | Q-04 | Expiración de sesión. | Resuelta (CHG-007): 8 h de inactividad (RF-06) |
 | Q-05 | Frontend: Jinja2 + HTMX (propuesta) o SPA aparte. | Resuelta (CHG-008): Jinja2 + HTMX servidos por FastAPI |
 | Q-06 | Umbral de alerta de crédito bajo en VentasFF. | Resuelta (CHG-006): 10 USD, editable (RN-11) |
+| Q-07 | Derechos de uso del logo de Free Fire y de las imágenes de personajes y objetos de Garena en una página pública y en un repositorio público. | Abierta (CHG-021); no bloquea el desarrollo, el aviso de marcas de RF-58 se incluye de todos modos |
 
 ## 12. Registro de cambios
 

@@ -1,6 +1,6 @@
 # Plan técnico
 
-- **Spec de referencia:** `sdd/spec.md` v0.19.0
+- **Spec de referencia:** `sdd/spec.md` v0.20.0
 - **Regla:** este plan implementa la spec. Si el plan contradice la spec, gana la spec.
 
 ---
@@ -286,7 +286,8 @@ Paquete `app/web/`: rutas HTML (sin `include_in_schema`) que llaman a las funcio
 
 | Ruta | Pantalla | Usa |
 |---|---|---|
-| `/` | Redirige según rol (`/inicio` o `/gestion`) o a `/login` | — |
+| `/` | Con sesión, redirige según rol (`/inicio`, `/gestion` o `/clave`); sin sesión, página pública de presentación (RF-58; CHG-021) | — |
+| `/terminos`, `/privacidad` | Términos y Condiciones y Política de Privacidad, públicas (RF-59; CHG-021) | — |
 | `/login` (GET/POST) | Login | `/auth/login` |
 | `/clave` (GET/POST) | Cambio de contraseña (obligatorio si `debe_cambiar_clave`) | `/auth/cambiar-clave` |
 | `/salir` (POST) | Cierra sesión | `/auth/logout` |
@@ -319,6 +320,19 @@ Paquete `app/web/`: rutas HTML (sin `include_in_schema`) que llaman a las funcio
 - **Estáticos con versión:** las plantillas enlazan `app/static` con `estatico("archivo")`, que añade `?v=<hash del contenido>`; un CSS o JS nuevo nunca se mezcla con uno viejo en la caché del navegador.
 - **Prueba (detalle):** `tests/test_movil_navegador.py` sirve la app con uvicorn como tarea del event loop de pytest (fixture `servidor_web`, mismo estado que la fixture `api`) y usa Playwright async en ese loop; al medir abre y cierra el menú plegable.
 - **Verificación manual:** un celular real (T-105), a cargo del dueño.
+
+### 6.3 Página pública y legales (RF-58, RF-59, RNF-20, CA-10, CHG-021)
+
+- **Archivos:** `app/web/publica.py` (`GET /terminos`, `GET /privacidad`); `GET /` sigue en `app/web/acceso.py` (`raiz`): con sesión redirige como hoy y sin sesión renderiza `publica/inicio.html`. Plantillas en `app/templates/publica/` (`base_publica.html`, `inicio.html`, `terminos.html`, `privacidad.html`, `_pie.html`). Estáticos: `app/static/inicio.css`, `app/static/inicio.js` y las imágenes en `app/static/inicio/`. Las plantillas públicas **no** extienden `base.html` (no cargan Pico.css, HTMX ni el CSRF del `<body>`): tienen su propio CSS y no llevan formularios. El resto de la app no cambia de tema.
+- **Sesión y topes:** las tres rutas usan `sesion_opcional` (ya aplica el tope por IP de RNF-17 a quien no tiene sesión). `/` redirige a quien la tiene; `/terminos` y `/privacidad` se muestran siempre. Salir y sesión vencida siguen llevando a `/login`. Son GET sin efectos: no llevan CSRF; el inventario de `tests/test_seguridad_rutas.py` las registra como públicas.
+- **Configuración:** `CONTACT_EMAIL` (opcional) en `app/config.py` y `.env.example`, nunca en el repo (RNF-06). Se muestra como enlace `mailto:` en el pie y en las páginas legales; sin valor, la línea de contacto se omite.
+- **Tema:** variables CSS en `inicio.css`: `--fondo` #0a1128 (azul oscuro), `--superficie` #111c3d, `--azul` #2f6bff (acento y botón principal), `--texto` #ffffff, `--texto-suave` #b9c4e4. Contraste de texto ≥ 4.5:1 sobre su fondo. Pila de fuentes del sistema (sin fuentes externas).
+- **Imágenes** (WebP en `app/static/inicio/`, generadas desde los originales del dueño en T-121): logo «F» amarilla (encabezado y pie), logo de Free Fire en versión blanca para el fondo oscuro, diamantes y cofres (bloque principal y pasos) y dos personajes (secciones que aparecen al desplazar). Cada `<img>` con `width`, `height`, `alt`; `loading="lazy"` bajo el primer pliegue. Los originales no entran al repositorio. La decisión sobre publicar en el repositorio el arte de Garena es la pregunta abierta Q-07.
+- **Animaciones:** `inicio.js` (cargado en `<head>`, sin `defer`) añade la clase `js` a `<html>` y un `IntersectionObserver` pone `visible` a los elementos `.revelar` al entrar en pantalla; el CSS solo oculta `.js .revelar:not(.visible)` y anima `transform` y `opacity` (personajes entran desde un lado, diamantes flotan con una animación suave). Con `prefers-reduced-motion: reduce` no hay desplazamientos ni flotación. Sin JavaScript la clase `js` nunca se añade y todo se ve. Sin `style=` ni scripts en línea (RNF-14).
+- **Móvil (RNF-12, CA-07):** *mobile-first* con corte en 768 px; el botón «Iniciar sesión» queda en el encabezado y de nuevo en el bloque principal, visible sin desplazarse a 360 × 740; los enlaces del pie y el correo miden ≥ 44 px de alto (padding) para pasar la medición de áreas táctiles.
+- **Pie:** nombre y descripción, columna «Legal» (Términos y Condiciones, Política de Privacidad), columna «Contacto» (correo), línea de derechos con el año actual (`now().year` calculado en la ruta), aviso de marcas de Garena y el sello «Protected by Cloudflare» (`app/static/cloudflare.png`, ya existente; enlace a cloudflare.com con `rel="noopener noreferrer"`). Sin idioma, moneda, ayuda ni WhatsApp.
+- **Páginas legales:** texto en las plantillas, con secciones numeradas. Términos: qué es el servicio, cuentas (las crea el administrador, uso personal e intransferible, clave temporal y cambio obligatorio), saldo prepago (abono manual, sin retiro automático), recargas (Player ID correcto es responsabilidad del cliente, estados del pedido y «en revisión»), disponibilidad, marcas de Garena y contacto. Privacidad: datos que se guardan (usuario, contraseña cifrada, movimientos, pedidos con Player ID, IP, auditoría), finalidad, proveedor que ejecuta las recargas, cookie de sesión `HttpOnly`, conservación, derechos y contacto. El texto lo revisa y aprueba el dueño (T-123); no promete reembolsos ni plazos.
+- **Pruebas:** `tests/test_publica.py` (web: contenido, ausencia de precios y de código en línea, redirecciones con sesión, tope anónimo, correo opcional), `tests/test_publica_imagenes.py` (RNF-20: pesos y atributos) y el recorrido de `tests/test_movil_navegador.py` (CA-07, CA-10, sin violaciones de CSP, con y sin `prefers-reduced-motion`).
 
 ## 7. Seguridad (RNF-01 a RNF-06)
 

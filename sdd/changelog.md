@@ -183,6 +183,14 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.18.0 → 0.19.0
 - **Motivo:** el dominio ya existe y se quiere publicar algo seguro antes del lanzamiento: una página «Próximamente» con HTTPS, mientras la app se sigue desarrollando. Decisiones: `ffmovil.com` canónico y `www` redirige; firewall con 80/443/SSH abiertos (sin limitar a Cloudflare por ahora); Let's Encrypt con Caddy y Cloudflare en Full (strict); la IP real llega por una cabecera propia de Caddy y `CLIENT_IP_HEADER` (RNF-16), sin `--proxy-headers`; HSTS queda para después de unos días de HTTPS estable. La propuesta original se escribió contra la spec 0.12.0 y usaba IDs ya ocupados (CHG-014, RNF-13, RNF-14, CA-08, T-109); se renumeraron.
 
+### CHG-021 · 2026-10-11 · Página pública de presentación y páginas legales
+- **Origen:** decisión de negocio (el dueño pidió una pantalla de inicio como tarjeta de presentación, con el botón de login; aprobó RF-58 sin precios y aportó contenido, imágenes y alcance del pie)
+- **Spec:** sec. 2 modificada; sec. 5.7 añadida con RF-58 y RF-59; RNF-20 y CA-10 añadidos; Q-07 abierta
+- **Plan:** sec. 6.1 (rutas `/`, `/terminos`, `/privacidad`) y nueva sec. 6.3
+- **Tareas:** nuevas T-121 a T-124 (tareas emergentes)
+- **Versión spec:** 0.19.0 → 0.20.0
+- **Motivo:** hasta ahora `/` solo redirigía a `/login`. Al lanzar (T-120), `ffmovil.com` mostrará una presentación con el botón de login en lugar de entrar directo al formulario. Decisiones: sin precios ni paquetes en la página pública (abrir `/paquetes` a anónimos sería una decisión aparte); pie con nombre, descripción, Términos y Condiciones, Política de Privacidad, correo de contacto, derechos, aviso de marcas de Garena y sello de Cloudflare, y sin idioma, moneda, ayuda ni WhatsApp (el WhatsApp se añade después); el correo viene de la variable `CONTACT_EMAIL`, fuera del repo; tema azul oscuro y blanco solo en las páginas públicas, con CSS propio y sin tocar el resto de la app; animaciones al desplazar con JavaScript propio, solo `transform` y `opacity` y respetando `prefers-reduced-motion` (no se usan animaciones por scroll de CSS porque Firefox aún no las soporta de forma estable). Se abre Q-07: el logo de Free Fire y las imágenes de personajes y objetos son de Garena y el repositorio es público; el dueño decide si se publican en el repo, se sirven solo desde el VPS o se reemplazan por arte propio. Los textos legales son un borrador que el dueño revisa; no sustituyen asesoría legal. La página «Próximamente» (CHG-020) no cambia.
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |
