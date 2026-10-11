@@ -1,6 +1,6 @@
 # Fase 2 (CHG-020, T-120): Caddy reenvía a la app por la red Docker `ffmovil_net`.
 # Las cabeceras de seguridad (RNF-14) y `Cache-Control` las pone la propia app en todas sus
-# respuestas; aquí solo se quita la cabecera que delata el servidor.
+# respuestas; aquí solo se quitan las que delatan el servidor y se añade HSTS (RNF-21).
 {
 	servers {
 		# Cloudflare ya ofrece HTTP/3 al cliente; el origen solo habla HTTP/1.1 y HTTP/2.
@@ -23,6 +23,8 @@ ffmovil.com {
 	encode zstd gzip
 	header -Server
 	header -Via
+	# RNF-21: 1 año, sin includeSubDomains ni preload.
+	header Strict-Transport-Security "max-age=31536000"
 
 	reverse_proxy app:8000 {
 		# Reemplaza cualquier `X-Client-IP` que mande el cliente; la app lo lee con
@@ -32,5 +34,10 @@ ffmovil.com {
 }
 
 www.ffmovil.com {
-	redir https://ffmovil.com{uri} permanent
+	# `route` respeta este orden: sin él Caddy ejecuta `redir` antes que `header`
+	# y la redirección saldría sin HSTS.
+	route {
+		header Strict-Transport-Security "max-age=31536000"
+		redir https://ffmovil.com{uri} permanent
+	}
 }

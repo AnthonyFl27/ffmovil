@@ -128,3 +128,21 @@ def test_el_caddyfile_de_la_app_no_delata_el_servidor():
     cabeceras = _bloque(_caddyfile_app(), "ffmovil.com")
     assert "header -Server" in cabeceras and "header -Via" in cabeceras
     assert "Content-Security-Policy" not in cabeceras  # una sola fuente: `app/cabeceras.py`
+
+
+def test_los_dos_caddyfiles_ponen_hsts_de_un_ano_sin_subdominios_ni_preload():
+    """RNF-21, CA-09: HSTS en `ffmovil.com` y en la redirección de `www`, en ambas fases."""
+    esperado = 'Strict-Transport-Security "max-age=31536000"'
+    for texto in (_caddyfile(), _caddyfile_app()):
+        for sitio in ("ffmovil.com", "www.ffmovil.com"):
+            assert esperado in _bloque(texto, sitio), sitio
+        directivas = "\n".join(l for l in texto.splitlines() if not l.strip().startswith("#"))
+        assert "includeSubDomains" not in directivas and "preload" not in directivas.lower()
+
+
+def test_la_redireccion_de_www_pone_hsts_antes_de_redirigir():
+    """RNF-21: Caddy ejecuta `redir` antes que `header`; sin `route` la 301 saldría sin HSTS."""
+    for texto in (_caddyfile(), _caddyfile_app()):
+        www = _bloque(texto, "www.ffmovil.com")
+        assert "route {" in www
+        assert www.index("Strict-Transport-Security") < www.index("redir ")

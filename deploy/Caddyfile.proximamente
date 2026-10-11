@@ -11,6 +11,8 @@ ffmovil.com {
 	file_server
 	encode zstd gzip
 	header {
+		# RNF-21: 1 año, sin includeSubDomains ni preload.
+		Strict-Transport-Security "max-age=31536000"
 		X-Content-Type-Options nosniff
 		X-Frame-Options DENY
 		Referrer-Policy same-origin
@@ -20,5 +22,10 @@ ffmovil.com {
 }
 
 www.ffmovil.com {
-	redir https://ffmovil.com{uri} permanent
+	# `route` respeta este orden: sin él Caddy ejecuta `redir` antes que `header`
+	# y la redirección saldría sin HSTS.
+	route {
+		header Strict-Transport-Security "max-age=31536000"
+		redir https://ffmovil.com{uri} permanent
+	}
 }

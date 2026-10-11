@@ -215,6 +215,14 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.21.0 → 0.22.0
 - **Motivo:** el diamante flotante quedaba encima del cofre y se veía superpuesto, y el botón «Iniciar sesión» del bloque principal repetía el del encabezado. El bloque principal pasa a mostrar el personaje 2 con el diamante flotando en su mano, sin el cofre y sin botón; el botón del encabezado sigue fijo y visible.
 
+### CHG-025 · 2026-10-11 · HSTS en el dominio
+- **Origen:** decisión de negocio (lanzamiento a producción)
+- **Spec:** RNF-21 añadido; CA-09 modificado (suma la cabecera de RNF-21)
+- **Plan:** sec. 7 (seguridad) y dominio y proxy
+- **Tareas:** nueva T-127
+- **Versión spec:** 0.22.0 → 0.23.0
+- **Motivo:** antes de abrir a clientes reales, el navegador debe negarse a usar HTTP con `ffmovil.com`. Decisiones del dueño: `max-age` de 1 año; sin `includeSubDomains` (no se asume HTTPS en otros subdominios) ni `preload` (difícil de revertir). La pone Caddy, que es quien termina el HTTPS, en las dos fases.
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |

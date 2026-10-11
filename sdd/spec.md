@@ -1,6 +1,6 @@
 # Especificación: Plataforma de recargas Free Fire (prepago)
 
-- **Versión:** 0.22.0
+- **Versión:** 0.23.0
 - **Estado:** Borrador aprobado para iniciar desarrollo
 - **Fuente de verdad:** este archivo. El código y el plan se derivan de aquí.
 
@@ -163,6 +163,7 @@ Transiciones permitidas:
 - **RNF-18** `ffmovil.com` es la dirección canónica y `www.ffmovil.com` redirige a ella con una redirección permanente; el HTTP simple redirige a HTTPS. El tráfico pasa por Cloudflare (proxy, SSL/TLS en Full strict) y Caddy, con certificado válido y renovación automática. Hasta el lanzamiento, `https://ffmovil.com` muestra solo una página estática «Próximamente» y la app no está desplegada ni es accesible desde internet. En el VPS el firewall solo admite SSH, 80 y 443, y la app nunca publica su puerto: solo Caddy la alcanza por la red Docker.
 - **RNF-19** Con la app detrás de Cloudflare y Caddy, Caddy solo acepta `CF-Connecting-IP` de conexiones que vienen de Cloudflare y entrega la IP real a la app en una cabecera propia que reemplaza cualquier valor enviado por el cliente; la app la toma con `CLIENT_IP_HEADER` (RNF-16). Así el límite de login (RF-05) y la auditoría (RF-55) ven la IP del cliente, y una cabecera falsa de quien no pasa por Cloudflare no se acepta.
 - **RNF-20** Páginas públicas ligeras y accesibles (RF-58, RF-59): cada imagen pesa a lo sumo 150 KB y todas juntas a lo sumo 800 KB; las imágenes bajo el primer pliegue se cargan de forma diferida y todas llevan `width`, `height` y texto alternativo; las animaciones al desplazar solo usan `transform` y `opacity`, se activan con JavaScript propio servido desde `/static` (sin librerías ni scripts en línea, RNF-14) y se desactivan con `prefers-reduced-motion`; sin JavaScript todo el contenido sigue visible; sin fuentes, imágenes ni scripts de otros dominios.
+- **RNF-21** Toda respuesta de `ffmovil.com` y de `www.ffmovil.com` por HTTPS lleva `Strict-Transport-Security: max-age=31536000` (1 año), añadida por Caddy tanto con la página «Próximamente» como con la app desplegada. No lleva `includeSubDomains` ni `preload`: solo protege a esos dos nombres y no inscribe el dominio en la lista de los navegadores. La app no la añade (en desarrollo corre por HTTP, donde los navegadores la ignoran).
 
 ## 9. Contrato externo (VentasFF)
 
@@ -199,7 +200,7 @@ Limitaciones: sin endpoint de estado de pedido; `recargar.php` no acepta otros c
 - **CA-06** El admin puede localizar cualquier pedido por ID propio, `referencia` o Player ID.
 - **CA-07** En un viewport de 360 × 740 px, ninguna pantalla de cliente ni de admin hace que el ancho del documento supere el del viewport, y todo control interactivo mide al menos 44 px de lado. Se verifica con una prueba automatizada de navegador.
 - **CA-08** Si `productos.php` responde sin ningún paquete `free_fire`, los paquetes activos siguen activos, el resultado de la sincronización lo indica y queda una alerta activa `catalogo_vacio`; una segunda sincronización vacía no crea otra alerta.
-- **CA-09** Con la página «Próximamente» publicada, `https://ffmovil.com` responde 200 con certificado válido, `http://ffmovil.com` y `https://www.ffmovil.com` redirigen a `https://ffmovil.com`, el puerto 8000 no responde desde internet y la página lleva las cabeceras de seguridad de RNF-14. Con la app desplegada (fase 2), 5 intentos fallidos desde una IP no bloquean al mismo usuario desde otra IP y la auditoría muestra la IP del cliente. Se verifica en el despliegue; los archivos de configuración tienen además pruebas automáticas.
+- **CA-09** Con la página «Próximamente» publicada, `https://ffmovil.com` responde 200 con certificado válido, `http://ffmovil.com` y `https://www.ffmovil.com` redirigen a `https://ffmovil.com`, el puerto 8000 no responde desde internet y la página lleva las cabeceras de seguridad de RNF-14 y la de RNF-21. Con la app desplegada (fase 2), 5 intentos fallidos desde una IP no bloquean al mismo usuario desde otra IP y la auditoría muestra la IP del cliente. Se verifica en el despliegue; los archivos de configuración tienen además pruebas automáticas.
 - **CA-10** `GET /` sin sesión responde 200 y contiene el botón «Iniciar sesión» hacia `/login`, los enlaces a `/terminos` y `/privacidad`, el aviso de marcas y el sello de Cloudflare, y no contiene precios ni importes; con sesión (cliente, admin o con cambio de clave pendiente) redirige como antes. `/terminos` y `/privacidad` responden 200 con y sin sesión. Ninguna de las tres llama a VentasFF ni lee paquetes, saldos o pedidos. Cada imagen pesa ≤ 150 KB y el total ≤ 800 KB (RNF-20). A 360 × 740 px cumplen CA-07, el botón «Iniciar sesión» es visible sin desplazarse y la prueba de navegador no registra violaciones de CSP (RNF-14).
 
 ## 11. Preguntas abiertas

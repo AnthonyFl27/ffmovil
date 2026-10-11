@@ -1,6 +1,6 @@
 # Plan técnico
 
-- **Spec de referencia:** `sdd/spec.md` v0.20.0
+- **Spec de referencia:** `sdd/spec.md` v0.23.0
 - **Regla:** este plan implementa la spec. Si el plan contradice la spec, gana la spec.
 
 ---
@@ -353,6 +353,7 @@ Paquete `app/web/`: rutas HTML (sin `include_in_schema`) que llaman a las funcio
 - Log estructurado con enmascarado de secretos. Revisión T-081 (decisión técnica, 2026-10-09): ningún `logger.*` de la app recibe claves, cabeceras ni cuerpos de petición; el motor se crea con `hide_parameters=True`, de modo que los errores de SQLAlchemy no copian los valores enlazados (hashes, notas, IDs) a los tracebacks. `tests/test_logs_flujos.py` recorre login, cambio y reseteo de clave, y cada desenlace del proveedor con un manejador sin enmascarar y busca los secretos en el texto emitido.
 - Docker: `app` no declara `ports` en `compose.yml` (decisión del dueño, 2026-10-11; en desarrollo se usa `uvicorn` directo). Con CHG-020 solo Caddy publica 80/443 y `app` usa `expose` (Docker publica sus puertos saltándose UFW, así que un `ports` de `app` quedaría abierto aunque el firewall lo niegue).
 - Dominio y proxy (RNF-18, RNF-19, CHG-020). Cloudflare: `ffmovil.com` y `www` con proxy (nube naranja) y SSL/TLS en Full (strict). Caddy: HTTP→HTTPS automático, certificado de Let's Encrypt (emisión con los DNS en «Solo DNS»; la nube naranja se activa después de comprobar el certificado), `www` con `redir … permanent`, HTTP/3 desactivado (`servers { protocols h1 h2 }`: Cloudflare ya lo ofrece al cliente), cabeceras de RNF-14 y sin cabecera `Server`. El `Caddyfile` no lleva correo ni datos personales (repositorio público).
+- HSTS (RNF-21, CHG-025): `header Strict-Transport-Security "max-age=31536000"` en el bloque de `ffmovil.com` y en el de `www` de **ambos** Caddyfiles (`Caddyfile.proximamente` y `Caddyfile.app`). Va en Caddy y no en la app: Caddy es quien termina el HTTPS y la app en desarrollo corre por HTTP.
 - IP real tras Cloudflare y Caddy (RNF-19, fase 2): `servers { trusted_proxies static <rangos de cloudflare.com/ips>; client_ip_headers CF-Connecting-IP }` y, en el `reverse_proxy`, `header_up X-Client-IP {client_ip}`, que reemplaza lo que envíe el cliente. La app arranca con `CLIENT_IP_HEADER=X-Client-IP`; la conexión desde Caddy llega por la red Docker (privada), así que `ip_cliente` (RNF-16) la acepta. No se usa `--proxy-headers` de Uvicorn: reescribiría `request.client` y estorbaría a esa comprobación. Los rangos de Cloudflare van fijos en el archivo y se revisan si Cloudflare los cambia; el nombre del placeholder `{client_ip}` se verifica con la versión de Caddy instalada.
 - La seguridad del servidor PostgreSQL (firewall, TLS, control de acceso) se gestiona fuera del repositorio. La app usa un usuario dedicado.
 

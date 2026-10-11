@@ -1,6 +1,6 @@
 # Tareas
 
-- **Spec:** `sdd/spec.md` v0.20.0 · **Plan:** `sdd/plan.md`
+- **Spec:** `sdd/spec.md` v0.23.0 · **Plan:** `sdd/plan.md`
 - **Formato:** `- [ ] T-XXX descripción (refs) → criterio de hecho`
 - **Estados:** `[ ]` pendiente · `[~]` en curso · `[x]` hecha · `[!]` bloqueada
 - Cada tarea referencia requisitos (RF/RN/RNF/CA). Una tarea sin referencia no debería existir: o falta un requisito en la spec, o sobra la tarea.
@@ -165,3 +165,7 @@ Auditoría previa (2026-10-08, 360 y 390 px): el documento se desbordaba en toda
 - [x] T-124 Prueba de navegador de la página pública (CA-07, CA-10, RNF-12, RNF-14, RNF-20, CHG-021) → el recorrido de `tests/test_movil_navegador.py` suma `/`, `/terminos` y `/privacidad` a 360 × 740: sin desbordamiento, controles ≥ 44 px, botón «Iniciar sesión» visible sin desplazarse, sin violaciones de CSP, los elementos `.revelar` se muestran al desplazar y con `prefers-reduced-motion` quedan visibles sin animación; sin JavaScript el contenido sigue visible.
 - [x] T-125 Textos legales del dueño en `/terminos` y `/privacidad` (RF-59, CA-10, CHG-023) → plantillas con el texto aprobado (correo desde `CONTACT_EMAIL`, sin la frase de otras monedas, cookies solo de sesión, conservación del registro contable en las secciones de derechos y menores); se borra `app/static/legal_md/`; `tests/test_publica.py` comprueba las secciones clave de cada documento y que el correo no está escrito en las plantillas.
 - [x] T-126 Bloque principal sin botón y con el personaje y el diamante flotante (RF-58, RNF-20, CA-10, CHG-024) → `inicio.html` sin el botón de la portada ni el cofre; el personaje 2 con `diamantes.webp` flotando sobre su mano (solo `transform`, sin animar con `prefers-reduced-motion`); `tests/test_publica.py` comprueba que el bloque principal no tiene enlace a `/login` y lleva el personaje y el diamante; la prueba de navegador sigue verde.
+
+### HSTS (CHG-025, RNF-21, CA-09)
+
+- [x] T-127 HSTS en los dos Caddyfiles (RNF-21, CA-09, CHG-025) → `Strict-Transport-Security: max-age=31536000` en los bloques de `ffmovil.com` y `www` de `Caddyfile.proximamente` y `Caddyfile.app`, sin `includeSubDomains` ni `preload` (`tests/test_despliegue.py`); verificación en el VPS tras desplegar: la cabecera llega por `https://ffmovil.com`.
