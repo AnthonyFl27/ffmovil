@@ -73,3 +73,16 @@ def test_el_compose_publica_solo_80_y_443_desde_caddy_y_sin_depender_de_la_app()
     assert "depends_on" not in caddy
     assert "cap_drop:\n      - ALL" in caddy and "NET_BIND_SERVICE" in caddy
     assert "caddy_data:/data" in caddy  # los certificados sobreviven a recrear el contenedor
+
+
+def test_el_compose_separa_la_red_de_caddy_de_la_de_la_base_de_datos():
+    """RNF-18, RNF-03: Caddy no comparte red con PostgreSQL; `app` hace de puente."""
+    compose = (RAIZ / "docker-compose.yml").read_text(encoding="utf-8")
+    app = compose[compose.index("\n  app:") : compose.index("\n  caddy:")]
+    caddy = compose[compose.index("\n  caddy:") : compose.index("\nvolumes:")]
+    redes_app = re.findall(r"^      - (ffmovil_\w+)", app.split("networks:")[1], re.MULTILINE)
+    redes_caddy = re.findall(r"^      - (ffmovil_\w+)", caddy.split("networks:")[1], re.MULTILINE)
+    assert redes_app == ["ffmovil_net", "ffmovil_bd"]
+    assert redes_caddy == ["ffmovil_net"]
+    externas = compose[compose.index("\nnetworks:") :]
+    assert externas.count("external: true") == 2  # las crea el dueño, no el Compose

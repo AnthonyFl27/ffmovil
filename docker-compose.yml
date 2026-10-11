@@ -7,7 +7,8 @@ services:
     ports:
       - "8000:8000"
     networks:
-      - ffmovil_net
+      - ffmovil_net             # la ve Caddy
+      - ffmovil_bd              # la ve PostgreSQL (Caddy no está en esta red)
     restart: unless-stopped
     init: true                  # recoge procesos zombi y reenvía señales (apagado limpio)
     stop_grace_period: 110s     # la app espera hasta 100 s las recargas en curso
@@ -62,6 +63,9 @@ volumes:
   caddy_data:
   caddy_config:
 
+# Redes externas, creadas por el dueño. `ffmovil_bd` (172.19.0.0/24) solo la comparten `app` y PostgreSQL.
 networks:
   ffmovil_net:
+    external: true
+  ffmovil_bd:
     external: true

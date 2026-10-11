@@ -28,7 +28,7 @@ Repositorio público: no se incluyen secretos, precios de costo reales, datos ni
 
 ## Docker
 
-El Compose solo incluye `app` (sin base de datos): se une a la red externa `ffmovil_net`, compartida con el contenedor de PostgreSQL del VPS, y publica el puerto 8000.
+El Compose solo incluye `app` (sin base de datos): se une a las redes externas `ffmovil_net` (la de Caddy) y `ffmovil_bd` (compartida con el contenedor de PostgreSQL del VPS), y publica el puerto 8000.
 
 ```bash
 docker compose up -d --build                         # levanta la app (lee .env)
