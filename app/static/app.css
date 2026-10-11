@@ -102,7 +102,9 @@ article.aviso p { margin: 0.25rem 0 0; }
 .cifras article.critica strong { color: var(--pico-del-color); }
 .cifras article.acento { border-top: 3px solid var(--pico-primary); }
 .cifras article.acento strong { color: var(--pico-primary); }
-.cifras article { margin: 0; text-align: center; }
+/* Etiqueta arriba y cifra abajo: las cifras de una fila quedan alineadas aunque una etiqueta ocupe dos líneas. */
+.cifras article { display: flex; flex-direction: column; margin: 0; text-align: center; }
+.cifras article > strong { margin-top: auto; }
 .cifras strong { display: block; font-size: 1.5rem; }
 .cifras-chicas { margin-bottom: var(--pico-spacing); }
 .cifras-chicas article { padding: 0.75rem; }
@@ -225,6 +227,8 @@ dl.ficha dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
   .cifras { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
   .cifras article { padding: 0.75rem; }
   .cifras article:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  /* Misma altura que el enlace de una cifra (44 px): todas las cifras de una fila quedan alineadas. */
+  .cifras:not(.cifras-chicas) article > strong { display: flex; align-items: center; justify-content: center; min-height: var(--area-tactil); }
   .cifras strong { font-size: 1.25rem; overflow-wrap: anywhere; }
   .cifras strong:has(time) { font-size: 1.05rem; }
 }
