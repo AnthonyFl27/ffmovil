@@ -23,7 +23,7 @@
     <a href="/historial/{{ p.codigo }}">
       <strong class="paquete">{{ p.paquete }}</strong>
       <span class="monto">{{ p.monto | usd }}</span>
-      <small class="detalle">{{ p.nickname | texto }} · {{ p.fecha | fecha }}</small>
+      <small class="detalle"><span class="nick">{{ p.nickname | texto }}</span><span class="fecha">{{ p.fecha | fecha }}</span></small>
       <span class="estado estado-{{ p.estado }}"><span class="insignia">{{ p.estado_etiqueta }}</span></span>
     </a>
   </li>

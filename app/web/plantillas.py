@@ -57,6 +57,19 @@ def texto(valor) -> str:
     return "—" if valor is None or valor == "" else str(valor)
 
 
+ETIQUETAS_ALERTA = {
+    "credito_bajo": "Crédito bajo",
+    "sin_credito": "Sin crédito",
+    "cuenta": "Cuenta",
+    "catalogo_vacio": "Catálogo vacío",
+}
+
+
+def etiqueta_alerta(tipo: str) -> str:
+    """Nombre legible del tipo de alerta (el identificador interno no se muestra)."""
+    return ETIQUETAS_ALERTA.get(tipo, tipo)
+
+
 @cache
 def estatico(nombre: str) -> str:
     """URL de un archivo de `app/static` con su versión (hash del contenido).
@@ -71,6 +84,7 @@ plantillas = Jinja2Templates(directory=DIRECTORIO_PLANTILLAS)
 plantillas.env.filters["usd"] = usd
 plantillas.env.filters["fecha"] = fecha
 plantillas.env.filters["texto"] = texto
+plantillas.env.filters["etiqueta_alerta"] = etiqueta_alerta
 plantillas.env.globals["estatico"] = estatico
 
 

@@ -22,7 +22,7 @@
   {%- set opciones = [] %}
   {%- endif %}
   {% block cabecera %}<header class="container">
-    <nav>
+    <nav class="nav-{{ rol or "anonimo" }}">
       <ul><li><a href="/" class="marca"><img src="{{ estatico("logo.png") }}" alt="" width="40" height="40"><strong>FFmovil</strong></a></li></ul>
       {% if csrf and not opciones %}
       <ul><li><button class="outline secondary salir" hx-post="/salir">Salir</button></li></ul>

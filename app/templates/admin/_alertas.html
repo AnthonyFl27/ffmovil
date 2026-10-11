@@ -8,7 +8,7 @@
   <tbody>
   {% for a in alertas %}
     <tr>
-      <td data-etiqueta="Tipo">{{ a.tipo }}</td>
+      <td data-etiqueta="Tipo">{{ a.tipo | etiqueta_alerta }}</td>
       <td data-etiqueta="Mensaje">{{ a.mensaje }}</td>
       <td data-etiqueta="Creada">{{ a.creada_en | fecha }}</td>
       <td data-etiqueta="Acciones" class="accion"><button class="secondary outline" hx-post="/gestion/alertas/{{ a.id }}/atender" hx-target="#alertas" hx-disabled-elt="this">Marcar atendida</button></td>

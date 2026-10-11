@@ -3,7 +3,10 @@ function prepararFragmento(raiz) {
   raiz.querySelectorAll("time[data-local]").forEach(function (t) {
     var d = new Date(t.getAttribute("datetime"));
     if (!isNaN(d)) {
-      t.textContent = d.toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" });
+      // Mes con nombre (sin ambigüedad día/mes); el año solo si no es el actual.
+      var formato = { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" };
+      if (d.getFullYear() !== new Date().getFullYear()) formato.year = "numeric";
+      t.textContent = d.toLocaleString(undefined, formato);
     }
     t.removeAttribute("data-local");
   });

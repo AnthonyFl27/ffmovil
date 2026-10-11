@@ -72,6 +72,9 @@ async def test_atender_alerta(api, sesion_bd):
     alerta = await sesion_bd.scalar(
         select(Alerta).where(Alerta.tipo == "cuenta", Alerta.atendida_en.is_(None))
     )
+    # La columna Tipo muestra la etiqueta legible, no el identificador interno.
+    panel = (await http.get("/gestion")).text
+    assert '<td data-etiqueta="Tipo">Cuenta</td>' in panel
     respuesta = await htmx_post(http, f"/gestion/alertas/{alerta.id}/atender")
     assert respuesta.status_code == 200
     assert f"/gestion/alertas/{alerta.id}/atender" not in respuesta.text

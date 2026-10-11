@@ -26,7 +26,9 @@ nav button.salir:hover, nav button.salir:focus-visible, nav button.salir:active 
   color: #fff;
 }
 
-/* Navegación: plegada en pantallas angostas, en línea desde 768 px. */
+/* Navegación: plegada en pantallas angostas y en línea cuando cabe: el menú del cliente
+   (4 opciones) desde 1024 px y el del admin (5) desde 1280 px, donde el contenedor de Pico
+   pasa a 950 y a 1200 px. Más angosto se superponía con la marca y desbordaba la página. */
 nav ul.menu-linea { display: none; }
 /* Bloque posicionado: la lista se alinea al borde derecho del botón en todo navegador
    (Pico lo deja inline y cada navegador ubica distinto un absoluto dentro de un inline). */
@@ -35,30 +37,37 @@ nav .menu-plegable details.dropdown > summary + ul { right: 0; left: auto; }
 nav .menu-plegable details.dropdown > summary { height: var(--area-tactil); }
 nav .menu-plegable details.dropdown > ul { min-width: 12rem; }
 nav .menu-plegable details.dropdown > ul li a { min-height: var(--area-tactil); display: flex; align-items: center; gap: 0.5rem; }
-nav .menu-plegable li button.salir { width: 100%; }
+nav .menu-plegable li button.salir { width: 100%; min-height: var(--area-tactil); }
+/* Opciones como botones: relleno suave al pasar el cursor, sólido en la página actual. */
+nav ul.menu-linea { align-items: center; gap: 0.25rem; }
+nav ul.menu-linea li { padding: 0; }
+nav ul.menu-linea a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.5rem 1rem;
+  border-radius: var(--pico-border-radius);
+  text-decoration: none;
+  font-weight: 500;
+  transition: background-color 0.15s, color 0.15s;
+}
+nav ul.menu-linea a:hover { background: var(--pico-primary-focus); }
+nav ul.menu-linea a[aria-current=page] {
+  background: var(--pico-primary-background);
+  color: var(--pico-primary-inverse);
+}
+nav ul.menu-linea button.salir { margin-left: 0.5rem; }
 @media (min-width: 768px) {
-  nav ul.menu-linea { display: flex; align-items: center; gap: 0.25rem; }
-  /* Opciones como botones: relleno suave al pasar el cursor, sólido en la página actual. */
-  nav ul.menu-linea li { padding: 0; }
-  nav ul.menu-linea a {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    margin: 0;
-    padding: 0.5rem 1rem;
-    border-radius: var(--pico-border-radius);
-    text-decoration: none;
-    font-weight: 500;
-    transition: background-color 0.15s, color 0.15s;
-  }
-  nav ul.menu-linea a:hover { background: var(--pico-primary-focus); }
-  nav ul.menu-linea a[aria-current=page] {
-    background: var(--pico-primary-background);
-    color: var(--pico-primary-inverse);
-  }
-  nav ul.menu-linea button.salir { margin-left: 0.5rem; }
-  nav ul.menu-plegable { display: none; }
   nav button.salir { min-height: auto; }
+}
+@media (min-width: 1024px) {
+  nav.nav-cliente ul.menu-linea { display: flex; }
+  nav.nav-cliente ul.menu-plegable { display: none; }
+}
+@media (min-width: 1280px) {
+  nav.nav-admin ul.menu-linea { display: flex; }
+  nav.nav-admin ul.menu-plegable { display: none; }
 }
 
 /* Aviso informativo del panel (RN-10): tarjeta con borde de acento, sin ser un error. */
@@ -74,12 +83,21 @@ article.aviso p { margin: 0.25rem 0 0; }
 .insignia { display: inline-block; padding: 0.15rem 0.65rem; border-radius: 999px; font-size: 0.85em; font-weight: 600; line-height: 1.4; background: color-mix(in srgb, currentColor 14%, transparent); }
 .cifras { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 1rem; margin-bottom: var(--pico-spacing); }
 .cifras + h2 { margin-top: 2rem; }
+/* Entre 768 y 1279 px: tres por fila y la última fila, si queda incompleta, centrada
+   (sin hueco a un lado ni una tarjeta de otro ancho). Debajo, dos columnas; encima, auto-fit. */
+@media (min-width: 768px) and (max-width: 1279.98px) {
+  .cifras:not(.cifras-chicas) { grid-template-columns: repeat(6, 1fr); }
+  .cifras:not(.cifras-chicas) > article { grid-column: span 2; }
+  .cifras:not(.cifras-chicas) > article:nth-child(3n+1):nth-last-child(2) { grid-column: 2 / span 2; }
+  .cifras:not(.cifras-chicas) > article:nth-child(3n+1):last-child { grid-column: 3 / span 2; }
+}
 .cifras strong:has(time) { white-space: nowrap; }
 .cifras small { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; }
 .cifras small .icono { width: 1.25em; height: 1.25em; opacity: 0.85; }
 /* Cifras que piden atención: borde superior y número en el color del aviso. */
 .cifras article.atencion { border-top: 3px solid var(--color-aviso); }
 .cifras article.atencion strong, .cifras article.atencion strong a { color: var(--color-aviso); }
+.cifras strong a { text-decoration-color: currentColor; }
 .cifras article.critica { border-top: 3px solid var(--pico-del-color); }
 .cifras article.critica strong { color: var(--pico-del-color); }
 .cifras article.acento { border-top: 3px solid var(--pico-primary); }
@@ -325,15 +343,17 @@ ul.recientes li a {
 }
 ul.recientes li a:hover, ul.recientes li a:focus-visible { border-color: var(--pico-primary); }
 ul.recientes .monto { font-weight: 600; text-align: right; }
-ul.recientes .detalle { color: var(--pico-muted-color); overflow-wrap: anywhere; }
+/* Nickname (se recorta con «…» si es largo) y fecha en una fila; la fecha baja entera si no cabe. */
+ul.recientes .detalle { display: flex; flex-wrap: wrap; column-gap: 0.75rem; min-width: 0; color: var(--pico-muted-color); }
+ul.recientes .detalle .nick { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+ul.recientes .detalle .fecha { white-space: nowrap; }
 ul.recientes .estado { text-align: right; }
 ul.recientes li { list-style: none; }
 .acciones + h2 { margin-top: 2rem; }
-/* Botones principales del inicio: a todo el ancho en móvil; centrados en escritorio. */
+/* Botones principales del inicio: a todo el ancho en móvil; en escritorio, a la izquierda como el resto. */
 .acciones-anchas { margin-top: 1.5rem; }
 .acciones-anchas > * { flex: 1 1 0; }
 @media (min-width: 768px) {
-  .acciones-anchas { justify-content: center; }
   .acciones-anchas > * { flex: 0 1 14rem; }
 }
 /* Botones con ícono: ícono y texto separados. */
@@ -348,14 +368,13 @@ body > main { flex: 1 0 auto; }
 
 /* Sello de Cloudflare. Móvil: franja naranja de lado a lado al pie, con el sello en la esquina
    inferior derecha (el color de la franja es el del borde izquierdo de la imagen). Desde 768 px:
-   solo el sello, en la esquina inferior derecha. */
-.pie {
-  display: flex; justify-content: flex-end;
-  width: 100%; max-width: none; margin: 0; padding: 0;
-  background: #f97a28;
-}
+   solo el sello, alineado al borde derecho del contenido (el pie es un `.container` de Pico). */
+.pie { display: flex; justify-content: flex-end; }
 .pie img { display: block; width: 130px; height: auto; }
+@media (max-width: 767.98px) {
+  .pie { width: 100%; max-width: none; margin: 0; padding: 0; background: #f97a28; }
+}
 @media (min-width: 768px) {
-  .pie { max-width: none; background: none; padding-bottom: 1rem; }
-  .pie img { width: 140px; margin-right: 1rem; }
+  .pie { padding-bottom: 1rem; }
+  .pie img { width: 140px; }
 }

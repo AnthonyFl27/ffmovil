@@ -8,6 +8,7 @@ T-102: pantallas admin en tarjetas, filtros plegables y fichas.
 import re
 
 from app.services.codigos import codigo_pedido
+from app.web.plantillas import ETIQUETAS_ALERTA
 from tests.utilidades import crear_paquete, crear_pedido
 from tests.utilidades_api import crear_usuario_con_clave, iniciar_sesion
 from tests.utilidades_web import cliente_web, htmx_post
@@ -45,9 +46,22 @@ async def test_menu_plegable_con_todas_las_opciones(api, sesion_bd):
         en_linea, plegable = menu(html, "menu-linea"), menu(html, "menu-plegable")
         assert rutas(en_linea) == rutas(plegable) == opciones
         assert '<details class="dropdown">' in plegable
+        # El CSS decide desde qué ancho cabe el menú en línea según el rol (1024 / 1280 px).
+        assert f'<nav class="nav-{usuario.rol}">' in html
         assert 'hx-post="/salir"' in en_linea and 'hx-post="/salir"' in plegable
         # Estáticos con versión: un CSS nuevo nunca se mezcla con uno viejo en caché.
         assert re.search(r'href="/static/app\.css\?v=[0-9a-f]{10}"', html)
+
+
+def test_cada_tipo_de_alerta_tiene_etiqueta_legible():
+    # El panel muestra el nombre, no el identificador interno (`credito_bajo`).
+    from app.models.alertas import TIPOS_ALERTA
+    from app.web.plantillas import etiqueta_alerta
+
+    for tipo in TIPOS_ALERTA:
+        assert tipo in ETIQUETAS_ALERTA and "_" not in etiqueta_alerta(tipo)
+    assert etiqueta_alerta("credito_bajo") == "Crédito bajo"
+    assert etiqueta_alerta("otro_tipo") == "otro_tipo"
 
 
 async def test_historial_en_tarjetas_con_filtros_plegables(api, sesion_bd):
