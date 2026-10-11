@@ -360,16 +360,17 @@ Paquete `app/web/`: rutas HTML (sin `include_in_schema`) que llaman a las funcio
 
 ### Base de datos (RNF-07, RNF-10)
 - PostgreSQL corre en el VPS, fuera del repositorio y del Compose. El proyecto solo conoce la cadena de conexión.
-- `DATABASE_URL=postgresql+psycopg://USUARIO:CLAVE@HOST:5432/NOMBRE_BD` (solo en `.env`, nunca en el repo).
+- `DATABASE_URL=postgresql+psycopg://USUARIO:CLAVE@HOST:PUERTO/NOMBRE_BD` (claves solo alfanuméricas para no codificarlas) (solo en `.env`, nunca en el repo).
 - `TEST_DATABASE_URL`: mismo formato. Las pruebas crean y eliminan el esquema `test`; no tocan el esquema de desarrollo.
-- Entornos: pruebas/desarrollo usan la base de prueba del VPS. Producción usa otra base en el mismo VPS; el cambio es solo el valor de `DATABASE_URL`.
+- Entornos: una sola instancia de PostgreSQL en el VPS (contenedor `postgresql_ffmovil`, `postgres:18.6-bookworm`, alias `postgresql` en `ffmovil_net`, publicada solo en `127.0.0.1:5433`) con dos bases y roles sin privilegios: `ffmovil` (producción, rol `ffmovil_app`) y `ffmovil_dev` (desarrollo y esquema `test`, rol `ffmovil_dev`). Cada rol es dueño solo de su base; `REVOKE ALL … FROM PUBLIC` en las tres bases, y el rol de desarrollo tiene 8 conexiones y `statement_timeout` de 30 s (el de producción, 15 conexiones). Producción es solo otro valor de `DATABASE_URL` (decisión técnica, 2026-10-11).
+- Acceso: `pg_hba.conf` propio montado solo lectura (`local trust` para el superusuario por `docker exec`; `host` con `scram-sha-256` solo para cada rol y su base desde la subred de `ffmovil_net`; `host all all all reject`). El superusuario no entra por red. Claves con `\password` (nunca `ALTER ROLE … PASSWORD`, que se registraría). Registro: `log_connections=authentication`, `log_disconnections`, consultas > 1 s, sin `log_statement`. Healthcheck `pg_isready` cada 30 s, `no-new-privileges`, 256 MB de memoria (el VPS tiene 464 MB).
 - El usuario de conexión debe poder crear tablas (migraciones con Alembic). Todo cambio de esquema pasa por Alembic.
 - Al arrancar, la app verifica la conexión y falla con un error claro si no conecta.
 
 ### Docker Compose (servicios)
 - `app`: FastAPI (uvicorn), lee `.env`, se conecta a la BD externa. Publica un puerto (ej. 8000).
 - No hay servicio `db`.
-- Red: `app` se une a la red Docker externa `ffmovil_net` (`external: true`), que crea el dueño y comparte con el Compose de PostgreSQL. En el VPS, `DATABASE_URL` usa como host el nombre del contenedor de PostgreSQL (ej. `@postgres:5432`); PostgreSQL no publica puertos a internet.
+- Red: `app` se une a la red Docker externa `ffmovil_net` (`external: true`), que crea el dueño y comparte con el Compose de PostgreSQL. En el VPS, `DATABASE_URL` usa como host el nombre del contenedor de PostgreSQL (`@postgresql:5432`); PostgreSQL no publica puertos a internet.
 - Desarrollo local: acceso a la BD del VPS por túnel SSH (`localhost:5433`); solo cambia el valor de `DATABASE_URL`.
 - `caddy` (CHG-020): imagen `caddy:2`, único con puertos publicados (80 y 443/tcp), unido a `ffmovil_net`, volúmenes `caddy_data` y `caddy_config` para certificados, `Caddyfile` y página montados solo lectura, `cap_drop: ALL` con `cap_add: NET_BIND_SERVICE`, `no-new-privileges`, límite de memoria y logs con rotación. Sin `depends_on: app`, para poder levantarlo solo (`docker compose up -d caddy`).
 - Despliegue en dos fases (decisión técnica): fase 1 (T-119) monta `deploy/Caddyfile.proximamente` y la página; la variable `CADDYFILE` del Compose elige el archivo. Fase 2 (T-120, al lanzar) cambia a `deploy/Caddyfile.app`, `app` pasa de `ports` a `expose`, `COOKIE_SECURE=true` y `CLIENT_IP_HEADER=X-Client-IP`.
