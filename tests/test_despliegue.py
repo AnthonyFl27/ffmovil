@@ -67,7 +67,7 @@ def test_la_pagina_no_usa_nada_en_linea_ni_recursos_externos():
 
 def test_el_compose_publica_solo_80_y_443_desde_caddy_y_sin_depender_de_la_app():
     """RNF-18, CA-09: solo `caddy` publica 80 y 443; se puede levantar sin `app`."""
-    compose = (RAIZ / "docker-compose.yml").read_text(encoding="utf-8")
+    compose = (RAIZ / "compose.yml").read_text(encoding="utf-8")
     caddy = compose[compose.index("\n  caddy:") : compose.index("\nnetworks:")]
     assert re.findall(r'- "(\d+:\d+(?:/\w+)?)"', caddy.split("volumes:")[0]) == ["80:80", "443:443"]
     assert "depends_on" not in caddy
@@ -77,7 +77,7 @@ def test_el_compose_publica_solo_80_y_443_desde_caddy_y_sin_depender_de_la_app()
 
 def test_el_compose_separa_la_red_de_caddy_de_la_de_la_base_de_datos():
     """RNF-18, RNF-03: Caddy no comparte red con PostgreSQL; `app` hace de puente."""
-    compose = (RAIZ / "docker-compose.yml").read_text(encoding="utf-8")
+    compose = (RAIZ / "compose.yml").read_text(encoding="utf-8")
     app = compose[compose.index("\n  app:") : compose.index("\n  caddy:")]
     caddy = compose[compose.index("\n  caddy:") : compose.index("\nvolumes:")]
     redes_app = re.findall(r"^      - (ffmovil_\w+)", app.split("networks:")[1], re.MULTILINE)

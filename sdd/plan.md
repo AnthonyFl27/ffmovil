@@ -67,7 +67,7 @@ Monorepo: la API y la web viven en el mismo repositorio.
 ├── tests/
 │   ├── fake_ventasff.py       # simulador (RNF-08)
 │   └── ...
-├── docker-compose.yml
+├── compose.yml
 ├── Dockerfile
 ├── deploy/                    # despliegue con dominio (CHG-020)
 │   ├── Caddyfile.proximamente # fase 1: página estática y redirecciones
