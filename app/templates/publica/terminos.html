@@ -1,52 +1,115 @@
 {% extends "publica/base_publica.html" %}
 {% block titulo %}Términos y Condiciones{% endblock %}
 {% block contenido %}
+{# Texto del dueño (RF-59, CHG-023). #}
 <article class="contenedor legal">
   <a href="/" class="volver">← Volver al inicio</a>
   <h1>Términos y Condiciones</h1>
-  <p class="actualizado">Última actualización: 10 de octubre de 2026</p>
+  <p class="actualizado">Última actualización: 11 de octubre de 2026</p>
+  <p>Al acceder a este sitio y, en particular, al completar cualquier compra, declaras haber leído, comprendido y aceptado íntegramente estos Términos y Condiciones, incluidas nuestra Política de Privacidad y nuestra Política de Reembolsos, que forman parte de este documento y se describen más abajo. Si no estás de acuerdo con alguna de estas condiciones, te pedimos que no utilices el servicio.</p>
   <section>
-    <h2>1. Qué es el servicio</h2>
-    <p>FFMovil es una plataforma web para revendedores de diamantes de Free Fire. Las recargas se ejecutan a través de un proveedor externo de recargas.</p>
+    <h2>1. Qué es FFmovil</h2>
+    <p>FFmovil ofrece diamantes de Free Fire. Si eres revendedor aprobado, puedes vender diamantes a tus propios clientes usando nuestros precios y nuestra plataforma. El servicio funciona con saldo prepago: abonas saldo y cada recarga lo descuenta.</p>
   </section>
   <section>
-    <h2>2. Cuentas</h2>
-    <p>No hay registro abierto. Tu cuenta la crea el administrador. La cuenta es de uso personal e intransferible: no la compartas ni la cedas a otra persona.</p>
-    <p>Al crear tu cuenta recibes una contraseña temporal. Debes cambiarla en tu primer ingreso; la nueva debe tener de 8 a 128 caracteres.</p>
-    <p>El administrador puede bloquear una cuenta. Si se fallan varios intentos de ingreso, el ingreso se bloquea temporalmente. La sesión vence tras 8 horas sin actividad.</p>
-  </section>
-  <section>
-    <h2>3. Saldo prepago</h2>
-    <p>Tu saldo es prepago. El administrador lo abona de forma manual después de recibir el pago por fuera de la plataforma. En el sitio no hay pasarela de pago y el saldo no se retira de forma automática.</p>
-    <p>El saldo nunca queda en negativo. Cada recarga descuenta el precio de venta vigente al momento de crear el pedido. Cada movimiento de saldo queda registrado y no se borra.</p>
-  </section>
-  <section>
-    <h2>4. Recargas y estados del pedido</h2>
-    <p>Antes de recargar, la plataforma valida el Player ID y muestra el nombre del jugador. Confirmar que el Player ID es el correcto es responsabilidad tuya: una recarga entregada no se puede revertir.</p>
-    <p>Un pedido puede estar en uno de estos estados:</p>
+    <h2>2. Quién puede usar el servicio</h2>
     <ul>
-      <li><strong>Procesando:</strong> el saldo está reservado.</li>
-      <li><strong>Exitoso:</strong> el saldo quedó cobrado.</li>
-      <li><strong>Fallido:</strong> se muestra el motivo y el saldo reservado se libera.</li>
-      <li><strong>En revisión:</strong> no se pudo confirmar el resultado con el proveedor. El saldo queda retenido mientras el administrador lo revisa y lo resuelve como exitoso o fallido. Un pedido en revisión nunca se reintenta de forma automática.</li>
+      <li>Debes tener al menos <strong>16 años</strong> y contar con <strong>cédula de identidad nicaragüense</strong>.</li>
+      <li>El servicio es solo para <strong>clientes revendedores</strong> que nos contactan y son aprobados por nosotros.</li>
+      <li>Por ahora el servicio está disponible <strong>solo desde Nicaragua</strong>. Más adelante podríamos hacer excepciones.</li>
+      <li>Podemos pedirte verificación de identidad cuando lo consideremos necesario.</li>
     </ul>
-    <p>Los pedidos tienen límites de cantidad por minuto.</p>
   </section>
   <section>
-    <h2>5. Disponibilidad</h2>
-    <p>El servicio depende del proveedor de recargas y puede no estar disponible en algún momento, por ejemplo cuando el proveedor está ocupado, cuando el catálogo no tiene paquetes o por mantenimiento.</p>
+    <h2>3. Tu cuenta</h2>
+    <ul>
+      <li>Las cuentas las creamos nosotros. Recibes un usuario y una contraseña temporal que debes cambiar en tu primer ingreso.</li>
+      <li>Tu usuario y tu contraseña son personales. <strong>No los compartas ni los transfieras.</strong></li>
+      <li>Eres responsable de la actividad realizada con tu cuenta.</li>
+      <li>Si olvidas tu contraseña, contáctanos y la restablecemos.</li>
+      <li>Tras varios intentos fallidos de ingreso, el acceso se bloquea temporalmente por seguridad.</li>
+    </ul>
   </section>
   <section>
-    <h2>6. Marcas de Garena</h2>
-    <p>FFMovil no es un servicio de Garena. Free Fire y Garena son marcas registradas de sus titulares. Este sitio no está patrocinado ni avalado por Garena.</p>
+    <h2>4. Saldo, abonos y pagos</h2>
+    <ul>
+      <li>El servicio es <strong>prepago</strong>: no se permiten abonos a crédito, mensuales ni pagos diferidos. Pagas y te abonamos.</li>
+      <li>Los métodos de pago los acordamos contigo cuando nos contactas.</li>
+      <li>Acreditamos tu abono en un plazo máximo de <strong>1 hora</strong>, siempre dentro del horario de atención.</li>
+    </ul>
   </section>
   <section>
-    <h2>7. Cambios en estos términos</h2>
-    <p>Podemos modificar estos términos. Los cambios se publicarán en esta página con la fecha de actualización.</p>
+    <h2>5. Precios</h2>
+    <p>Todos los precios se muestran en dólares estadounidenses (USD).</p>
+    <p>Los precios pueden variar, pero no los cambiamos sin avisar: te informaremos por nuestros canales oficiales (correo y, próximamente, un canal de WhatsApp). Siempre se aplica el precio vigente en el instante de la compra.</p>
   </section>
   <section>
-    <h2>8. Contacto</h2>
-    <p>Para consultas sobre estos términos, contacta con {% if correo %}<a href="mailto:{{ correo }}">{{ correo }}</a>{% else %}el administrador que creó tu cuenta{% endif %}.</p>
+    <h2>6. Recargas</h2>
+    <ul>
+      <li>Antes de confirmar una recarga, la plataforma muestra el jugador y el paquete para que los verifiques.</li>
+      <li><strong>Las recargas son irreversibles.</strong> Si el Player ID que ingresas es incorrecto, la recarga se entrega a ese ID y no podemos revertirla.</li>
+      <li>Eres el único responsable de verificar que el Player ID sea el correcto.</li>
+    </ul>
+  </section>
+  <section>
+    <h2>7. Pedidos en revisión y recargas fallidas</h2>
+    <ul>
+      <li>Cuando una recarga no puede confirmarse de inmediato, el pedido queda <strong>En revisión</strong>. Lo resolvemos en un plazo de <strong>24 a 48 horas</strong>. Mientras tanto, el monto permanece retenido en tu saldo.</li>
+      <li>Si una recarga <strong>falla</strong>, el saldo reservado se libera automáticamente y el pedido queda registrado como Fallido, con su motivo. Si consideras que hay un error, contáctanos y revisaremos el caso en un plazo de <strong>24 a 48 horas</strong>.</li>
+    </ul>
+  </section>
+  <section>
+    <h2>8. Obligaciones del usuario</h2>
+    <ul>
+      <li>Facilitar datos veraces, en particular el Player ID correcto.</li>
+      <li>No compartir ni transferir tu usuario y contraseña.</li>
+      <li>Utilizar medios de pago de tu titularidad. El uso de medios de pago ajenos o robados constituye un delito y será denunciado.</li>
+      <li>No emplear el servicio con fines fraudulentos.</li>
+    </ul>
+  </section>
+  <section>
+    <h2>9. Fraude, cancelación de pedidos y bloqueo</h2>
+    <p>Nos reservamos el derecho de cancelar cualquier pedido y de suspender o bloquear el acceso al servicio ante indicios razonables de fraude, uso de medios de pago no autorizados o incumplimiento de estos términos. En tales casos podremos exigir verificación de identidad antes de entregar el producto.</p>
+    <p>Si tu cuenta es bloqueada, debes contactarnos y explicar lo ocurrido. Analizaremos el caso y tomaremos una decisión según se trate de uso indebido, fraude o incumplimiento de políticas, incluido el destino del saldo.</p>
+  </section>
+  <section>
+    <h2>10. Política de reembolsos</h2>
+    <ul>
+      <li>El saldo abonado es reembolsable <strong>solo si nos contactas y fundamentas tu solicitud</strong>.</li>
+      <li>La solicitud debe hacerse dentro de los <strong>30 días</strong> siguientes al abono. Pasado ese plazo no será posible reembolsar.</li>
+      <li>Evaluamos cada caso individualmente.</li>
+      <li>Las recargas ya entregadas con éxito no se reembolsan, porque son irreversibles.</li>
+    </ul>
+  </section>
+  <section>
+    <h2>11. Política de privacidad</h2>
+    <ul>
+      <li><strong>Datos que guardamos:</strong> tu usuario, los Player ID y nicknames de los jugadores a quienes recargas, tu historial de pedidos, tu saldo y movimientos, y la dirección IP de tus accesos.</li>
+      <li><strong>Para qué los usamos:</strong> operar el servicio, dar soporte y proteger las cuentas contra accesos indebidos y fraude.</li>
+      <li><strong>Cómo los protegemos:</strong> se almacenan de forma privada y confidencial en nuestra base de datos.</li>
+      <li><strong>Con quién los compartimos:</strong> no compartimos tus datos con terceros, salvo lo estrictamente necesario para procesar una recarga (el Player ID se envía a nuestro proveedor de recargas) y los servicios técnicos de alojamiento y seguridad del sitio.</li>
+      <li>Puedes pedirnos información o la corrección de tus datos contactándonos.</li>
+    </ul>
+  </section>
+  <section>
+    <h2>12. Sin afiliación</h2>
+    <p>FFmovil es un servicio independiente. <strong>No estamos afiliados, asociados ni respaldados por Garena ni por Free Fire.</strong> Los nombres y marcas mencionados pertenecen a sus respectivos titulares.</p>
+  </section>
+  <section>
+    <h2>13. Contacto y horario de atención</h2>
+    <ul>
+      {% if correo %}<li><strong>Correo:</strong> <a href="mailto:{{ correo }}">{{ correo }}</a></li>{% endif %}
+      <li><strong>WhatsApp:</strong> próximamente.</li>
+      <li><strong>Horario de atención:</strong> 8:00 a.m. a 5:00 p.m. (hora de Nicaragua).</li>
+    </ul>
+  </section>
+  <section>
+    <h2>14. Cambios a estos términos</h2>
+    <p>Podemos actualizar estos Términos y Condiciones cuando sea necesario. Publicaremos la versión vigente en esta página con su fecha de última actualización. Si sigues usando el servicio después de una actualización, aceptas la nueva versión.</p>
+  </section>
+  <section>
+    <h2>15. Ley aplicable</h2>
+    <p>Estos términos se rigen por las leyes de la República de Nicaragua, incluidos el Código de Comercio y el Código Procesal Civil (Ley No. 902). Las controversias se someterán a los tribunales civiles competentes de Nicaragua.</p>
   </section>
 </article>
 {% endblock %}

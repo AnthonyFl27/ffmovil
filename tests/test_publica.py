@@ -89,8 +89,14 @@ async def test_sin_sesion_muestra_la_presentacion(api):
 
 @pytest.mark.parametrize("ruta", PUBLICAS)
 async def test_sin_precios_importes_ni_extras_del_pie(api, ruta):
-    """RF-58: sin precios, importes, idioma, moneda, ayuda ni WhatsApp."""
+    """RF-58: sin precios ni importes; el pie, sin idioma, moneda, ayuda ni WhatsApp.
+
+    En `/` se revisa toda la página; en las legales solo el pie, porque su texto (del
+    dueño, RF-59) menciona la moneda y el WhatsApp próximo.
+    """
     html = (await api().get(ruta)).text
+    if ruta != "/":
+        html = html[html.index("<footer") :]
     visible = re.sub(r"<[^>]+>", " ", html).lower()
     assert not re.search(r"\d+[.,]\d{2}\b", visible)
     for prohibido in ("usd", "$", "precio:", "saldo disponible", "whatsapp", "idioma", "ayuda"):
@@ -167,13 +173,39 @@ async def test_legales_sin_sesion(api, ruta, correo):
 
 
 async def test_legales_describen_el_servicio(api):
-    """RF-59: el servicio tal como es y los datos que se guardan."""
+    """RF-59 (CHG-023): texto del dueño, ajustado a la spec en lo que dice de la plataforma."""
     terminos = (await api().get("/terminos")).text
-    for frase in ("administrador", "prepago", "Player ID", "En revisión", "proveedor"):
+    for frase in (
+        "prepago",
+        "Player ID",
+        "En revisión",
+        "10. Política de reembolsos",
+        "15. Ley aplicable",
+    ):
         assert frase in terminos, frase
+    assert "otras monedas" not in terminos  # la app solo muestra USD (RF-36)
     privacidad = (await api().get("/privacidad")).text
-    for frase in ("contraseña", "IP", "auditoría", "Player ID", "HttpOnly", "movimientos"):
+    for frase in ("contraseña", "dirección IP", "Player ID", "8. Cookies", "registro contable"):
         assert frase in privacidad, frase
+    # Solo hay cookie de sesión: el CSRF no usa cookie (RF-04).
+    assert "una cookie técnica, necesaria para mantener tu sesión iniciada" in privacidad
+    assert "formularios" not in privacidad
+
+
+@pytest.mark.parametrize("plantilla", ["terminos.html", "privacidad.html"])
+def test_el_correo_no_esta_escrito_en_las_plantillas(plantilla):
+    """RF-59 y RNF-06: el correo sale de `CONTACT_EMAIL`, no del texto."""
+    from app.web.plantillas import DIRECTORIO_PLANTILLAS
+
+    texto = (DIRECTORIO_PLANTILLAS / "publica" / plantilla).read_text()
+    assert "@" not in texto and "{{ correo }}" in texto
+
+
+async def test_sin_correo_las_legales_omiten_esa_linea(api):
+    """RF-59: sin `CONTACT_EMAIL` no queda una línea de correo vacía."""
+    for ruta in LEGALES:
+        html = (await api().get(ruta)).text
+        assert "mailto:" not in html and "Correo:" not in html
 
 
 @pytest.mark.parametrize("ruta", LEGALES)
