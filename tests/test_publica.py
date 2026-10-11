@@ -83,7 +83,9 @@ async def test_sin_sesion_muestra_la_presentacion(api):
     assert len(re.findall(r'class="paso[ "]', html)) == 3
     for paso in ("Recibe tu cuenta", "Ten saldo abonado", "Recarga con el Player ID"):
         assert paso in html
-    assert html.count("inicio/personaje-") == 2 and "revelar" in html
+    for imagen in ("personaje-1", "personaje-2", "personaje-3", "arma-1", "arma-2"):
+        assert f"inicio/{imagen}.webp" in html, imagen
+    assert "revelar" in html
     _pie_completo(html)
 
 

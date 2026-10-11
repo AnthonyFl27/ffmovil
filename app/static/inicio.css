@@ -200,9 +200,9 @@ a:focus-visible {
    posiciones son porcentajes de la imagen, así siguen a la mano en cualquier ancho. */
 .flotar {
   position: absolute;
-  top: 21%;
+  top: 19.5%;
   left: 0;
-  width: 19%;
+  width: 22%;
   height: auto;
   filter: drop-shadow(0 0 14px rgba(90, 160, 255, 0.75));
 }
@@ -289,12 +289,49 @@ a:focus-visible {
   gap: 24px;
 }
 
-.personaje,
-.ilustracion {
+.personaje {
   width: 100%;
   max-width: 420px;
   height: auto;
   margin: 0 auto;
+}
+
+.personaje-alto {
+  max-width: 300px;
+}
+
+/* Franja de armas al final de la portada: inclinadas en sentidos opuestos. La
+   inclinación va en la imagen y la animación de .revelar en la figura. */
+.armas {
+  overflow: hidden;
+  padding: 8px 0 56px;
+}
+
+.armas-fila {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+.arma {
+  width: 100%;
+  max-width: 340px;
+  margin: 0;
+}
+
+.arma img {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 10px 22px rgba(255, 64, 64, 0.28));
+}
+
+.arma-izquierda img {
+  transform: rotate(-6deg);
+}
+
+.arma-derecha img {
+  transform: rotate(6deg);
 }
 
 .destacado-texto {
@@ -526,6 +563,24 @@ a:focus-visible {
 
   .destacado-invertido .destacado-texto {
     order: -1;
+  }
+
+  .personaje-alto {
+    max-width: 380px;
+  }
+
+  .armas {
+    padding: 24px 0 80px;
+  }
+
+  .armas-fila {
+    flex-direction: row;
+    justify-content: center;
+    gap: 56px;
+  }
+
+  .arma {
+    max-width: 440px;
   }
 
   .pie-columnas {
