@@ -294,6 +294,9 @@ a:focus-visible {
   max-width: 420px;
   height: auto;
   margin: 0 auto;
+  /* Las imágenes terminan en un corte recto: se desvanecen hacia abajo, como el personaje de la cabecera. */
+  -webkit-mask-image: linear-gradient(to bottom, #000 78%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 78%, transparent 100%);
 }
 
 .personaje-alto {
