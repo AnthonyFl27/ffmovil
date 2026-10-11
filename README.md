@@ -28,12 +28,13 @@ Repositorio público: no se incluyen secretos, precios de costo reales, datos ni
 
 ## Docker
 
-El Compose solo incluye `app` (sin base de datos): se une a las redes externas `ffmovil_net` (la de Caddy) y `ffmovil_bd` (compartida con el contenedor de PostgreSQL del VPS), y publica el puerto 8000.
+El Compose solo incluye `app` (sin base de datos): se une a las redes externas `ffmovil_net` (la de Caddy) y `ffmovil_bd` (compartida con el contenedor de PostgreSQL del VPS), y no publica puertos (`expose`): solo Caddy la alcanza, por `ffmovil_net`.
 
 ```bash
-docker compose up -d --build                         # levanta la app (lee .env)
-docker compose exec app alembic upgrade head         # aplica migraciones
-docker compose exec app python -m app.cli crear-admin <usuario>   # primer admin
+docker compose build app                                         # construye la imagen
+docker compose run --rm app alembic upgrade head                 # migraciones (antes de arrancar)
+docker compose up -d app                                         # levanta la app (lee .env)
+docker compose exec app python -m app.cli crear-admin <usuario>  # primer admin
 ```
 
 En el VPS, `DATABASE_URL` usa como host `postgresql:5432`.

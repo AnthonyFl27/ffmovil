@@ -1,7 +1,7 @@
-"""T-119: archivos de la fase 1 del dominio (Caddyfile, página «Próximamente» y Compose).
+"""T-119 y T-120: archivos del dominio (Caddyfiles, página «Próximamente» y Compose).
 
-RNF-18 y CA-09 (CHG-020), con las cabeceras de RNF-14. Sin BD ni red: la verificación
-del certificado y de las redirecciones reales se hace en el VPS (CA-09).
+RNF-18, RNF-19 y CA-09 (CHG-020), con las cabeceras de RNF-14. Sin BD ni red: la
+verificación del certificado y de las redirecciones reales se hace en el VPS (CA-09).
 """
 
 import re
@@ -86,3 +86,45 @@ def test_el_compose_separa_la_red_de_caddy_de_la_de_la_base_de_datos():
     assert redes_caddy == ["ffmovil_net"]
     externas = compose[compose.index("\nnetworks:") :]
     assert externas.count("external: true") == 2  # las crea el dueño, no el Compose
+
+
+def _caddyfile_app() -> str:
+    return (DEPLOY / "Caddyfile.app").read_text(encoding="utf-8")
+
+
+def test_el_compose_no_publica_el_puerto_de_la_app():
+    """RNF-18, CA-09: `app` solo usa `expose` (Docker publica `ports` saltándose ufw)."""
+    compose = (RAIZ / "compose.yml").read_text(encoding="utf-8")
+    app = compose[compose.index("\n  app:") : compose.index("\n  caddy:")]
+    assert "\n    ports:" not in app
+    assert re.findall(r'^    expose:\n      - "(\d+)"', app, re.MULTILINE) == ["8000"]
+
+
+def test_el_caddyfile_de_la_app_reenvia_a_la_app_y_redirige_www():
+    """RNF-18, CA-09: `ffmovil.com` canónico con proxy a `app:8000`; `www` redirige con 301."""
+    texto = _caddyfile_app()
+    assert "reverse_proxy app:8000" in _bloque(texto, "ffmovil.com")
+    assert "redir https://ffmovil.com{uri} permanent" in _bloque(texto, "www.ffmovil.com")
+    assert "http://" not in texto.replace("https://ffmovil.com{uri}", "").replace(
+        "https://www.cloudflare.com/", ""
+    )
+    assert "protocols h1 h2" in texto  # HTTP/3 lo ofrece Cloudflare, no el origen
+    assert "email" not in texto.lower() and "@" not in texto  # repositorio público
+
+
+def test_el_caddyfile_de_la_app_solo_cree_la_ip_de_cloudflare():
+    """RNF-19, RNF-16: `CF-Connecting-IP` solo de Cloudflare y `X-Client-IP` reemplazada."""
+    texto = _caddyfile_app()
+    assert "client_ip_headers CF-Connecting-IP" in texto
+    assert "header_up X-Client-IP {client_ip}" in texto
+    proxies = texto[texto.index("trusted_proxies static") : texto.index("client_ip_headers")]
+    redes = re.findall(r"[0-9a-f:.]+/\d+", proxies)
+    assert len(redes) >= 22  # 15 rangos IPv4 y 7 IPv6 de cloudflare.com/ips
+    assert "0.0.0.0/0" not in redes and "::/0" not in redes  # nunca «confiar en todos»
+
+
+def test_el_caddyfile_de_la_app_no_delata_el_servidor():
+    """RNF-14: sin cabeceras `Server` ni `Via`; las demás las pone la app, no Caddy."""
+    cabeceras = _bloque(_caddyfile_app(), "ffmovil.com")
+    assert "header -Server" in cabeceras and "header -Via" in cabeceras
+    assert "Content-Security-Policy" not in cabeceras  # una sola fuente: `app/cabeceras.py`

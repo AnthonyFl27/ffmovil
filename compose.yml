@@ -1,11 +1,14 @@
 # PostgreSQL es externo (RNF-07): no hay servicio `db`.
 # Fase 1 del dominio (CHG-020, T-119): en el VPS solo se levanta `caddy` (`docker compose up -d caddy`).
+# Fase 2 (T-120): `app` también, y CADDYFILE=./deploy/Caddyfile.app en el `.env` del Compose.
 services:
   app:
     build: .
     env_file: .env
-    ports:
-      - "8000:8000"
+    # Sin `ports` (RNF-18): Docker publica los puertos saltándose ufw. Solo Caddy alcanza la
+    # app, por `ffmovil_net`.
+    expose:
+      - "8000"
     networks:
       - ffmovil_net             # la ve Caddy
       - ffmovil_bd              # la ve PostgreSQL (Caddy no está en esta red)

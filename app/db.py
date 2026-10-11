@@ -9,13 +9,24 @@ class ErrorConexionBD(RuntimeError):
     """No se pudo conectar a la base de datos."""
 
 
+# Tope de conexiones por proceso: 5 + 3 = 8. El rol de producción admite 15, así que quedan 7
+# para migraciones y la CLI aunque la app esté en un pico (el de desarrollo admite 8).
+POOL_BASE = 5
+POOL_EXTRA = 3
+
+
 def crear_motor(url: str, esquema: str | None = None) -> AsyncEngine:
     """`esquema` fija el search_path de cada conexión (las pruebas usan `test`, RNF-10)."""
     connect_args = {"options": f"-csearch_path={esquema}"} if esquema else {}
     # hide_parameters: los errores de SQLAlchemy no copian los valores enlazados (hashes,
     # notas, IDs) a los logs ni a los tracebacks (RNF-05).
     return create_async_engine(
-        url, pool_pre_ping=True, connect_args=connect_args, hide_parameters=True
+        url,
+        pool_pre_ping=True,
+        pool_size=POOL_BASE,
+        max_overflow=POOL_EXTRA,
+        connect_args=connect_args,
+        hide_parameters=True,
     )
 
 
