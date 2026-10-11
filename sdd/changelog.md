@@ -199,6 +199,14 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.20.0 → 0.20.1
 - **Motivo:** el dueño decidió publicar en el repositorio los WebP derivados del logo de Free Fire, los personajes y los cofres (`app/static/inicio/`). Los originales siguen fuera del repo y el aviso de marcas de RF-58 se mantiene.
 
+### CHG-023 · 2026-10-11 · Textos legales del dueño
+- **Origen:** decisión de negocio (el dueño entregó el texto definitivo de Términos y Condiciones y Política de Privacidad)
+- **Spec:** RF-59 modificado
+- **Plan:** sec. 6.3 (páginas legales)
+- **Tareas:** nueva T-125
+- **Versión spec:** 0.20.1 → 0.21.0
+- **Motivo:** RF-59 prohibía prometer reembolsos, plazos o garantías no definidos en la spec. El texto del dueño incluye condiciones comerciales que se cumplen fuera de la plataforma (revendedores de 16 años o más con cédula nicaragüense, solo desde Nicaragua, abonos en 1 hora dentro del horario, revisión en 24 a 48 h, reembolsos dentro de 30 días, ley de Nicaragua). Ahora el texto es del dueño y solo debe coincidir con la spec en lo que afirma sobre la plataforma. Por eso se ajustó: cookies solo de sesión, sin la frase sobre otras monedas (la app solo muestra USD) y con la conservación del registro contable donde el texto habla de borrar datos. El correo sale de `CONTACT_EMAIL`.
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |
