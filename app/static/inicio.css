@@ -66,7 +66,7 @@ a:focus-visible {
 }
 
 .contenedor {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 16px;
 }
@@ -148,7 +148,7 @@ a:focus-visible {
 .portada {
   position: relative;
   overflow: hidden;
-  padding: 32px 0 48px;
+  padding: 24px 0 32px;
   background:
     radial-gradient(60% 50% at 75% 20%, rgba(47, 107, 255, 0.22), transparent 70%),
     var(--fondo);
@@ -157,7 +157,7 @@ a:focus-visible {
 .portada-fila {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 24px;
 }
 
 .portada-texto {
@@ -177,7 +177,7 @@ a:focus-visible {
 
 .portada h1 {
   margin: 0;
-  font-size: clamp(1.5rem, 1.1rem + 2vw, 2.4rem);
+  font-size: clamp(1.5rem, 1.1rem + 2vw, 2.6rem);
   line-height: 1.2;
 }
 
@@ -211,7 +211,7 @@ a:focus-visible {
 
 .pasos {
   overflow: hidden;
-  padding: 48px 0;
+  padding: 36px 0;
 }
 
 .pasos h2,
@@ -223,6 +223,14 @@ a:focus-visible {
 
 .pasos h2 {
   text-align: center;
+}
+
+/* Títulos repartidos en líneas parejas (sin una palabra suelta al final). */
+.portada h1,
+.pasos h2,
+.paso h3,
+.destacado-texto h2 {
+  text-wrap: balance;
 }
 
 .pasos-lista {
@@ -241,11 +249,10 @@ a:focus-visible {
   text-align: center;
 }
 
+/* Misma altura en las tres ilustraciones: así los números 1, 2 y 3 quedan alineados. */
 .paso img {
-  height: auto;
-  width: auto;
-  max-width: 100%;
-  max-height: 120px;
+  width: 100%;
+  height: 110px;
   object-fit: contain;
   margin: 0 auto 12px;
 }
@@ -272,11 +279,20 @@ a:focus-visible {
   color: var(--texto-suave);
 }
 
+/* Sin transición: RNF-20 limita las animaciones a transform y opacity. */
+@media (hover: hover) {
+  .paso:hover {
+    border-color: rgba(47, 107, 255, 0.55);
+  }
+}
+
 /* Destacados */
 
+/* Resplandor azul tras el personaje, como el de la cabecera; en escritorio cambia de lado. */
 .destacado {
   overflow: hidden;
-  padding: 48px 0;
+  padding: 36px 0;
+  background: radial-gradient(70% 45% at 50% 25%, rgba(47, 107, 255, 0.16), transparent 70%);
 }
 
 .destacado + .destacado {
@@ -307,14 +323,14 @@ a:focus-visible {
    inclinación va en la imagen y la animación de .revelar en la figura. */
 .armas {
   overflow: hidden;
-  padding: 8px 0 56px;
+  padding: 0 0 40px;
 }
 
 .armas-fila {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 28px;
+  gap: 16px;
 }
 
 .arma {
@@ -342,6 +358,8 @@ a:focus-visible {
 }
 
 .destacado-texto p {
+  max-width: 36ch;
+  font-size: 1.1rem;
   color: var(--texto-suave);
 }
 
@@ -404,10 +422,10 @@ a:focus-visible {
   color: var(--texto);
 }
 
+/* El correo solo se parte si no cabe en la pantalla más angosta; en la fila del pie no se encoge. */
 .pie-correo {
   max-width: 100%;
   overflow-wrap: anywhere;
-  word-break: break-all;
 }
 
 .aviso-marcas {
@@ -521,12 +539,13 @@ a:focus-visible {
 
 @media (min-width: 768px) {
   .portada {
-    padding: 56px 0 72px;
+    padding: 32px 0 40px;
   }
 
+  /* Columna de texto algo más ancha: el título cabe en 4 líneas en vez de 5. */
   .portada-fila {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1.2fr 0.8fr;
     gap: 40px;
     align-items: center;
   }
@@ -541,7 +560,7 @@ a:focus-visible {
   }
 
   .pasos {
-    padding: 72px 0;
+    padding: 48px 0;
   }
 
   .pasos-lista {
@@ -550,11 +569,16 @@ a:focus-visible {
   }
 
   .destacado {
-    padding: 72px 0;
+    padding: 48px 0;
+    background: radial-gradient(40% 70% at 25% 50%, rgba(47, 107, 255, 0.16), transparent 70%);
+  }
+
+  .destacado-invertido {
+    background: radial-gradient(40% 70% at 75% 50%, rgba(47, 107, 255, 0.16), transparent 70%);
   }
 
   .destacado + .destacado {
-    padding-top: 72px;
+    padding-top: 0;
   }
 
   .destacado-fila {
@@ -573,13 +597,13 @@ a:focus-visible {
   }
 
   .armas {
-    padding: 24px 0 80px;
+    padding: 0 0 56px;
   }
 
   .armas-fila {
     flex-direction: row;
     justify-content: center;
-    gap: 56px;
+    gap: 40px;
   }
 
   .arma {
@@ -591,6 +615,16 @@ a:focus-visible {
     justify-content: space-between;
     align-items: flex-start;
     gap: 40px;
+  }
+
+  /* Solo la columna de la marca cede ancho; «Legal» y «Contacto» conservan el suyo. */
+  .pie-columnas > * {
+    flex: 0 0 auto;
+  }
+
+  .pie-columnas > .pie-marca {
+    flex: 1 1 0;
+    min-width: 0;
   }
 
   .pie-final {
