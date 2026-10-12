@@ -4,18 +4,41 @@ El esquema se crea al inicio de la sesión de pytest, se migra con Alembic y se
 elimina al final. Ninguna fixture toca otro esquema.
 """
 
+import os
 from pathlib import Path
 
 import pytest
 from alembic import command
 from alembic.config import Config
+from dotenv import dotenv_values
 from sqlalchemy import create_engine, text
-
-from app.config import obtener_configuracion
-from app.db import crear_fabrica_sesiones, crear_motor
 
 ESQUEMA_TEST = "test"
 RAIZ = Path(__file__).resolve().parent.parent
+CLAVE_FICTICIA_VENTASFF = "rv_c_simulador"
+
+
+def _preparar_entorno() -> None:
+    """Las pruebas nunca usan datos reales: la API Key es ficticia y la BD es la de pruebas.
+
+    Las variables de entorno pesan más que el `.env`, así que `DATABASE_URL` y
+    `VENTASFF_API_KEY` del `.env` (o del shell) se ignoran siempre durante pytest.
+    """
+    url = os.environ.get("TEST_DATABASE_URL") or dotenv_values(RAIZ / ".env").get(
+        "TEST_DATABASE_URL"
+    )
+    if not url:
+        pytest.exit(
+            "TEST_DATABASE_URL es obligatoria para las pruebas (ver .env.example)", returncode=4
+        )
+    os.environ["DATABASE_URL"] = url
+    os.environ["VENTASFF_API_KEY"] = CLAVE_FICTICIA_VENTASFF
+
+
+_preparar_entorno()
+
+from app.config import obtener_configuracion
+from app.db import crear_fabrica_sesiones, crear_motor
 
 
 def _url_test() -> str:

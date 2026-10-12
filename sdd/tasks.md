@@ -16,7 +16,7 @@
 - [x] T-004 `config.py` con carga de variables de entorno y falla clara si falta alguna (RNF-01, RNF-07) → la app no inicia sin configuración.
 - [x] T-005 Conexión a la BD externa por `DATABASE_URL`, verificación al arrancar con error claro y Alembic configurado (RNF-07) → migración vacía aplicable.
 - [x] T-006 Endpoint `/health` y configuración de pytest + ruff (RNF-10) → `pytest` y `ruff` ejecutan en limpio.
-- [x] T-007 Fixtures de pruebas con esquema `test` aislado, creado y eliminado por sesión, vía `TEST_DATABASE_URL` (RNF-10) → las pruebas no tocan el esquema de desarrollo.
+- [x] T-007 Fixtures de pruebas con esquema `test` aislado, creado y eliminado por sesión, vía `TEST_DATABASE_URL` (RNF-10) → las pruebas no tocan el esquema de desarrollo. Desde 2026-10-11 `tests/conftest.py` fija `DATABASE_URL` (= `TEST_DATABASE_URL`) y `VENTASFF_API_KEY` (ficticia): las pruebas no piden datos reales.
 
 ## Fase 2 — Núcleo contable
 

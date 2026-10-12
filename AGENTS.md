@@ -73,7 +73,7 @@ El código nunca introduce comportamiento que no esté en la spec. Si durante la
 
 ## Base de datos
 
-- El LLM solo necesita `DATABASE_URL` (y `TEST_DATABASE_URL`), que el usuario provee en el `.env` local.
+- Para **pruebas** el LLM solo necesita `TEST_DATABASE_URL` en el `.env` local: `tests/conftest.py` fija `DATABASE_URL` con ese valor y `VENTASFF_API_KEY` con la clave ficticia `rv_c_simulador`, siempre, aunque el `.env` traiga otros. `DATABASE_URL` y `VENTASFF_API_KEY` del `.env` pueden quedar vacías; solo se usan para arrancar la app a mano (y ahí se pasan por el entorno, ver «Comandos»). Nunca hacen falta datos reales de VentasFF ni de producción.
 - Nunca imprimir, registrar ni commitear credenciales.
 - Todo cambio de esquema se hace con migraciones de Alembic; no ejecutar DDL manual.
 - Las pruebas corren solo en el esquema `test`. Ninguna prueba ni script toca otros esquemas.
