@@ -1,6 +1,6 @@
 <section class="cifras cifras-chicas">
   <article><small>Rol</small><strong>{{ u.rol }}</strong></article>
-  <article><small>Estado</small><strong>{{ "Activo" if u.activo else "Bloqueado" }}</strong></article>
+  <article><small>Estado</small><strong>{{ "Archivado" if u.archivado else ("Activo" if u.activo else "Bloqueado") }}</strong></article>
   <article><small>Debe cambiar clave</small><strong>{{ "Sí" if u.debe_cambiar_clave else "No" }}</strong></article>
   <article><small>Creado en</small><strong>{{ u.creado_en | fecha }}</strong></article>
   <article><small>Último login</small><strong>{{ u.ultimo_login | fecha }}</strong></article>
@@ -12,13 +12,21 @@
 </section>
 {% endif %}
 <div class="acciones">
+  {% if u.archivado %}
+  <button class="secondary" hx-post="/gestion/usuarios/{{ u.id }}/restaurar" hx-target="#usuario" hx-confirm="¿Restaurar a {{ u.usuario }}? Seguirá bloqueado." hx-disabled-elt="this">Restaurar</button>
+  {% else %}
   {% if u.activo %}
   <button class="secondary" hx-post="/gestion/usuarios/{{ u.id }}/bloquear" hx-target="#usuario" hx-confirm="¿Bloquear a {{ u.usuario }}?" hx-disabled-elt="this">Bloquear</button>
   {% else %}
   <button class="secondary" hx-post="/gestion/usuarios/{{ u.id }}/desbloquear" hx-target="#usuario" hx-disabled-elt="this">Desbloquear</button>
   {% endif %}
   <button class="secondary outline" hx-post="/gestion/usuarios/{{ u.id }}/reset-clave" hx-target="#usuario" hx-confirm="¿Generar una clave temporal nueva? Se cerrarán sus sesiones." hx-disabled-elt="this">Resetear clave</button>
+  {% if u.rol == "cliente" %}
+  <button class="secondary outline" hx-post="/gestion/usuarios/{{ u.id }}/archivar" hx-target="#mensaje-archivar" hx-confirm="¿Archivar a {{ u.usuario }}? Se bloqueará, dejará de verse en el listado y conservará su historial. Solo se puede con saldo en cero." hx-disabled-elt="this">Archivar</button>
+  {% endif %}
+  {% endif %}
 </div>
+<div id="mensaje-archivar"></div>
 {% if clave_temporal %}
 <p class="mensaje exito">Nueva clave temporal: <code id="clave-temporal">{{ clave_temporal }}</code> (cópiala ahora: no se volverá a mostrar)</p>
 {% endif %}

@@ -293,3 +293,65 @@ async def test_auditoria(api, sesion_bd):
         headers=HTMX | {"HX-Target": "registros"},
     )
     assert "No hay registros." in parcial.text and "<html" not in parcial.text
+
+
+async def test_archivar_y_restaurar_desde_la_ficha(api, sesion_bd):
+    """RF-60, CA-11: botón con confirmación, listado sin archivados y filtro «Ver archivados»."""
+    http, admin = await admin_web(api, sesion_bd)
+    cliente = await crear_usuario_con_clave(sesion_bd)
+    ficha = f"/gestion/usuarios/{cliente.id}"
+
+    pagina = await http.get(ficha)
+    assert f"{ficha}/archivar" in pagina.text and "hx-confirm" in pagina.text
+    assert f"{ficha}/saldo/abono" in pagina.text
+    # Un admin no se archiva: su ficha no ofrece el botón.
+    assert "/archivar" not in (await http.get(f"/gestion/usuarios/{admin.id}")).text
+
+    archivado = await htmx_post(http, f"{ficha}/archivar")
+    assert archivado.headers["HX-Redirect"] == "/gestion/usuarios"
+    assert (await releer(sesion_bd, Usuario, cliente.id)).archivado is True
+
+    # Fuera del listado normal; en «Ver archivados», con su enlace.
+    normal = await http.get("/gestion/usuarios")
+    assert cliente.usuario not in normal.text
+    assert "/gestion/usuarios?archivados=1" in normal.text
+    solo_archivados = await http.get("/gestion/usuarios", params={"archivados": "1"})
+    assert cliente.usuario in solo_archivados.text and "Archivado" in solo_archivados.text
+    assert (
+        "Usuarios archivados" in solo_archivados.text
+        and "Crear usuario" not in solo_archivados.text
+    )
+
+    # La ficha del archivado se abre, ofrece Restaurar y no abonos, ajustes ni desbloqueo.
+    pagina = await http.get(ficha)
+    assert pagina.status_code == 200 and "Archivado" in pagina.text
+    assert f"{ficha}/restaurar" in pagina.text
+    for ausente in ("/saldo/abono", "/saldo/ajuste", "/desbloquear", "/archivar", "/reset-clave"):
+        assert ausente not in pagina.text
+
+    restaurado = await htmx_post(http, f"{ficha}/restaurar")
+    assert restaurado.headers["HX-Redirect"] == ficha
+    usuario = await releer(sesion_bd, Usuario, cliente.id)
+    assert (usuario.archivado, usuario.activo) == (False, False)
+    pagina = await http.get(ficha)
+    assert "Bloqueado" in pagina.text and f"{ficha}/desbloquear" in pagina.text
+    assert cliente.usuario in (await http.get("/gestion/usuarios")).text
+
+    acciones = await sesion_bd.scalars(
+        select(Auditoria.accion).where(Auditoria.detalle["usuario_id"].as_integer() == cliente.id)
+    )
+    assert set(acciones) >= {"archivar_usuario", "restaurar_usuario"}
+
+
+async def test_archivar_con_saldo_muestra_el_motivo_en_la_ficha(api, sesion_bd):
+    http, admin = await admin_web(api, sesion_bd)
+    cliente = await crear_usuario_con_clave(sesion_bd)
+    await ledger.abonar(sesion_bd, cliente.id, Decimal("3.00"), nota="Yape", creado_por=admin.id)
+    await sesion_bd.commit()
+
+    ficha = f"/gestion/usuarios/{cliente.id}"
+    respuesta = await htmx_post(http, f"{ficha}/archivar")
+    assert respuesta.status_code == 409 and "disponible 3.00" in respuesta.text
+    assert "HX-Redirect" not in respuesta.headers
+    usuario = await releer(sesion_bd, Usuario, cliente.id)
+    assert (usuario.archivado, usuario.activo) == (False, True)

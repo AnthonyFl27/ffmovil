@@ -19,6 +19,8 @@ class Usuario(Base):
     rol: Mapped[str] = mapped_column(Text)
     debe_cambiar_clave: Mapped[bool] = mapped_column(server_default="true")
     activo: Mapped[bool] = mapped_column(server_default="true")
+    # Retiro lógico (RF-60): oculto del listado, siempre bloqueado.
+    archivado: Mapped[bool] = mapped_column(server_default="false")
     creado_en: Mapped[datetime] = mapped_column(server_default=func.now())
     ultimo_login: Mapped[datetime | None]
 

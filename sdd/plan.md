@@ -85,7 +85,8 @@ Todos los montos: `NUMERIC(12,2)`. Fechas: `TIMESTAMPTZ` en UTC.
 usuarios(
   id BIGSERIAL PK, usuario TEXT UNIQUE NOT NULL, hash_password TEXT NOT NULL,
   rol TEXT CHECK (rol IN ('admin','cliente')), debe_cambiar_clave BOOL DEFAULT true,
-  activo BOOL DEFAULT true, creado_en, ultimo_login
+  activo BOOL DEFAULT true, archivado BOOL NOT NULL DEFAULT false,  -- RF-60, CHG-026
+  creado_en, ultimo_login
 )
 
 saldos(
@@ -262,8 +263,9 @@ Las rutas `/me/*`, `/paquetes` y `/recargas*` son solo para clientes (un admin r
 ### Admin (`/admin/*`, rol admin)
 | Método | Ruta | Descripción |
 |---|---|---|
-| GET/POST | `/admin/usuarios` | Listar / crear cliente (clave temporal) |
-| POST | `/admin/usuarios/{id}/bloquear` · `/desbloquear` · `/reset-clave` | Gestión |
+| GET/POST | `/admin/usuarios` | Listar / crear cliente (clave temporal). `GET ?archivados=true` lista solo los archivados; sin el parámetro los oculta (RF-60) |
+| POST | `/admin/usuarios/{id}/bloquear` · `/desbloquear` · `/reset-clave` | Gestión. `desbloquear` responde 409 si el usuario está archivado |
+| POST | `/admin/usuarios/{id}/archivar` · `/restaurar` | Archivar (RF-60, CHG-026): solo clientes (400 con un admin) con saldo disponible y reservado en cero (409 con el saldo pendiente; el saldo se lee con `SELECT … FOR UPDATE` de `usuarios` y `saldos`); pone `archivado = true` y `activo = false` y cierra sus sesiones. Restaurar pone `archivado = false` y lo deja bloqueado. 409 si ya está en ese estado. Auditoría `archivar_usuario` / `restaurar_usuario` |
 | POST | `/admin/saldos/{usuario_id}/abono` · `/ajuste` | Saldos con nota |
 | GET | `/admin/usuarios/{id}/movimientos` | Historial de abonos y ajustes del cliente (RF-43): filtros `tipo` (`abono` o `ajuste`), `desde`, `hasta`; paginado, del más reciente al más antiguo; campos `fecha`, `tipo`, `monto`, `nota` |
 | GET | `/admin/pedidos` | Filtros completos (RF-50) |
@@ -296,7 +298,7 @@ Paquete `app/web/`: rutas HTML (sin `include_in_schema`) que llaman a las funcio
 | `/historial`, `/historial/{codigo}` | Historial con filtros y detalle (RF-31, RF-32) | `/me/pedidos` |
 | `/fondos` | Fondos (RF-34) | `/me/fondos` |
 | `/gestion` | Panel: crédito, saldos de clientes y saldo por cubrir (informativo, sin aviso de error; CHG-011), pendientes, ganancia, alertas (RF-53, RN-10, RN-11) | `/admin/panel`, `/admin/alertas/{id}/atender` |
-| `/gestion/usuarios`, `/gestion/usuarios/{id}` | Usuarios, abonos y ajustes (RF-03, RF-40, RF-41); la ficha de un cliente añade su historial de movimientos con filtros y paginación (RF-43; CHG-014) | `/admin/usuarios*`, `/admin/usuarios/{id}/movimientos`, `/admin/saldos/*` |
+| `/gestion/usuarios`, `/gestion/usuarios/{id}` | Usuarios, abonos y ajustes (RF-03, RF-40, RF-41); la ficha de un cliente añade su historial de movimientos con filtros y paginación (RF-43; CHG-014); el listado oculta a los archivados y `?archivados=1` muestra solo esos; la ficha tiene «Archivar» (con confirmación; solo clientes) o «Restaurar» y, si está archivado, no muestra los formularios de abono y ajuste ni «Desbloquear» (RF-60; CHG-026) | `/admin/usuarios*`, `/admin/usuarios/{id}/movimientos`, `/admin/saldos/*` |
 | `/gestion/pedidos`, `/gestion/pedidos/{id}` | Pedidos con filtros, detalle y resolución (RF-50 a RF-52, RF-54) | `/admin/pedidos*` |
 | `/gestion/paquetes` | Catálogo: precio, activación, sincronizar (RF-12, RF-14) | `/admin/paquetes`, `/admin/catalogo/sincronizar` |
 | `/gestion/auditoria` | Umbral de crédito bajo (RN-11; el formulario envía a `POST /gestion/config`, y `GET /gestion/config` redirige aquí) y registro de acciones (RF-55) | `/admin/config`, `/admin/auditoria` |

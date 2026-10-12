@@ -21,7 +21,15 @@ from app.schemas.admin import (
 from app.services.consultas_pedidos import POR_PAGINA
 from app.services.estados import Estado
 from app.web import filtros
-from app.web.plantillas import AdminWeb, ErrorWeb, Redirigir, error, es_parcial, render
+from app.web.plantillas import (
+    AdminWeb,
+    ErrorWeb,
+    Redirigir,
+    error,
+    es_parcial,
+    redirigir,
+    render,
+)
 
 router = APIRouter(prefix="/gestion", include_in_schema=False)
 
@@ -66,9 +74,13 @@ async def atender_alerta(alerta_id: int, request: Request, actual: AdminWeb, bd:
 
 
 @router.get("/usuarios")
-async def lista_usuarios(request: Request, actual: AdminWeb, bd: Bd):
-    lista = await usuarios.listar(bd)
-    return render(request, "admin/usuarios.html", actual, usuarios=lista)
+async def lista_usuarios(request: Request, actual: AdminWeb, bd: Bd, archivados: str | None = None):
+    """Sin archivados; con `?archivados=1`, solo ellos (RF-60)."""
+    ver_archivados = archivados == "1"
+    lista = await usuarios.listar(bd, archivados=ver_archivados)
+    return render(
+        request, "admin/usuarios.html", actual, usuarios=lista, ver_archivados=ver_archivados
+    )
 
 
 @router.post("/usuarios")
@@ -81,11 +93,21 @@ async def crear_usuario(
     except HTTPException as fallo:
         return _rechazo(request, fallo)
     lista = await usuarios.listar(bd)
-    return render(request, "admin/_usuario_creado.html", actual, creado=creado, usuarios=lista)
+    return render(
+        request,
+        "admin/_usuario_creado.html",
+        actual,
+        creado=creado,
+        usuarios=lista,
+        ver_archivados=False,
+    )
 
 
 async def _usuario(bd: Bd, usuario_id: int):
-    encontrado = next((u for u in await usuarios.listar(bd) if u.id == usuario_id), None)
+    # `archivados=None`: también abre la ficha de un archivado (RF-60).
+    encontrado = next(
+        (u for u in await usuarios.listar(bd, archivados=None) if u.id == usuario_id), None
+    )
     if encontrado is None:
         raise ErrorWeb(MENSAJE_USUARIO, status.HTTP_404_NOT_FOUND)
     return encontrado
@@ -139,11 +161,13 @@ async def ver_usuario(
 
 @router.post("/usuarios/{usuario_id}/{accion}")
 async def accion_usuario(usuario_id: int, accion: str, request: Request, actual: AdminWeb, bd: Bd):
-    """Bloquear, desbloquear o resetear la clave (RF-03, RF-06)."""
+    """Bloquear, desbloquear, resetear la clave, archivar o restaurar (RF-03, RF-06, RF-60)."""
     operaciones = {
         "bloquear": usuarios.bloquear,
         "desbloquear": usuarios.desbloquear,
         "reset-clave": usuarios.resetear_clave,
+        "archivar": usuarios.archivar,
+        "restaurar": usuarios.restaurar,
     }
     if accion not in operaciones:
         raise ErrorWeb("Acción no válida.", status.HTTP_404_NOT_FOUND)
@@ -151,6 +175,10 @@ async def accion_usuario(usuario_id: int, accion: str, request: Request, actual:
         resultado = await operaciones[accion](usuario_id, request, actual, bd)
     except HTTPException as fallo:
         return _rechazo(request, fallo)
+    if accion == "archivar":  # ya no está en el listado ni admite abonos: recarga la ficha
+        return redirigir("/gestion/usuarios")
+    if accion == "restaurar":
+        return redirigir(f"/gestion/usuarios/{usuario_id}")
     if accion == "reset-clave":
         datos, clave = resultado.usuario, resultado.clave_temporal
     else:

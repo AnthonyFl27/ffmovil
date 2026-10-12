@@ -1,6 +1,6 @@
 # Especificación: Plataforma de recargas Free Fire (prepago)
 
-- **Versión:** 0.23.0
+- **Versión:** 0.24.0
 - **Estado:** Borrador aprobado para iniciar desarrollo
 - **Fuente de verdad:** este archivo. El código y el plan se derivan de aquí.
 
@@ -56,6 +56,7 @@ Web de recargas de diamantes de Free Fire para clientes revendedores con cuentas
 - **RF-06** La sesión expira tras 8 h sin actividad. Cerrar sesión la invalida. Bloquear al usuario, resetear o cambiar su contraseña cierra todas sus sesiones abiertas.
 - **RF-07** El nombre de usuario tiene de 3 a 30 caracteres: letras minúsculas a-z, dígitos, `.`, `_` y `-`. Se guarda en minúsculas y el login no distingue mayúsculas.
 - **RF-08** La contraseña nueva tiene de 8 a 128 caracteres y debe ser distinta de la actual.
+- **RF-60** El admin puede archivar a un cliente desde su ficha cuando deja de trabajar con la plataforma. Solo se archiva con el saldo disponible y el saldo reservado en cero (lo que incluye no tener pedidos en curso); si no, se rechaza con 409 y el mensaje indica el saldo pendiente. Archivar bloquea al cliente (RF-04), cierra sus sesiones (RF-06) y lo oculta del listado de usuarios; su cuenta, pedidos, movimientos y auditoría se conservan. El listado ofrece el filtro «Ver archivados», que muestra solo los archivados y desde el cual se abre su ficha. Mientras está archivado no se puede desbloquear ni registrarle abonos o ajustes (409). El admin puede restaurarlo: vuelve al listado y **sigue bloqueado**, y hay que desbloquearlo aparte. No se puede archivar a un administrador. El nombre de usuario de un cliente archivado sigue ocupado (RF-07). Archivar y restaurar quedan en la auditoría (RF-55).
 
 ### 5.2 Catálogo
 - **RF-10** El sistema sincroniza `productos.php` una vez al día y bajo demanda del admin, filtrando `juego = free_fire`. Los paquetes nuevos se crean inactivos y sin `precio_venta`. Los paquetes que dejan de venir se desactivan, salvo que la respuesta no contenga ningún paquete `free_fire`: en ese caso la sincronización no modifica el catálogo (no desactiva ni actualiza ningún paquete), lo indica en su resultado y genera la alerta de RN-11 (e).
@@ -202,6 +203,7 @@ Limitaciones: sin endpoint de estado de pedido; `recargar.php` no acepta otros c
 - **CA-08** Si `productos.php` responde sin ningún paquete `free_fire`, los paquetes activos siguen activos, el resultado de la sincronización lo indica y queda una alerta activa `catalogo_vacio`; una segunda sincronización vacía no crea otra alerta.
 - **CA-09** Con la página «Próximamente» publicada, `https://ffmovil.com` responde 200 con certificado válido, `http://ffmovil.com` y `https://www.ffmovil.com` redirigen a `https://ffmovil.com`, el puerto 8000 no responde desde internet y la página lleva las cabeceras de seguridad de RNF-14 y la de RNF-21. Con la app desplegada (fase 2), 5 intentos fallidos desde una IP no bloquean al mismo usuario desde otra IP y la auditoría muestra la IP del cliente. Se verifica en el despliegue; los archivos de configuración tienen además pruebas automáticas.
 - **CA-10** `GET /` sin sesión responde 200 y contiene el botón «Iniciar sesión» hacia `/login`, los enlaces a `/terminos` y `/privacidad`, el aviso de marcas y el sello de Cloudflare, y no contiene precios ni importes; con sesión (cliente, admin o con cambio de clave pendiente) redirige como antes. `/terminos` y `/privacidad` responden 200 con y sin sesión. Ninguna de las tres llama a VentasFF ni lee paquetes, saldos o pedidos. Cada imagen pesa ≤ 150 KB y el total ≤ 800 KB (RNF-20). A 360 × 740 px cumplen CA-07, el botón «Iniciar sesión» es visible sin desplazarse y la prueba de navegador no registra violaciones de CSP (RNF-14).
+- **CA-11** Un cliente con saldo disponible o reservado distinto de cero no se puede archivar (409). Con ambos en cero, al archivarlo desaparece del listado, no puede iniciar sesión y conserva sus pedidos y movimientos; aparece con el filtro «Ver archivados»; no se puede desbloquear ni abonar mientras está archivado; al restaurarlo vuelve al listado y sigue bloqueado.
 
 ## 11. Preguntas abiertas
 

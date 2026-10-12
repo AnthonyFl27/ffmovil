@@ -9,7 +9,7 @@
     <tr>
       <td data-etiqueta="Usuario"><a href="/gestion/usuarios/{{ u.id }}">{{ u.usuario }}</a></td>
       <td data-etiqueta="Rol">{{ u.rol }}</td>
-      <td data-etiqueta="Estado">{{ "Activo" if u.activo else "Bloqueado" }}</td>
+      <td data-etiqueta="Estado">{{ "Archivado" if u.archivado else ("Activo" if u.activo else "Bloqueado") }}</td>
       <td data-etiqueta="Debe cambiar clave" class="secundario">{{ "Sí" if u.debe_cambiar_clave else "No" }}</td>
       <td data-etiqueta="Saldo disponible">{{ u.saldo_disponible | usd }}</td>
       <td data-etiqueta="Saldo reservado" class="secundario">{{ u.saldo_reservado | usd }}</td>
@@ -20,5 +20,5 @@
 </table>
 </div>
 {% else %}
-<p>No hay usuarios.</p>
+<p>{{ "No hay usuarios archivados." if ver_archivados else "No hay usuarios." }}</p>
 {% endif %}

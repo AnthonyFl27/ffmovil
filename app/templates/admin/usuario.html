@@ -4,6 +4,7 @@
 <h1>Usuario {{ u.usuario }}</h1>
 <div id="usuario">{% include "admin/_usuario.html" %}</div>
 {% if u.rol == "cliente" %}
+{% if not u.archivado %}
 <h2>Movimientos de saldo</h2>
 <div class="grid">
   <form hx-post="/gestion/usuarios/{{ u.id }}/saldo/abono" hx-target="#mensaje-saldo" hx-disabled-elt="find button">
@@ -39,6 +40,7 @@
   </form>
 </div>
 <div id="mensaje-saldo"></div>
+{% endif %}
 <h2>Historial de abonos y ajustes</h2>
 {% set hay_filtros = filtros.tipo or filtros.desde or filtros.hasta %}
 <details class="filtros"{% if hay_filtros %} open{% endif %}>

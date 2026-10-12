@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% block titulo %}Usuarios{% endblock %}
 {% block contenido %}
-<h1>Usuarios</h1>
+<h1>{{ "Usuarios archivados" if ver_archivados else "Usuarios" }}</h1>
+{% if not ver_archivados %}
 <details class="nuevo-usuario">
   <summary role="button">Crear usuario</summary>
   <form hx-post="/gestion/usuarios" hx-target="#nuevo-usuario" hx-disabled-elt="find button">
@@ -15,6 +16,14 @@
   </form>
   <div id="nuevo-usuario"></div>
 </details>
+{% endif %}
 <h2>Listado</h2>
 <div id="tabla-usuarios">{% include "admin/_tabla_usuarios.html" %}</div>
+<p class="volver">
+  {% if ver_archivados %}
+  <a role="button" class="secondary" href="/gestion/usuarios">Ver usuarios</a>
+  {% else %}
+  <a role="button" class="secondary outline" href="/gestion/usuarios?archivados=1">Ver archivados</a>
+  {% endif %}
+</p>
 {% endblock %}

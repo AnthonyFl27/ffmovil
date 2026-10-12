@@ -1,4 +1,4 @@
-"""Gestión de usuarios por el admin (RF-03, RF-06, RF-07, RF-55)."""
+"""Gestión de usuarios por el admin (RF-03, RF-06, RF-07, RF-55, RF-60)."""
 
 from datetime import datetime
 from typing import Annotated, Literal
@@ -23,6 +23,10 @@ router = APIRouter(prefix="/usuarios")
 
 MENSAJE_NO_ENCONTRADO = "Usuario no encontrado."
 MENSAJE_BLOQUEARSE = "No puedes bloquear tu propia cuenta."
+MENSAJE_ARCHIVAR_ADMIN = "No se puede archivar a un administrador."
+MENSAJE_YA_ARCHIVADO = "El cliente ya está archivado."
+MENSAJE_NO_ARCHIVADO = "El cliente no está archivado."
+MENSAJE_DESBLOQUEAR_ARCHIVADO = "El cliente está archivado: restáuralo antes de desbloquearlo."
 # El historial del admin solo trae lo que el admin registra a mano (RF-43, CHG-015).
 TIPOS_HISTORIAL = ("abono", "ajuste")
 
@@ -33,6 +37,7 @@ def _usuario_admin(usuario: Usuario, saldo: Saldo | None) -> UsuarioAdmin:
         usuario=usuario.usuario,
         rol=usuario.rol,
         activo=usuario.activo,
+        archivado=usuario.archivado,
         debe_cambiar_clave=usuario.debe_cambiar_clave,
         creado_en=usuario.creado_en,
         ultimo_login=usuario.ultimo_login,
@@ -57,13 +62,19 @@ async def _bloquear_usuario(bd: Bd, usuario_id: int) -> tuple[Usuario, Saldo | N
 
 
 @router.get("", response_model=list[UsuarioAdmin])
-async def listar(bd: Bd):
-    filas = await bd.execute(
+async def listar(bd: Bd, archivados: bool | None = False):
+    """Usuarios sin archivar; con `archivados=true`, solo los archivados (RF-60).
+
+    Internamente `None` trae todos (la ficha de un archivado también se abre).
+    """
+    consulta = (
         select(Usuario, Saldo)
         .outerjoin(Saldo, Saldo.usuario_id == Usuario.id)
         .order_by(Usuario.usuario)
     )
-    return [_usuario_admin(u, s) for u, s in filas]
+    if archivados is not None:
+        consulta = consulta.where(Usuario.archivado.is_(archivados))
+    return [_usuario_admin(u, s) for u, s in await bd.execute(consulta)]
 
 
 @router.post("", response_model=UsuarioConClave, status_code=status.HTTP_201_CREATED)
@@ -110,11 +121,71 @@ async def bloquear(usuario_id: int, request: Request, actual: Admin, bd: Bd):
 @router.post("/{usuario_id}/desbloquear", response_model=UsuarioAdmin)
 async def desbloquear(usuario_id: int, request: Request, actual: Admin, bd: Bd):
     usuario, saldo = await _bloquear_usuario(bd, usuario_id)
+    if usuario.archivado:
+        raise HTTPException(status.HTTP_409_CONFLICT, MENSAJE_DESBLOQUEAR_ARCHIVADO)
     usuario.activo = True
     auditoria.registrar(
         bd,
         actual.usuario_id,
         "desbloquear_usuario",
+        {"usuario_id": usuario.id, "usuario": usuario.usuario},
+        ip_cliente(request),
+    )
+    await bd.commit()
+    return _usuario_admin(usuario, saldo)
+
+
+@router.post("/{usuario_id}/archivar", response_model=UsuarioAdmin)
+async def archivar(usuario_id: int, request: Request, actual: Admin, bd: Bd):
+    """Retiro lógico: bloquea, cierra sesiones y oculta; solo con saldo en cero (RF-60)."""
+    usuario, _ = await _bloquear_usuario(bd, usuario_id)
+    if usuario.rol != "cliente":
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, MENSAJE_ARCHIVAR_ADMIN)
+    if usuario.archivado:
+        raise HTTPException(status.HTTP_409_CONFLICT, MENSAJE_YA_ARCHIVADO)
+    # Con la fila del saldo bloqueada nadie reserva ni abona entre la lectura y el archivado.
+    saldo = (
+        await bd.execute(
+            select(Saldo)
+            .where(Saldo.usuario_id == usuario.id)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
+    ).scalar_one_or_none()
+    if saldo is not None and (saldo.saldo_disponible or saldo.saldo_reservado):
+        # El mensaje se arma antes del rollback: después los atributos ORM expiran.
+        mensaje = (
+            "No se puede archivar: el cliente tiene saldo pendiente "
+            f"(disponible {saldo.saldo_disponible:.2f}, reservado {saldo.saldo_reservado:.2f}). "
+            "Déjalo en cero antes de archivar."
+        )
+        await bd.rollback()
+        raise HTTPException(status.HTTP_409_CONFLICT, mensaje)
+    usuario.activo = False
+    usuario.archivado = True
+    await sesiones.cerrar_sesiones_de(bd, usuario.id)
+    auditoria.registrar(
+        bd,
+        actual.usuario_id,
+        "archivar_usuario",
+        {"usuario_id": usuario.id, "usuario": usuario.usuario},
+        ip_cliente(request),
+    )
+    await bd.commit()
+    return _usuario_admin(usuario, saldo)
+
+
+@router.post("/{usuario_id}/restaurar", response_model=UsuarioAdmin)
+async def restaurar(usuario_id: int, request: Request, actual: Admin, bd: Bd):
+    """Vuelve al listado y sigue bloqueado: se desbloquea aparte (RF-60)."""
+    usuario, saldo = await _bloquear_usuario(bd, usuario_id)
+    if not usuario.archivado:
+        raise HTTPException(status.HTTP_409_CONFLICT, MENSAJE_NO_ARCHIVADO)
+    usuario.archivado = False
+    auditoria.registrar(
+        bd,
+        actual.usuario_id,
+        "restaurar_usuario",
         {"usuario_id": usuario.id, "usuario": usuario.usuario},
         ip_cliente(request),
     )

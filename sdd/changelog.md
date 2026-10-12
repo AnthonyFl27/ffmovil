@@ -223,6 +223,14 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.22.0 → 0.23.0
 - **Motivo:** antes de abrir a clientes reales, el navegador debe negarse a usar HTTP con `ffmovil.com`. Decisiones del dueño: `max-age` de 1 año; sin `includeSubDomains` (no se asume HTTPS en otros subdominios) ni `preload` (difícil de revertir). La pone Caddy, que es quien termina el HTTPS, en las dos fases.
 
+### CHG-026 · 2026-10-12 · Archivar clientes
+- **Origen:** decisión de negocio
+- **Spec:** RF-60 añadido; CA-11 añadido
+- **Plan:** sec. 3 (`usuarios.archivado`), sec. 6 (rutas `/admin/usuarios/{id}/archivar` y `/restaurar`, filtro `archivados`) y pantallas `/gestion/usuarios*`
+- **Tareas:** nueva T-128
+- **Versión spec:** 0.23.0 → 0.24.0
+- **Motivo:** el dueño quiere dejar de ver en el listado a los clientes que ya no trabajan con la plataforma. Se descartó el borrado físico del usuario: `pedidos`, `movimientos` y `auditoría` lo referencian y el libro contable es solo de inserción. Decisiones del dueño: archivar es un retiro lógico (la cuenta y su historial se conservan), solo con saldo disponible y reservado en cero, y no aplica a administradores (solo hay uno, creado por CLI). Decisiones técnicas derivadas: archivar bloquea al cliente; restaurar lo deja bloqueado; un archivado no se desbloquea ni recibe abonos o ajustes para no romper el saldo cero; el nombre sigue ocupado.
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |

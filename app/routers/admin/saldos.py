@@ -1,7 +1,9 @@
-"""Abonos y ajustes de saldo por el admin (RF-40, RF-41, RF-42, RF-55)."""
+"""Abonos y ajustes de saldo por el admin (RF-40, RF-41, RF-42, RF-55, RF-60)."""
 
 from fastapi import APIRouter, HTTPException, Request, status
+from sqlalchemy import select
 
+from app.models import Usuario
 from app.routers.dependencias import Admin, Bd, ip_cliente
 from app.schemas.admin import MovimientoAdmin, MovimientoSaldo
 from app.services import auditoria, ledger
@@ -10,10 +12,18 @@ from app.services.ledger import CuentaInexistente, ErrorLedger
 router = APIRouter(prefix="/saldos")
 
 MENSAJE_SIN_CUENTA = "El usuario no existe o no tiene cuenta de saldo."
+MENSAJE_ARCHIVADO = "El cliente está archivado: restáuralo para registrarle abonos o ajustes."
 
 
 async def _aplicar(tipo: str, usuario_id: int, datos: MovimientoSaldo, request, actual, bd):
     operacion = ledger.abonar if tipo == "abono" else ledger.ajustar
+    # FOR SHARE: un archivado en curso espera a este abono y revisa el saldo ya sumado (RF-60).
+    archivado = await bd.scalar(
+        select(Usuario.archivado).where(Usuario.id == usuario_id).with_for_update(read=True)
+    )
+    if archivado:
+        await bd.rollback()
+        raise HTTPException(status.HTTP_409_CONFLICT, MENSAJE_ARCHIVADO)
     try:
         movimiento = await operacion(
             bd, usuario_id, datos.monto, nota=datos.nota, creado_por=actual.usuario_id

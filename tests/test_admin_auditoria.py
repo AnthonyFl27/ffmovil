@@ -17,6 +17,8 @@ ACCIONES = {
     ("POST", "/admin/usuarios/{usuario_id}/bloquear"): "bloquear_usuario",
     ("POST", "/admin/usuarios/{usuario_id}/desbloquear"): "desbloquear_usuario",
     ("POST", "/admin/usuarios/{usuario_id}/reset-clave"): "resetear_clave",
+    ("POST", "/admin/usuarios/{usuario_id}/archivar"): "archivar_usuario",
+    ("POST", "/admin/usuarios/{usuario_id}/restaurar"): "restaurar_usuario",
     ("POST", "/admin/saldos/{usuario_id}/abono"): "abono",
     ("POST", "/admin/saldos/{usuario_id}/ajuste"): "ajuste",
     ("POST", "/admin/pedidos/{pedido}/resolver"): "resolver_pedido",
@@ -42,6 +44,7 @@ def test_todas_las_rutas_admin_que_cambian_datos_estan_cubiertas():
 async def test_cada_accion_registra_una_fila(api, sesion_bd):
     admin = await crear_usuario_con_clave(sesion_bd, rol="admin")
     cliente = await crear_usuario_con_clave(sesion_bd)
+    archivable = await crear_usuario_con_clave(sesion_bd)  # saldo en cero (RF-60)
     paquete = await crear_paquete(sesion_bd, precio_costo="0.50", precio_venta="0.75")
     pedido = await crear_pedido(sesion_bd, cliente.id, paquete, estado="PENDIENTE_VERIFICAR")
     pedido.codigo = codigo_pedido(pedido.id)
@@ -61,6 +64,8 @@ async def test_cada_accion_registra_una_fila(api, sesion_bd):
         c.post(f"/admin/usuarios/{cliente.id}/bloquear"),
         c.post(f"/admin/usuarios/{cliente.id}/desbloquear"),
         c.post(f"/admin/usuarios/{cliente.id}/reset-clave"),
+        c.post(f"/admin/usuarios/{archivable.id}/archivar"),
+        c.post(f"/admin/usuarios/{archivable.id}/restaurar"),
         c.post(f"/admin/saldos/{cliente.id}/abono", json={"monto": "1", "nota": "Yape"}),
         c.post(f"/admin/saldos/{cliente.id}/ajuste", json={"monto": "-1", "nota": "Error"}),
         c.post(

@@ -14,6 +14,7 @@ class UsuarioAdmin(BaseModel):
     usuario: str
     rol: str
     activo: bool
+    archivado: bool
     debe_cambiar_clave: bool
     creado_en: datetime
     ultimo_login: datetime | None

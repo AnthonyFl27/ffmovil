@@ -137,6 +137,8 @@ async def test_pantallas_en_viewport_movil(servidor_web, navegador, api, sesion_
     # Cliente con saldo, abono, paquete y pedidos en cada estado final.
     _, cliente, paquete = await cliente_web(api, sesion_bd, simulador)
     admin = await crear_usuario_con_clave(sesion_bd, rol="admin")
+    archivado = await crear_usuario_con_clave(sesion_bd, activo=False)
+    archivado.archivado = True  # RF-60: su ficha y el listado de archivados
     await ledger.reservar(sesion_bd, cliente.id, Decimal("0.75"))
     pedidos = [
         await crear_pedido(sesion_bd, cliente.id, paquete, estado=estado, referencia=referencia)
@@ -193,6 +195,8 @@ async def test_pantallas_en_viewport_movil(servidor_web, navegador, api, sesion_
             f"/gestion/pedidos/{pendiente.id}",
             "/gestion/usuarios",
             f"/gestion/usuarios/{cliente.id}",
+            "/gestion/usuarios?archivados=1",
+            f"/gestion/usuarios/{archivado.id}",
             "/gestion/paquetes",
             "/gestion/auditoria",
         ],
