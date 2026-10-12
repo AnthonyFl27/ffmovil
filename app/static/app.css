@@ -204,6 +204,12 @@ dl.ficha { display: grid; grid-template-columns: auto 1fr; gap: 0.25rem 1rem; ma
 dl.ficha dt { color: var(--pico-muted-color); font-weight: normal; }
 dl.ficha dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
 
+/* Tarjeta de pedido y de confirmación: ancho de la ficha, centrada en escritorio (sin hueco a la derecha). */
+@media (min-width: 768px) {
+  article.tarjeta-angosta { max-width: 36rem; margin-inline: auto; }
+  article.tarjeta-angosta dl.ficha { max-width: none; }
+}
+
 /* Áreas táctiles de 44 px en móvil (RNF-12, CA-07). */
 @media (max-width: 767.98px) {
   main a:not([role=button]) {

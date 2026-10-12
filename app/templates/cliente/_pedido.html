@@ -1,5 +1,5 @@
 {% from "parciales/iconos.html" import icono, copiar, vacio %}
-<article id="pedido-{{ pedido.codigo }}"
+<article class="tarjeta-angosta" id="pedido-{{ pedido.codigo }}"
   {% if en_proceso %}hx-get="/historial/{{ pedido.codigo }}" hx-trigger="every {{ intervalo }}s" hx-swap="outerHTML"{% endif %}>
   <h2>Pedido {{ pedido.codigo }}</h2>
   <p class="estado estado-{{ pedido.estado }}"><span class="insignia">{{ pedido.estado_etiqueta }}</span></p>
