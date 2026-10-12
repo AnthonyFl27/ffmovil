@@ -95,8 +95,8 @@
 - [x] T-090 Caddy con dominio e HTTPS; `COOKIE_SECURE=true`; solo 80/443 publicados (RNF-03, RNF-11, RNF-18) → dividida en T-119 (página «Próximamente») y T-120 (la app); se cierra con ambas (CHG-020). Requisito previo a clientes reales. **Hecha el 2026-10-11** con T-119 y T-120.
 - [x] T-091 Variables reales en el VPS (fuera del repo) (RNF-01, RNF-06) → `.env` de producción en `/root/container/ffmovil/` con permisos `600` (2026-10-11): API Key nueva de VentasFF, `ffmovil_app` sobre la base `ffmovil`, `SECRET_KEY` propia, `COOKIE_SECURE=true`, `CLIENT_IP_HEADER=X-Client-IP`; sin `TEST_DATABASE_URL` ni `VENTASFF_URL`.
 - [x] T-092 Respaldo periódico de PostgreSQL fuera del repositorio (RNF-06, RNF-07) → cubierto por el dueño (2026-10-10), fuera del repo.
-- [ ] T-093 Prueba real controlada: una recarga del paquete más barato con ID propio; verificar en el juego y en el panel de VentasFF (RF-24, RN-03).
-- [ ] T-094 Alta del primer cliente y primer abono manual de prueba (RF-03, RF-40).
+- [x] T-093 Prueba real controlada: una recarga del paquete más barato con ID propio; verificar en el juego y en el panel de VentasFF (RF-24, RN-03). → hecha por el dueño en producción (2026-10-12): pedido FF-000002 exitoso (110 Diamantes).
+- [x] T-094 Alta del primer cliente y primer abono manual de prueba (RF-03, RF-40). → hecha por el dueño en producción (2026-10-12).
 
 ---
 
