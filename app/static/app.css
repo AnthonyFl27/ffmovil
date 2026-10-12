@@ -204,10 +204,18 @@ dl.ficha { display: grid; grid-template-columns: auto 1fr; gap: 0.25rem 1rem; ma
 dl.ficha dt { color: var(--pico-muted-color); font-weight: normal; }
 dl.ficha dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
 
-/* Tarjeta de pedido y de confirmación: ancho de la ficha, centrada en escritorio (sin hueco a la derecha). */
+/* Recarga en escritorio: todos los pasos en una columna centrada (sin huecos a los lados). */
 @media (min-width: 768px) {
+  #recarga { max-width: 44rem; margin-inline: auto; }
   article.tarjeta-angosta { max-width: 36rem; margin-inline: auto; }
+  #recarga article.tarjeta-angosta { max-width: none; }
   article.tarjeta-angosta dl.ficha { max-width: none; }
+}
+/* Aviso de recarga irreversible: caja propia y resaltada dentro de la confirmación. */
+p.aviso-irreversible {
+  padding: 0.75rem 1rem; border: 1px solid var(--color-aviso); border-left-width: 0.25rem;
+  border-radius: var(--pico-border-radius);
+  background: color-mix(in srgb, var(--color-aviso) 12%, transparent);
 }
 
 /* Áreas táctiles de 44 px en móvil (RNF-12, CA-07). */
@@ -252,7 +260,7 @@ article.paquetes legend { font-weight: 600; margin-bottom: 0.5rem; }
 /* Paquetes como tarjetas en cuadrícula; el radio cubre toda la tarjeta (accesible y táctil). */
 article.paquetes fieldset { display: grid; grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr)); gap: 0.75rem; width: 100%; min-width: 0; }
 @media (min-width: 768px) {
-  article.paquetes fieldset { grid-template-columns: repeat(auto-fill, 11rem); }
+  article.paquetes fieldset { grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); }
 }
 article.paquetes label.paquete {
   position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;
