@@ -9,7 +9,6 @@ from app.routers import auth
 from app.routers.dependencias import Bd, SesionActual
 from app.schemas.auth import CambioClave, Login
 from app.web.plantillas import (
-    PAGINA_ENTRAR,
     SesionWeb,
     error,
     inicio_de,
@@ -82,6 +81,6 @@ async def clave_enviar(
 
 @router.post("/salir")
 async def salir(actual: SesionWeb, bd: Bd):
-    respuesta = redirigir(PAGINA_ENTRAR)
+    respuesta = redirigir("/")
     await auth.logout(respuesta, actual, bd)
     return respuesta

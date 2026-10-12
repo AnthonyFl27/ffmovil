@@ -113,5 +113,5 @@ async def test_salir_cierra_la_sesion(api, sesion_bd):
     cliente.headers["X-CSRF-Token"] = csrf_de((await cliente.get("/clave")).text)
 
     respuesta = await cliente.post("/salir", headers=HTMX)
-    assert respuesta.headers["HX-Redirect"] == "/login"
+    assert respuesta.headers["HX-Redirect"] == "/"
     assert (await cliente.get("/clave")).headers["location"] == "/login"
