@@ -132,7 +132,7 @@ async def test_abono_y_ajuste(api, sesion_bd):
 
     abono = await htmx_post(http, f"{ruta}/abono", {"monto": "12.50", "nota": "Pago móvil 123"})
     assert abono.status_code == 200
-    assert "Abono de 12.50 USD registrado" in abono.text
+    assert "Recarga de saldo de 12.50 USD registrada" in abono.text
     assert '<strong id="saldo-disponible">12.50 USD</strong>' in abono.text
 
     ajuste = await htmx_post(http, f"{ruta}/ajuste", {"monto": "-2.50", "nota": "Corrección"})

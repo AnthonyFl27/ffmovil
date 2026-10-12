@@ -35,13 +35,15 @@ router = APIRouter(prefix="/gestion", include_in_schema=False)
 
 MENSAJE_MONTO = "Monto inválido. Usa un número con hasta 2 decimales."
 MENSAJE_USUARIO = "Usuario no encontrado."
+MAXIMO_BUSQUEDA_USUARIO = 30  # el tope del nombre de usuario (RF-07, RF-61)
+MENSAJE_BUSQUEDA_LARGA = "La búsqueda admite hasta 30 caracteres."
 MENSAJE_RESOLUCION = "Elige si la recarga fue exitosa o fallida."
 # Elementos donde se muestran los errores de formularios que reemplazan otra parte.
 MENSAJE_RESOLVER = "#mensaje-resolucion"
 MENSAJE_CATALOGO = "#mensaje-catalogo"
 OPCIONES_ESTADO = [(e, e.value) for e in Estado if e != Estado.CREADO]
 ETIQUETAS_TIPO_MOVIMIENTO = [
-    ("abono", "Abono"),
+    ("abono", "Recarga de saldo"),
     ("ajuste", "Ajuste"),
 ]
 OPCIONES_TIPO_MOVIMIENTO = {valor for valor, _ in ETIQUETAS_TIPO_MOVIMIENTO}
@@ -73,13 +75,70 @@ async def atender_alerta(alerta_id: int, request: Request, actual: AdminWeb, bd:
 # --- Usuarios y saldos (RF-03, RF-40, RF-41) ----------------------------------------
 
 
+def _booleano(valor: str | None) -> bool | None:
+    """`true` o `false` del selector; cualquier otra cosa (vacío) no filtra."""
+    return {"true": True, "false": False}.get(valor or "")
+
+
 @router.get("/usuarios")
-async def lista_usuarios(request: Request, actual: AdminWeb, bd: Bd, archivados: str | None = None):
-    """Sin archivados; con `?archivados=1`, solo ellos (RF-60)."""
+async def lista_usuarios(
+    request: Request,
+    actual: AdminWeb,
+    bd: Bd,
+    archivados: str | None = None,
+    q: str | None = None,
+    estado: str | None = None,
+    con_saldo: str | None = None,
+    debe_cambiar_clave: str | None = None,
+    login_desde: str | None = None,
+    login_hasta: str | None = None,
+    creado_desde: str | None = None,
+    creado_hasta: str | None = None,
+    tz: str | None = None,
+):
+    """Sin archivados; con `?archivados=1`, solo ellos (RF-60). Filtros de RF-61."""
     ver_archivados = archivados == "1"
-    lista = await usuarios.listar(bd, archivados=ver_archivados)
+    busqueda = filtros.texto(q)
+    if busqueda is not None and len(busqueda) > MAXIMO_BUSQUEDA_USUARIO:
+        raise ErrorWeb(MENSAJE_BUSQUEDA_LARGA, status.HTTP_422_UNPROCESSABLE_CONTENT)
+    login_inicio, login_fin = filtros.rango_utc(login_desde, login_hasta, tz)
+    creado_inicio, creado_fin = filtros.rango_utc(creado_desde, creado_hasta, tz)
+    lista = await usuarios.listar(
+        bd,
+        archivados=ver_archivados,
+        q=busqueda,
+        estado=estado if estado in ("activo", "bloqueado") else None,
+        con_saldo=_booleano(con_saldo),
+        debe_cambiar_clave=_booleano(debe_cambiar_clave),
+        login_desde=login_inicio,
+        login_hasta=login_fin,
+        creado_desde=creado_inicio,
+        creado_hasta=creado_fin,
+    )
+    valores = {
+        "q": q,
+        "estado": estado,
+        "con_saldo": con_saldo,
+        "debe_cambiar_clave": debe_cambiar_clave,
+        "login_desde": login_desde,
+        "login_hasta": login_hasta,
+        "creado_desde": creado_desde,
+        "creado_hasta": creado_hasta,
+        "tz": tz,
+    }
+    plantilla = (
+        "admin/_tabla_usuarios.html"
+        if es_parcial(request, "tabla-usuarios")
+        else "admin/usuarios.html"
+    )
     return render(
-        request, "admin/usuarios.html", actual, usuarios=lista, ver_archivados=ver_archivados
+        request,
+        plantilla,
+        actual,
+        usuarios=lista,
+        ver_archivados=ver_archivados,
+        filtros=valores,
+        filtrado=any(v for k, v in valores.items() if k != "tz"),
     )
 
 

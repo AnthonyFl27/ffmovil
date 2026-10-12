@@ -18,6 +18,47 @@
 </details>
 {% endif %}
 <h2>Listado</h2>
+<details class="filtros"{% if filtrado %} open{% endif %}>
+<summary role="button" class="outline secondary">Filtros</summary>
+<form hx-get="/gestion/usuarios" hx-target="#tabla-usuarios" hx-push-url="true" hx-trigger="submit, input delay:300ms" hx-sync="this:replace">
+  <input type="hidden" name="tz" value="{{ filtros.tz or '' }}">
+  {% if ver_archivados %}<input type="hidden" name="archivados" value="1">{% endif %}
+  <div class="grid">
+    <label>Usuario <input name="q" maxlength="30" autocomplete="off" value="{{ filtros.q or '' }}"></label>
+    <label>Estado
+      <select name="estado">
+        <option value="">Todos</option>
+        <option value="activo" {% if filtros.estado == "activo" %}selected{% endif %}>Activo</option>
+        <option value="bloqueado" {% if filtros.estado == "bloqueado" %}selected{% endif %}>Bloqueado</option>
+      </select>
+    </label>
+    <label>Con saldo
+      <select name="con_saldo">
+        <option value="">Todos</option>
+        <option value="true" {% if filtros.con_saldo == "true" %}selected{% endif %}>Con saldo</option>
+        <option value="false" {% if filtros.con_saldo == "false" %}selected{% endif %}>Sin saldo</option>
+      </select>
+    </label>
+    <label>Debe cambiar clave
+      <select name="debe_cambiar_clave">
+        <option value="">Todos</option>
+        <option value="true" {% if filtros.debe_cambiar_clave == "true" %}selected{% endif %}>Sí</option>
+        <option value="false" {% if filtros.debe_cambiar_clave == "false" %}selected{% endif %}>No</option>
+      </select>
+    </label>
+  </div>
+  <div class="grid">
+    <label>Último login desde <input type="date" name="login_desde" value="{{ filtros.login_desde or '' }}"></label>
+    <label>Último login hasta <input type="date" name="login_hasta" value="{{ filtros.login_hasta or '' }}"></label>
+    <label>Creado desde <input type="date" name="creado_desde" value="{{ filtros.creado_desde or '' }}"></label>
+    <label>Creado hasta <input type="date" name="creado_hasta" value="{{ filtros.creado_hasta or '' }}"></label>
+  </div>
+  <div class="acciones">
+    <button type="submit">Filtrar</button>
+    <a role="button" class="secondary outline" href="/gestion/usuarios{% if ver_archivados %}?archivados=1{% endif %}">Quitar filtros</a>
+  </div>
+</form>
+</details>
 <div id="tabla-usuarios">{% include "admin/_tabla_usuarios.html" %}</div>
 <p class="volver">
   {% if ver_archivados %}

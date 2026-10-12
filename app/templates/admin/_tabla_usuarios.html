@@ -2,7 +2,7 @@
 <div class="overflow-auto">
 <table class="tarjetas">
   <thead>
-    <tr><th>Usuario</th><th>Rol</th><th>Estado</th><th>Debe cambiar clave</th><th>Saldo disponible</th><th>Saldo reservado</th><th>Último login</th></tr>
+    <tr><th>Usuario</th><th>Rol</th><th>Estado</th><th>Debe cambiar clave</th><th>Saldo disponible</th><th>Saldo reservado</th><th>Creado</th><th>Último login</th></tr>
   </thead>
   <tbody>
   {% for u in usuarios %}
@@ -13,6 +13,7 @@
       <td data-etiqueta="Debe cambiar clave" class="secundario">{{ "Sí" if u.debe_cambiar_clave else "No" }}</td>
       <td data-etiqueta="Saldo disponible">{{ u.saldo_disponible | usd }}</td>
       <td data-etiqueta="Saldo reservado" class="secundario">{{ u.saldo_reservado | usd }}</td>
+      <td data-etiqueta="Creado" class="secundario">{{ u.creado_en | fecha }}</td>
       <td data-etiqueta="Último login" class="secundario">{{ u.ultimo_login | fecha }}</td>
     </tr>
   {% endfor %}
@@ -20,5 +21,5 @@
 </table>
 </div>
 {% else %}
-<p>{{ "No hay usuarios archivados." if ver_archivados else "No hay usuarios." }}</p>
+<p>{% if filtrado %}No hay usuarios con estos filtros.{% elif ver_archivados %}No hay usuarios archivados.{% else %}No hay usuarios.{% endif %}</p>
 {% endif %}

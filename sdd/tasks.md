@@ -1,6 +1,6 @@
 # Tareas
 
-- **Spec:** `sdd/spec.md` v0.23.0 · **Plan:** `sdd/plan.md`
+- **Spec:** `sdd/spec.md` v0.25.0 · **Plan:** `sdd/plan.md`
 - **Formato:** `- [ ] T-XXX descripción (refs) → criterio de hecho`
 - **Estados:** `[ ]` pendiente · `[~]` en curso · `[x]` hecha · `[!]` bloqueada
 - Cada tarea referencia requisitos (RF/RN/RNF/CA). Una tarea sin referencia no debería existir: o falta un requisito en la spec, o sobra la tarea.
@@ -173,3 +173,7 @@ Auditoría previa (2026-10-08, 360 y 390 px): el documento se desbordaba en toda
 ### Archivar clientes (CHG-026, RF-60, CA-11)
 
 - [x] T-128 Archivar y restaurar clientes (RF-60, RF-03, RF-04, RF-06, RF-07, RF-40, RF-41, RF-55, CA-11, CHG-026) → migración que añade `usuarios.archivado BOOL NOT NULL DEFAULT false`; `POST /admin/usuarios/{id}/archivar` y `/restaurar` (y sus rutas web en `/gestion`), `GET /admin/usuarios?archivados=` y el filtro «Ver archivados»; botón «Archivar» con confirmación o «Restaurar» en la ficha. Pruebas: se archiva con saldo disponible y reservado en cero (bloquea, cierra sesiones, oculta del listado, conserva pedidos y movimientos); con saldo disponible o reservado distinto de cero responde 409 sin cambiar nada; un admin y un inexistente se rechazan (400 y 404); archivar dos veces o restaurar a un no archivado responde 409; archivado no se puede desbloquear ni abonar ni ajustar (409); restaurar lo devuelve al listado y sigue bloqueado; el nombre sigue ocupado; ambas acciones quedan en la auditoría; `test_admin_auditoria` y `test_seguridad_rutas` incluyen las rutas nuevas; la ficha web muestra el botón correcto y la prueba de navegador (CA-07) recorre la ficha de un archivado.
+
+### Filtros del listado de usuarios y filtros plegados (CHG-027, RF-61, RNF-12)
+
+- [x] T-129 Filtros en `/admin/usuarios` y `/gestion/usuarios`, y filtros plegados en todos los listados (RF-61, RNF-12, RF-60, RF-07, CHG-027) → `GET /admin/usuarios` con `q`, `estado`, `con_saldo`, `debe_cambiar_clave`, `login_desde/hasta` y `creado_desde/hasta`; la web con botón «Filtros» plegado, búsqueda en vivo con HTMX, «Filtrar» de respaldo, «Quitar filtros», campo oculto `archivados` y columna «Creado»; `app.js` deja de abrir `details.filtros` en escritorio. Pruebas: coincidencia parcial sin distinguir mayúsculas, `_` y `%` literales, `q` de 31 caracteres = 422, estado, con saldo (incluye saldo cero y admins), debe cambiar clave, rango de último login (quien nunca entró no coincide) y de creación (`hasta` exclusivo), combinación de varios filtros y con archivados, valores inválidos = 422, la web devuelve solo la tabla con `HX-Target: tabla-usuarios`, mensaje de vacío con filtros, `<details class="filtros">` plegado sin filtros y con `open` si hay alguno; `test_seguridad_rutas` sigue pasando; la prueba de navegador (CA-07) despliega los filtros de usuarios a 360 px y comprueba que en escritorio ningún `details.filtros` arranca abierto.

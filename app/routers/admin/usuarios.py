@@ -62,10 +62,22 @@ async def _bloquear_usuario(bd: Bd, usuario_id: int) -> tuple[Usuario, Saldo | N
 
 
 @router.get("", response_model=list[UsuarioAdmin])
-async def listar(bd: Bd, archivados: bool | None = False):
+async def listar(
+    bd: Bd,
+    archivados: bool | None = False,
+    q: Annotated[str | None, Query(max_length=30)] = None,
+    estado: Literal["activo", "bloqueado"] | None = None,
+    con_saldo: bool | None = None,
+    debe_cambiar_clave: bool | None = None,
+    login_desde: datetime | None = None,
+    login_hasta: datetime | None = None,
+    creado_desde: datetime | None = None,
+    creado_hasta: datetime | None = None,
+):
     """Usuarios sin archivar; con `archivados=true`, solo los archivados (RF-60).
 
     Internamente `None` trae todos (la ficha de un archivado también se abre).
+    Los filtros de RF-61 se combinan entre sí; `desde` es inclusivo y `hasta` exclusivo.
     """
     consulta = (
         select(Usuario, Saldo)
@@ -74,6 +86,24 @@ async def listar(bd: Bd, archivados: bool | None = False):
     )
     if archivados is not None:
         consulta = consulta.where(Usuario.archivado.is_(archivados))
+    if q:
+        # `autoescape`: `_` y `%` son literales (`_` es válido en los nombres, RF-07).
+        consulta = consulta.where(Usuario.usuario.icontains(q, autoescape=True))
+    if estado is not None:
+        consulta = consulta.where(Usuario.activo.is_(estado == "activo"))
+    if con_saldo is not None:
+        disponible = func.coalesce(Saldo.saldo_disponible, 0)
+        consulta = consulta.where(disponible > 0 if con_saldo else disponible == 0)
+    if debe_cambiar_clave is not None:
+        consulta = consulta.where(Usuario.debe_cambiar_clave.is_(debe_cambiar_clave))
+    for columna, desde, hasta in (
+        (Usuario.ultimo_login, login_desde, login_hasta),
+        (Usuario.creado_en, creado_desde, creado_hasta),
+    ):
+        if desde is not None:
+            consulta = consulta.where(columna >= utc(desde))
+        if hasta is not None:
+            consulta = consulta.where(columna < utc(hasta))
     return [_usuario_admin(u, s) for u, s in await bd.execute(consulta)]
 
 

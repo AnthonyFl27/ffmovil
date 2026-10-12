@@ -231,6 +231,14 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.23.0 → 0.24.0
 - **Motivo:** el dueño quiere dejar de ver en el listado a los clientes que ya no trabajan con la plataforma. Se descartó el borrado físico del usuario: `pedidos`, `movimientos` y `auditoría` lo referencian y el libro contable es solo de inserción. Decisiones del dueño: archivar es un retiro lógico (la cuenta y su historial se conservan), solo con saldo disponible y reservado en cero, y no aplica a administradores (solo hay uno, creado por CLI). Decisiones técnicas derivadas: archivar bloquea al cliente; restaurar lo deja bloqueado; un archivado no se desbloquea ni recibe abonos o ajustes para no romper el saldo cero; el nombre sigue ocupado.
 
+### CHG-027 · 2026-10-12 · Filtros del listado de usuarios y filtros plegados
+- **Origen:** decisión de negocio
+- **Spec:** RF-61 añadido; RNF-12 modificado (los filtros van plegados también en escritorio)
+- **Plan:** sec. 6 (`GET /admin/usuarios`, `/gestion/usuarios`) y 6.2 (filtros)
+- **Tareas:** nueva T-129
+- **Versión spec:** 0.24.0 → 0.25.0
+- **Motivo:** el listado de usuarios no tenía forma de buscar y crece con cada cliente. El dueño pidió un botón «Filtros» con usuario, estado, con saldo, debe cambiar clave, último login y fecha de creación, con búsqueda en vivo. Decisiones suyas: la búsqueda en vivo usa un retardo breve y «Filtrar» queda como respaldo; los filtros no se muestran abiertos al entrar, tampoco en Pedidos (antes `app.js` los abría en escritorio), y se aplica a todos los listados por coherencia. «Limpiar» confundía (parecía borrar el historial), así que en este listado el botón se llama «Quitar filtros».
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |

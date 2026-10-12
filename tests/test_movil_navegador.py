@@ -208,6 +208,15 @@ async def test_pantallas_en_viewport_movil(servidor_web, navegador, api, sesion_
     await pagina.click("details.filtros > summary")
     await medir(pagina, "/gestion/usuarios/{id} (filtros abiertos)", problemas)
 
+    # Listado de usuarios: filtros de RF-61 a 360 px y búsqueda en vivo.
+    await pagina.goto(f"{base}/gestion/usuarios")
+    await pagina.click("details.filtros > summary")
+    await medir(pagina, "/gestion/usuarios (filtros abiertos)", problemas)
+    await pagina.fill("input[name=q]", cliente.usuario)
+    await pagina.wait_for_url(lambda url: f"q={cliente.usuario}" in url)
+    await pagina.wait_for_load_state("networkidle")
+    assert await pagina.locator("#tabla-usuarios tbody tr").count() == 1
+
     assert not problemas, "Problemas a 360 × 740:\n" + "\n".join(problemas)
     violaciones = [v for p in paginas for v in p.violaciones_csp]
     assert not violaciones, "Violaciones de la CSP (RNF-14):\n" + "\n".join(violaciones)
@@ -321,3 +330,20 @@ async def test_pagina_publica_sin_movimiento_ni_javascript(servidor_web, navegad
             )
             assert animaciones and set(animaciones) == {"none"}
         await contexto.close()
+
+
+async def test_filtros_plegados_tambien_en_escritorio(api, sesion_bd, servidor_web, navegador):
+    """RNF-12, RF-61: ningún listado arranca con «Filtros» desplegado, ni en escritorio."""
+    admin = await crear_usuario_con_clave(sesion_bd, rol="admin")
+    contexto = await navegador.new_context(viewport={"width": 1280, "height": 800})
+    pagina = await contexto.new_page()
+    await entrar(pagina, servidor_web, admin.usuario, "/gestion")
+    for ruta in ("/gestion/pedidos", "/gestion/usuarios", "/gestion/auditoria"):
+        await pagina.goto(f"{servidor_web}{ruta}")
+        await pagina.wait_for_load_state("networkidle")
+        assert await pagina.locator("details.filtros").count() == 1, ruta
+        assert not await pagina.locator("details.filtros").evaluate("d => d.open"), ruta
+        # Se despliega al tocar «Filtros».
+        await pagina.click("details.filtros > summary")
+        assert await pagina.locator("details.filtros").evaluate("d => d.open"), ruta
+    await contexto.close()

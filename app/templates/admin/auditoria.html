@@ -14,7 +14,7 @@
 <h2>Historial</h2>
 {% set hay_filtros = filtros.accion or filtros.desde or filtros.hasta %}
 <details class="filtros"{% if hay_filtros %} open{% endif %}>
-<summary>Filtros</summary>
+<summary role="button" class="outline secondary">Filtros</summary>
 <form hx-get="/gestion/auditoria" hx-target="#registros" hx-push-url="true">
   <input type="hidden" name="tz" value="{{ filtros.tz or '' }}">
   <div class="grid">

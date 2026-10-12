@@ -1,6 +1,6 @@
 # Especificación: Plataforma de recargas Free Fire (prepago)
 
-- **Versión:** 0.24.0
+- **Versión:** 0.25.0
 - **Estado:** Borrador aprobado para iniciar desarrollo
 - **Fuente de verdad:** este archivo. El código y el plan se derivan de aquí.
 
@@ -57,6 +57,7 @@ Web de recargas de diamantes de Free Fire para clientes revendedores con cuentas
 - **RF-07** El nombre de usuario tiene de 3 a 30 caracteres: letras minúsculas a-z, dígitos, `.`, `_` y `-`. Se guarda en minúsculas y el login no distingue mayúsculas.
 - **RF-08** La contraseña nueva tiene de 8 a 128 caracteres y debe ser distinta de la actual.
 - **RF-60** El admin puede archivar a un cliente desde su ficha cuando deja de trabajar con la plataforma. Solo se archiva con el saldo disponible y el saldo reservado en cero (lo que incluye no tener pedidos en curso); si no, se rechaza con 409 y el mensaje indica el saldo pendiente. Archivar bloquea al cliente (RF-04), cierra sus sesiones (RF-06) y lo oculta del listado de usuarios; su cuenta, pedidos, movimientos y auditoría se conservan. El listado ofrece el filtro «Ver archivados», que muestra solo los archivados y desde el cual se abre su ficha. Mientras está archivado no se puede desbloquear ni registrarle abonos o ajustes (409). El admin puede restaurarlo: vuelve al listado y **sigue bloqueado**, y hay que desbloquearlo aparte. No se puede archivar a un administrador. El nombre de usuario de un cliente archivado sigue ocupado (RF-07). Archivar y restaurar quedan en la auditoría (RF-55).
+- **RF-61** El listado de usuarios del panel admin tiene un botón «Filtros» que despliega un formulario con estos filtros, combinables entre sí y con «Ver archivados»: **usuario** (coincidencia parcial, sin distinguir mayúsculas), **estado** (activo o bloqueado), **con saldo** (sí: saldo disponible mayor que cero; no: igual a cero), **debe cambiar clave** (sí o no), **último login** y **fecha de creación** (cada uno con rango «desde» y «hasta», por días de la zona del navegador como en RF-50; quien nunca ha iniciado sesión no coincide con un rango de último login). El listado se actualiza en vivo al escribir o cambiar un filtro y el botón «Filtrar» hace lo mismo sin JavaScript; «Quitar filtros» vuelve al listado completo. Sin filtros muestra todos los usuarios. Es solo lectura. `GET /admin/usuarios` acepta `q` (máximo 30 caracteres, el tope de RF-07), `estado` (`activo` o `bloqueado`), `con_saldo`, `debe_cambiar_clave`, `login_desde`, `login_hasta`, `creado_desde` y `creado_hasta`; un valor inválido se rechaza con 422. El listado muestra además la fecha de creación de cada usuario.
 
 ### 5.2 Catálogo
 - **RF-10** El sistema sincroniza `productos.php` una vez al día y bajo demanda del admin, filtrando `juego = free_fire`. Los paquetes nuevos se crean inactivos y sin `precio_venta`. Los paquetes que dejan de venir se desactivan, salvo que la respuesta no contenga ningún paquete `free_fire`: en ese caso la sincronización no modifica el catálogo (no desactiva ni actualiza ningún paquete), lo indica en su resultado y genera la alerta de RN-11 (e).
@@ -154,7 +155,7 @@ Transiciones permitidas:
   - La navegación se pliega en pantallas angostas (menú desplegable) y todas sus opciones son alcanzables.
   - Los listados con muchas columnas (historial, pedidos, usuarios, auditoría, catálogo) se muestran en móvil como tarjetas, con el estado del pedido visible sin desplazamiento horizontal. El detalle completo es accesible desde cada fila.
   - Los controles interactivos (botones, enlaces de acción, casillas, opciones de paquete) miden al menos 44 × 44 px de área táctil.
-  - Los filtros de los listados se pliegan en móvil y se pueden expandir.
+  - Los filtros de los listados van plegados bajo un botón «Filtros», en móvil y en escritorio, y se despliegan al tocarlo; solo arrancan desplegados si ya hay algún filtro aplicado.
   - Los campos de entrada usan letra de al menos 16 px y el Player ID abre el teclado numérico.
 - **RNF-13** Límites de entrada: el cuerpo de una petición no puede superar 64 KB (413 Payload Too Large; no se procesa) y en el login un `usuario` de más de 30 caracteres o una `clave` de más de 128 se rechazan como credenciales incorrectas, sin verificar la contraseña. Los topes coinciden con RF-07 y RF-08, así que no afectan a ningún uso legítimo.
 - **RNF-14** Todas las respuestas llevan cabeceras de seguridad: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: same-origin` y `Content-Security-Policy: default-src 'self'; img-src 'self' data:; frame-ancestors 'none'; form-action 'self'; base-uri 'none'` (sin scripts ni estilos en línea). Las respuestas que no son archivos estáticos llevan además `Cache-Control: no-store`, para que «Atrás» no muestre páginas con sesión tras salir.

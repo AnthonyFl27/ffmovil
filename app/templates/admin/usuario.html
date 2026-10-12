@@ -8,7 +8,7 @@
 <h2>Movimientos de saldo</h2>
 <div class="grid">
   <form hx-post="/gestion/usuarios/{{ u.id }}/saldo/abono" hx-target="#mensaje-saldo" hx-disabled-elt="find button">
-    <h3>Abono</h3>
+    <h3>Recarga de saldo</h3>
     <fieldset class="sentido" aria-label="Operación">
       <span>Suma al saldo disponible del cliente</span>
     </fieldset>
@@ -19,7 +19,7 @@
       <input name="nota" placeholder="Método de pago y referencia" required>
     </label>
     <div class="acciones">
-      <button type="submit">Registrar abono</button>
+      <button type="submit">Registrar recarga de saldo</button>
     </div>
   </form>
   <form hx-post="/gestion/usuarios/{{ u.id }}/saldo/ajuste" hx-target="#mensaje-saldo" hx-disabled-elt="find button">
@@ -41,10 +41,10 @@
 </div>
 <div id="mensaje-saldo"></div>
 {% endif %}
-<h2>Historial de abonos y ajustes</h2>
+<h2>Historial de recargas de saldo y ajustes</h2>
 {% set hay_filtros = filtros.tipo or filtros.desde or filtros.hasta %}
 <details class="filtros"{% if hay_filtros %} open{% endif %}>
-<summary>Filtros</summary>
+<summary role="button" class="outline secondary">Filtros</summary>
 <form hx-get="/gestion/usuarios/{{ u.id }}" hx-target="#movimientos" hx-push-url="true">
   <input type="hidden" name="tz" value="{{ filtros.tz or '' }}">
   <div class="grid">

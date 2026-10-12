@@ -120,8 +120,15 @@ async def test_ficha_web_muestra_el_historial(api, sesion_bd):
 
     pagina = await http.get(f"/gestion/usuarios/{cliente.id}")
     assert pagina.status_code == 200
-    assert "Historial de abonos y ajustes" in pagina.text
-    for esperado in ("Abono", "Ajuste", "10.00 USD", "-1.00 USD", "Pago móvil 1", "Corrección"):
+    assert "Historial de recargas de saldo y ajustes" in pagina.text
+    for esperado in (
+        "Recarga de saldo",
+        "Ajuste",
+        "10.00 USD",
+        "-1.00 USD",
+        "Pago móvil 1",
+        "Corrección",
+    ):
         assert esperado in pagina.text
     # Sin reservas ni cargos, sin el pedido y sin columnas de autor o saldos resultantes.
     for ausente in ('data-etiqueta="Pedido"', 'data-etiqueta="Registrado por"', "Reserva</td>"):
@@ -161,5 +168,7 @@ async def test_ficha_web_se_actualiza_tras_un_abono(api, sesion_bd):
 async def test_ficha_de_admin_no_tiene_historial(api, sesion_bd):
     http, admin = await admin_con_sesion(api, sesion_bd)
     pagina = await http.get(f"/gestion/usuarios/{admin.id}")
-    assert pagina.status_code == 200 and "Historial de abonos y ajustes" not in pagina.text
+    assert (
+        pagina.status_code == 200 and "Historial de recargas de saldo y ajustes" not in pagina.text
+    )
     assert (await http.get("/gestion/usuarios/999999999")).status_code == 404

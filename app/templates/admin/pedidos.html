@@ -4,7 +4,7 @@
 <h1>Pedidos</h1>
 {% set hay_filtros = filtros.estado or filtros.desde or filtros.hasta or filtros.usuario or filtros.player_id or filtros.codigo or filtros.referencia or filtros.solo_pendientes %}
 <details class="filtros"{% if hay_filtros %} open{% endif %}>
-<summary>Filtros</summary>
+<summary role="button" class="outline secondary">Filtros</summary>
 <form hx-get="/gestion/pedidos" hx-target="#pedidos" hx-push-url="true">
   <input type="hidden" name="tz" value="{{ filtros.tz or '' }}">
   <div class="grid">

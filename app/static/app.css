@@ -189,8 +189,11 @@ article.jugador .cambiar-id { margin-left: auto; }
   table.tarjetas td.accion .acciones-fila button { margin: 0; width: auto; white-space: nowrap; }
 }
 
-/* Filtros plegables; app.js los abre en escritorio. */
+/* Filtros plegables: van cerrados y se abren con «Filtros» (solo abiertos si hay un filtro aplicado). */
 details.filtros > summary { font-weight: 600; }
+@media (min-width: 768px) {
+  details.filtros > summary { width: fit-content; min-width: 10rem; }
+}
 details.filtros .acciones > * { flex: 1 1 8rem; width: auto; margin: 0; }
 @media (min-width: 768px) {
   details.filtros .acciones > * { flex: 0 0 auto; min-width: 8rem; }
@@ -353,7 +356,7 @@ ul.recientes .detalle .nick { max-width: 100%; overflow: hidden; text-overflow: 
 ul.recientes .detalle .fecha { white-space: nowrap; }
 ul.recientes .estado { text-align: right; }
 ul.recientes li { list-style: none; }
-.acciones + h2 { margin-top: 2rem; }
+.acciones + h2, #mensaje-saldo + h2 { margin-top: 2rem; }
 /* Botones principales del inicio: a todo el ancho en móvil; en escritorio, a la izquierda como el resto. */
 .acciones-anchas { margin-top: 1.5rem; }
 .acciones-anchas > * { flex: 1 1 0; }

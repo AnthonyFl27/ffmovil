@@ -9,7 +9,7 @@
   {% for m in lista.movimientos %}
     <tr>
       <td data-etiqueta="Fecha">{{ m.fecha | fecha }}</td>
-      <td data-etiqueta="Tipo">{{ m.tipo | capitalize }}</td>
+      <td data-etiqueta="Tipo">{{ "Recarga de saldo" if m.tipo == "abono" else "Ajuste" }}</td>
       <td data-etiqueta="Monto">{{ m.monto | usd }}</td>
       <td data-etiqueta="Nota">{{ m.nota | texto }}</td>
     </tr>
