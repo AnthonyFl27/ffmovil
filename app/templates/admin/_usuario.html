@@ -1,3 +1,4 @@
+{% from "parciales/iconos.html" import icono, copiar %}
 <section class="cifras cifras-chicas">
   <article><small>Rol</small><strong>{{ u.rol }}</strong></article>
   <article><small>Estado</small><strong>{{ "Archivado" if u.archivado else ("Activo" if u.activo else "Bloqueado") }}</strong></article>
@@ -28,5 +29,9 @@
 </div>
 <div id="mensaje-archivar"></div>
 {% if clave_temporal %}
-<p class="mensaje exito">Nueva clave temporal: <code id="clave-temporal">{{ clave_temporal }}</code> (cópiala ahora: no se volverá a mostrar)</p>
+<div class="caja-clave">
+  <p class="mensaje exito">Clave temporal restablecida.</p>
+  <p class="con-copia"><span class="etiqueta-clave">Nueva clave temporal:</span> <code id="clave-temporal">{{ clave_temporal }}</code>{{ copiar(clave_temporal, "clave temporal") }}</p>
+  <p class="advertencia-clave"><small>Cópiala ahora: no se volverá a mostrar.</small></p>
+</div>
 {% endif %}

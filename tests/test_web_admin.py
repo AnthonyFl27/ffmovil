@@ -92,6 +92,9 @@ async def test_usuarios_crear_bloquear_y_resetear(api, sesion_bd):
     assert creado.status_code == 200
     clave = re.search(r'<code id="clave-temporal">([^<]+)</code>', creado.text).group(1)
     assert 'hx-swap-oob="true"' in creado.text and nombre in creado.text
+    # La clave va en una caja, con botón de copiar y la advertencia resaltada.
+    assert 'class="caja-clave"' in creado.text and f'data-copiar="{clave}"' in creado.text
+    assert 'class="advertencia-clave"' in creado.text
     usuario = await sesion_bd.scalar(select(Usuario).where(Usuario.usuario == nombre))
     assert usuario.debe_cambiar_clave and usuario.rol == "cliente"
 
@@ -110,7 +113,7 @@ async def test_usuarios_crear_bloquear_y_resetear(api, sesion_bd):
 
     reseteo = await htmx_post(http, f"/gestion/usuarios/{usuario.id}/reset-clave")
     nueva = re.search(r'<code id="clave-temporal">([^<]+)</code>', reseteo.text).group(1)
-    assert nueva != clave
+    assert nueva != clave and f'data-copiar="{nueva}"' in reseteo.text
 
     acciones = await sesion_bd.scalars(
         select(Auditoria.accion).where(Auditoria.detalle["usuario_id"].as_integer() == usuario.id)
@@ -293,6 +296,33 @@ async def test_auditoria(api, sesion_bd):
         headers=HTMX | {"HX-Target": "registros"},
     )
     assert "No hay registros." in parcial.text and "<html" not in parcial.text
+
+
+async def test_mensaje_de_saldo_bajo_cada_operacion_con_copiar(api, sesion_bd):
+    """RF-40, RF-41: el mensaje sale bajo el formulario usado, con botón de copiar."""
+    http, _ = await admin_web(api, sesion_bd)
+    cliente = await crear_usuario_con_clave(sesion_bd)
+    ficha = f"/gestion/usuarios/{cliente.id}"
+
+    pagina = (await http.get(ficha)).text
+    assert 'hx-target="#mensaje-abono"' in pagina and 'id="mensaje-abono"' in pagina
+    assert 'hx-target="#mensaje-ajuste"' in pagina and 'id="mensaje-ajuste"' in pagina
+
+    abono = await htmx_post(http, f"{ficha}/saldo/abono", {"monto": "10.00", "nota": "Pago"})
+    texto = "Recarga de saldo de 10.00 USD registrada. Saldo disponible: 10.00 USD."
+    assert abono.status_code == 200 and f'data-copiar="{texto}"' in abono.text
+    assert 'class="mensaje exito mensaje-copiable"' in abono.text
+    assert '<div id="mensaje-ajuste" class="etiqueta-mensaje" hx-swap-oob="true"></div>' in (
+        abono.text
+    )
+
+    ajuste = await htmx_post(
+        http, f"{ficha}/saldo/ajuste", {"monto": "2.00", "nota": "Corrección", "sentido": "restar"}
+    )
+    assert "Ajuste de" in ajuste.text and "data-copiar=" in ajuste.text
+    assert '<div id="mensaje-abono" class="etiqueta-mensaje" hx-swap-oob="true"></div>' in (
+        ajuste.text
+    )
 
 
 async def test_archivar_y_restaurar_desde_la_ficha(api, sesion_bd):

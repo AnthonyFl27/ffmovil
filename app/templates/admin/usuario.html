@@ -7,7 +7,7 @@
 {% if not u.archivado %}
 <h2>Movimientos de saldo</h2>
 <div class="grid">
-  <form hx-post="/gestion/usuarios/{{ u.id }}/saldo/abono" hx-target="#mensaje-saldo" hx-disabled-elt="find button">
+  <form hx-post="/gestion/usuarios/{{ u.id }}/saldo/abono" hx-target="#mensaje-abono" hx-disabled-elt="find button">
     <h3>Recarga de saldo</h3>
     <fieldset class="sentido" aria-label="Operación">
       <span>Suma al saldo disponible del cliente</span>
@@ -21,8 +21,9 @@
     <div class="acciones">
       <button type="submit">Registrar recarga de saldo</button>
     </div>
+    <div id="mensaje-abono" class="etiqueta-mensaje"></div>
   </form>
-  <form hx-post="/gestion/usuarios/{{ u.id }}/saldo/ajuste" hx-target="#mensaje-saldo" hx-disabled-elt="find button">
+  <form hx-post="/gestion/usuarios/{{ u.id }}/saldo/ajuste" hx-target="#mensaje-ajuste" hx-disabled-elt="find button">
     <h3>Ajuste</h3>
     <fieldset class="sentido" aria-label="Operación">
       <label><input type="radio" name="sentido" value="sumar" checked> Sumar</label>
@@ -37,9 +38,9 @@
     <div class="acciones">
       <button type="submit">Registrar ajuste</button>
     </div>
+    <div id="mensaje-ajuste" class="etiqueta-mensaje"></div>
   </form>
 </div>
-<div id="mensaje-saldo"></div>
 {% endif %}
 <h2>Historial de recargas de saldo y ajustes</h2>
 {% set hay_filtros = filtros.tipo or filtros.desde or filtros.hasta %}

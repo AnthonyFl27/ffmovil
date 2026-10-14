@@ -14,6 +14,18 @@
 .etiqueta-mensaje:empty { display: none; }
 /* En la recarga la etiqueta ocupa el ancho del campo y deja aire antes del botón. */
 #recarga .etiqueta-mensaje { max-width: none; margin: 0 0 var(--pico-spacing); }
+/* Mensaje de saldo del admin: bajo cada formulario, con éxito en verde y botón de copiar a la derecha. */
+#mensaje-abono, #mensaje-ajuste { max-width: none; margin: var(--pico-spacing) 0 0; }
+.etiqueta-mensaje .mensaje.exito { border-color: var(--pico-ins-color); background: color-mix(in srgb, var(--pico-ins-color) 12%, transparent); }
+.etiqueta-mensaje .mensaje-copiable { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; text-align: left; }
+.etiqueta-mensaje .mensaje-copiable span { flex: 1; text-align: left; }
+/* Clave temporal: caja con el aviso, el dato y su botón de copiar; la advertencia va subrayada en rojo. */
+.caja-clave { padding: 0.75rem 1rem; margin-bottom: var(--pico-spacing); border: 1px solid var(--pico-muted-border-color); border-radius: var(--pico-border-radius); background: var(--pico-card-background-color); }
+.caja-clave p { margin: 0 0 0.5rem; }
+.caja-clave p:last-child { margin-bottom: 0; }
+.caja-clave .con-copia { display: flex; flex-wrap: wrap; align-items: center; }
+@media (max-width: 767.98px) { .caja-clave .etiqueta-clave { flex-basis: 100%; } }
+.advertencia-clave small { color: var(--pico-del-color); text-decoration: underline; text-decoration-color: var(--pico-del-color); text-underline-offset: 0.2em; }
 .etiqueta-mensaje .mensaje { margin: 0; padding: 0.75rem 1rem; text-align: center; border: 1px solid var(--pico-del-color); border-radius: var(--pico-border-radius); background: color-mix(in srgb, var(--pico-del-color) 12%, transparent); }
 /* Marca: logo y nombre; lleva al inicio del rol. */
 nav a.marca { display: inline-flex; align-items: center; gap: 0.5rem; color: inherit; text-decoration: none; }
@@ -372,7 +384,7 @@ ul.recientes .detalle .nick { max-width: 100%; overflow: hidden; text-overflow: 
 ul.recientes .detalle .fecha { white-space: nowrap; }
 ul.recientes .estado { text-align: right; }
 ul.recientes li { list-style: none; }
-.acciones + h2, #mensaje-saldo + h2 { margin-top: 2rem; }
+.acciones + h2, .grid + h2 { margin-top: 2rem; }
 /* Botones principales del inicio: a todo el ancho en móvil; en escritorio, a la izquierda como el resto. */
 .acciones-anchas { margin-top: 1.5rem; }
 .acciones-anchas > * { flex: 1 1 0; }
