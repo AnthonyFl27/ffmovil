@@ -12,7 +12,7 @@
     <input type="hidden" name="paquete_id" value="{{ paquete.paquete_id }}">
     <input type="hidden" name="token_idempotencia" value="{{ token }}">
     {% if advertencia %}
-    <p class="mensaje error">{{ advertencia }}</p>
+    <div class="etiqueta-mensaje"><p class="mensaje error" role="alert">{{ advertencia }}</p></div>
     <label>
       <input type="checkbox" name="confirmar_sin_verificar" value="1" required>
       Confirmo que el Player ID es correcto aunque no se pudo verificar.

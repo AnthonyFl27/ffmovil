@@ -9,7 +9,7 @@
   <a href="/recargar" class="cambiar-id">Cambiar ID</a>
 </article>
 {% if validacion.advertencia %}
-<p class="mensaje error">{{ validacion.advertencia }}</p>
+<div class="etiqueta-mensaje"><p class="mensaje error" role="alert">{{ validacion.advertencia }}</p></div>
 {% endif %}
 {# Al tocar un paquete aparece el resumen debajo (RF-21). #}
 <form hx-post="/recargar/resumen" hx-trigger="change" hx-target="#confirmacion" hx-swap="innerHTML show:top">
