@@ -1,6 +1,6 @@
 # Especificación: Plataforma de recargas Free Fire (prepago)
 
-- **Versión:** 0.25.0
+- **Versión:** 0.26.0
 - **Estado:** Borrador aprobado para iniciar desarrollo
 - **Fuente de verdad:** este archivo. El código y el plan se derivan de aquí.
 
@@ -79,7 +79,7 @@ Web de recargas de diamantes de Free Fire para clientes revendedores con cuentas
   - Timeout o respuesta ilegible → pedido `PENDIENTE_VERIFICAR`, monto retenido.
 - **RF-25** Cada intento de recarga lleva un token de idempotencia único; un reenvío con el mismo token no crea otro pedido.
 - **RF-26** El nickname se guarda desde `validar.php`, no desde `recargar.php`.
-- **RF-27** El Player ID debe ser numérico de 4 a 20 dígitos.
+- **RF-27** El Player ID debe ser numérico, de 5 a 15 dígitos (se ignoran los espacios alrededor). Al verificarlo, el cliente recibe un mensaje según el caso, mostrado en una etiqueta roja bajo el campo: vacío → «Escribe tu Player ID.»; con algo que no son dígitos → «ID no válido, verifícalo. Solo se permiten números.»; de 1 a 4 dígitos → «Al ID le faltan dígitos. Verifícalo.»; de más de 15 dígitos → «El ID tiene demasiados dígitos. Verifícalo.»
 - **RF-56** Cada cliente puede validar un Player ID (RF-20) como máximo 10 veces por minuto, en la API y en la web. Superado el tope recibe 429 con el mensaje «Demasiadas verificaciones. Espera un momento e inténtalo de nuevo.» y no se llama a VentasFF. El tope es por usuario: un cliente no consume el cupo de VentasFF (RN-07) de los demás.
 - **RF-57** Cada cliente puede crear como máximo 5 pedidos de recarga por minuto, en la API (`POST /recargas`) y en la web (confirmación). Superado el tope recibe 429 con el mensaje «Demasiadas recargas. Espera un momento e inténtalo de nuevo.», sin reservar saldo, sin crear pedido y sin llamar a VentasFF. Cada solicitud de confirmación cuenta, incluido un reenvío con el mismo token (RF-25); las rechazadas por el tope no cuentan. El tope es por usuario: un cliente no puede ocupar el cupo de recargas de VentasFF (RN-07) de los demás.
 

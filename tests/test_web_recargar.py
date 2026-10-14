@@ -46,7 +46,7 @@ async def test_pantalla_recargar_pide_solo_el_player_id(api, sesion_bd):
     assert respuesta.status_code == 200
     html = respuesta.text
     assert 'hx-post="/recargar/validar"' in html and 'hx-target="#recarga"' in html
-    assert 'pattern="[0-9]{4,20}"' in html and "Saldo disponible" in html
+    assert 'pattern="[0-9]{5,15}"' in html and "Saldo disponible" in html
     # Los paquetes aparecen recién tras verificar el ID (RF-20, CHG-010).
     assert 'name="paquete_id"' not in html
 
@@ -98,9 +98,14 @@ async def test_validar_rechazos_bajo_el_campo(api, sesion_bd, simulador):
     vacio = await validar(http, player_id="  ")
     assert vacio.status_code == 422 and "Escribe tu Player ID" in vacio.text
     assert vacio.headers["HX-Retarget"] == "#mensaje-id"
-    formato = await validar(http, player_id="12a")
-    assert formato.status_code == 422 and "de 4 a 20 dígitos" in formato.text
-    assert formato.headers["HX-Retarget"] == "#mensaje-id"
+    for valor, texto in [
+        ("12a", "ID no válido"),
+        ("1234", "faltan dígitos"),
+        ("1" * 16, "demasiados dígitos"),
+    ]:
+        rechazo = await validar(http, player_id=valor)
+        assert rechazo.status_code == 422 and texto in rechazo.text
+        assert rechazo.headers["HX-Retarget"] == "#mensaje-id"
     simulador.escenario_validar = "no_existe"
     no_existe = await validar(http)
     assert no_existe.status_code == 422 and "no existe" in no_existe.text

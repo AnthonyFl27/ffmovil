@@ -31,8 +31,15 @@ from app.services.ventasff_client import (
 
 logger = logging.getLogger(__name__)
 
-# RF-27: Player ID numérico de 4 a 20 dígitos.
-PATRON_PLAYER_ID = re.compile(r"[0-9]{4,20}")
+# RF-27: Player ID numérico de 5 a 15 dígitos.
+MIN_DIGITOS_PLAYER_ID = 5
+MAX_DIGITOS_PLAYER_ID = 15
+PATRON_PLAYER_ID = re.compile(r"[0-9]{5,15}")
+PATRON_DIGITOS = re.compile(r"[0-9]+")
+MENSAJE_ID_VACIO = "Escribe tu Player ID."
+MENSAJE_ID_NO_NUMERICO = "ID no válido, verifícalo. Solo se permiten números."
+MENSAJE_ID_CORTO = "Al ID le faltan dígitos. Verifícalo."
+MENSAJE_ID_LARGO = "El ID tiene demasiados dígitos. Verifícalo."
 
 ADVERTENCIA_NO_DISPONIBLE = (
     "No se pudo verificar el ID en este momento. Revisa que sea correcto antes de confirmar."
@@ -82,9 +89,20 @@ class ResultadoValidacion:
 
 def validar_formato_player_id(player_id: str) -> str:
     """Devuelve el Player ID sin espacios alrededor o lanza `PlayerIdInvalido` (RF-27)."""
-    if not isinstance(player_id, str) or not PATRON_PLAYER_ID.fullmatch(player_id.strip()):
-        raise PlayerIdInvalido("El Player ID debe tener solo números, de 4 a 20 dígitos")
-    return player_id.strip()
+    if not isinstance(player_id, str):
+        raise PlayerIdInvalido(MENSAJE_ID_NO_NUMERICO)
+    valor = player_id.strip()
+    if not valor:
+        raise PlayerIdInvalido(MENSAJE_ID_VACIO)
+    if not PATRON_DIGITOS.fullmatch(valor):
+        raise PlayerIdInvalido(MENSAJE_ID_NO_NUMERICO)
+    if len(valor) < MIN_DIGITOS_PLAYER_ID:
+        raise PlayerIdInvalido(MENSAJE_ID_CORTO)
+    if len(valor) > MAX_DIGITOS_PLAYER_ID:
+        raise PlayerIdInvalido(MENSAJE_ID_LARGO)
+    if not PATRON_PLAYER_ID.fullmatch(valor):  # defensa: no debería ocurrir
+        raise PlayerIdInvalido(MENSAJE_ID_NO_NUMERICO)
+    return valor
 
 
 async def paquete_disponible(sesion: AsyncSession, paquete_id: int) -> Paquete:

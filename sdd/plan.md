@@ -150,13 +150,13 @@ sesiones(                                -- RF-06 (CHG-007)
 
 - `movimientos`: protegida con triggers que rechazan `UPDATE`, `DELETE` y `TRUNCATE` (aplican aunque la app sea dueña de la tabla).
 - `movimientos.monto`: positivo en todos los tipos salvo `ajuste`, que lleva signo y no puede ser 0. Efecto: `abono` y `ajuste` suman al disponible; `reserva` pasa de disponible a reservado; `liberacion`, de reservado a disponible; `cargo` resta del reservado. Por eso CA-04 se verifica como `disponible = abonos + ajustes − reservas + liberaciones` y `reservado = reservas − liberaciones − cargos`. `abono` y `ajuste` exigen `nota` no vacía (CHECK).
-- La FK `movimientos.pedido_id → pedidos` se crea en la migración de `pedidos` (T-040). `pedidos` tiene además CHECK de formato de `player_id` (RF-27), precios positivos y token no vacío; `codigo` se completa tras insertar (T-041).
+- La FK `movimientos.pedido_id → pedidos` se crea en la migración de `pedidos` (T-040). `pedidos` tiene además CHECK de formato de `player_id` (RF-27, `^[0-9]{5,15}$`; la migración de T-130 lo recrea, antes era de 4 a 20), precios positivos y token no vacío; `codigo` se completa tras insertar (T-041).
 - Índices: `pedidos(usuario_id, creado_en DESC)`, `pedidos(estado)`, `pedidos(referencia)`, `pedidos(player_id)`, `pedidos(codigo)`.
 
 ## 4. Flujo de recarga (RF-20 a RF-26)
 
 ### 4.1 Validar — `POST /recargas/validar`
-1. Verifica sesión activa y formato del Player ID (RF-27).
+1. Verifica sesión activa y formato del Player ID (RF-27): `validar_formato_player_id` lanza `PlayerIdInvalido` con el mensaje de cada caso (vacío, no numérico, corto, largo); la web los muestra en la etiqueta `#mensaje-id` (`.etiqueta-mensaje`) con 422.
 2. Llama a `validar.php?player_id&paquete_id`.
 3. Responde `{estado, nickname}`. Si `no_existe`, devuelve 422.
 

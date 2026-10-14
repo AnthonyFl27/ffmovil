@@ -51,8 +51,8 @@ async def test_mismo_token_otro_usuario_permitido(sesion_bd, datos):
     ("cambios", "restriccion"),
     [
         ({"estado": "PERDIDO"}, "ck_pedidos_estado"),
-        ({"player_id": "123"}, "ck_pedidos_player_id_formato"),
-        ({"player_id": "1" * 21}, "ck_pedidos_player_id_formato"),
+        ({"player_id": "1234"}, "ck_pedidos_player_id_formato"),
+        ({"player_id": "1" * 16}, "ck_pedidos_player_id_formato"),
         ({"player_id": "7580744a"}, "ck_pedidos_player_id_formato"),
         ({"player_id": " 75807448"}, "ck_pedidos_player_id_formato"),
         ({"precio_venta": Decimal("0.00")}, "ck_pedidos_precio_venta_positivo"),
@@ -67,7 +67,7 @@ async def test_pedido_invalido(sesion_bd, datos, cambios, restriccion):
     await sesion_bd.rollback()
 
 
-@pytest.mark.parametrize("player_id", ["1234", "1" * 20])
+@pytest.mark.parametrize("player_id", ["12345", "1" * 15])
 async def test_player_id_en_limites(sesion_bd, datos, player_id):
     usuario_id, paquete = datos
     await crear_pedido(sesion_bd, usuario_id, paquete, player_id=player_id)

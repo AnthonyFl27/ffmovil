@@ -16,17 +16,33 @@ from tests.utilidades import crear_paquete
 BASE = "http://simulador/api/reseller"
 
 
-@pytest.mark.parametrize("player_id", ["1234", "75807448", "1" * 20, " 75807448 "])
+@pytest.mark.parametrize("player_id", ["12345", "75807448", "1" * 15, " 75807448 "])
 def test_formato_valido(player_id):
     assert validar_formato_player_id(player_id) == player_id.strip()
 
 
 @pytest.mark.parametrize(
-    "player_id", ["123", "1" * 21, "7580744a", "-1234", "12 34", "", "１２３４", None, 75807448]
+    ("player_id", "mensaje"),
+    [
+        ("", recarga_service.MENSAJE_ID_VACIO),
+        ("   ", recarga_service.MENSAJE_ID_VACIO),
+        ("7580744a", recarga_service.MENSAJE_ID_NO_NUMERICO),
+        ("-12345", recarga_service.MENSAJE_ID_NO_NUMERICO),
+        ("123 456", recarga_service.MENSAJE_ID_NO_NUMERICO),
+        ("１２３４５", recarga_service.MENSAJE_ID_NO_NUMERICO),
+        (None, recarga_service.MENSAJE_ID_NO_NUMERICO),
+        (75807448, recarga_service.MENSAJE_ID_NO_NUMERICO),
+        ("1", recarga_service.MENSAJE_ID_CORTO),
+        ("1234", recarga_service.MENSAJE_ID_CORTO),
+        ("1" * 16, recarga_service.MENSAJE_ID_LARGO),
+        ("1" * 25, recarga_service.MENSAJE_ID_LARGO),
+    ],
 )
-def test_formato_invalido(player_id):
-    with pytest.raises(PlayerIdInvalido):
+def test_formato_invalido(player_id, mensaje):
+    """RF-27: cada caso inválido trae su mensaje (vacío, no numérico, corto, largo)."""
+    with pytest.raises(PlayerIdInvalido) as excepcion:
         validar_formato_player_id(player_id)
+    assert str(excepcion.value) == mensaje
 
 
 async def validar(sesion, sim, player_id="75807448", paquete_id=None):

@@ -21,7 +21,6 @@ router = APIRouter(include_in_schema=False)
 
 MENSAJE_PAQUETE = "Elige un paquete disponible."
 MENSAJE_SIN_PAQUETES = "No hay paquetes disponibles en este momento."
-MENSAJE_ID_VACIO = "Escribe tu Player ID."
 # Zonas de mensajes de los pasos de la recarga (HX-Retarget).
 DESTINO_ID = "#mensaje-id"
 DESTINO_CONFIRMACION = "#mensaje-confirmacion"
@@ -95,8 +94,6 @@ async def recargar_validar(
     `validar.php` exige un paquete: se usa el activo más barato. Al confirmar, el
     servidor vuelve a validar el ID con el paquete elegido (RN-03).
     """
-    if not player_id.strip():
-        return error(request, MENSAJE_ID_VACIO, status.HTTP_422_UNPROCESSABLE_CONTENT, DESTINO_ID)
     lista = await paquetes.paquetes(actual, bd)
     if not lista:
         return error(

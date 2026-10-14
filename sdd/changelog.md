@@ -239,6 +239,14 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.24.0 → 0.25.0
 - **Motivo:** el listado de usuarios no tenía forma de buscar y crece con cada cliente. El dueño pidió un botón «Filtros» con usuario, estado, con saldo, debe cambiar clave, último login y fecha de creación, con búsqueda en vivo. Decisiones suyas: la búsqueda en vivo usa un retardo breve y «Filtrar» queda como respaldo; los filtros no se muestran abiertos al entrar, tampoco en Pedidos (antes `app.js` los abría en escritorio), y se aplica a todos los listados por coherencia. «Limpiar» confundía (parecía borrar el historial), así que en este listado el botón se llama «Quitar filtros».
 
+### CHG-028 · 2026-10-14 · Player ID de 5 a 15 dígitos con mensajes por caso
+- **Origen:** decisión de negocio
+- **Spec:** RF-27 modificado (rango 4–20 → 5–15 y cuatro mensajes según el caso)
+- **Plan:** sec. 3 (CHECK de `pedidos.player_id`) y 4.1 (validar)
+- **Tareas:** nueva T-130
+- **Versión spec:** 0.25.0 → 0.26.0
+- **Motivo:** los IDs reales de Free Fire tienen entre 8 y 11 dígitos; el dueño fijó 5 a 15 y pidió decirle al cliente qué le pasa a su ID (vacío, no numérico, corto o largo) en una etiqueta visible. Comprobado en producción (2026-10-14, solo lectura): 4 pedidos, todos de 8 a 11 dígitos, ninguno fuera del rango nuevo.
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |

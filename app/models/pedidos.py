@@ -28,8 +28,8 @@ class Pedido(Base):
     __tablename__ = "pedidos"
     __table_args__ = (
         CheckConstraint(f"estado IN ({valores_sql(ESTADOS_PEDIDO)})", name="estado"),
-        # RF-27: Player ID numérico de 4 a 20 dígitos.
-        CheckConstraint("player_id ~ '^[0-9]{4,20}$'", name="player_id_formato"),
+        # RF-27: Player ID numérico de 5 a 15 dígitos.
+        CheckConstraint("player_id ~ '^[0-9]{5,15}$'", name="player_id_formato"),
         CheckConstraint("precio_venta > 0", name="precio_venta_positivo"),
         CheckConstraint("precio_costo >= 0", name="precio_costo_no_negativo"),
         CheckConstraint("length(token_idempotencia) > 0", name="token_no_vacio"),

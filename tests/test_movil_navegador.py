@@ -171,6 +171,10 @@ async def test_pantallas_en_viewport_movil(servidor_web, navegador, api, sesion_
     # paquetes y resumen con la casilla obligatoria (CHG-010).
     simulador.escenario_validar = "no_disponible"
     await pagina.goto(f"{base}/recargar")
+    # Player ID vacío: etiqueta roja bajo el campo, sin desbordar (RF-27).
+    await pagina.click("form[hx-post='/recargar/validar'] button[type=submit]")
+    await pagina.locator("#mensaje-id .mensaje.error").wait_for()
+    await medir(pagina, "/recargar (etiqueta de ID vacío)", problemas)
     await pagina.fill("input[name=player_id]", "75807448")
     await pagina.click("form[hx-post='/recargar/validar'] button[type=submit]")
     await pagina.locator("article.jugador").wait_for()

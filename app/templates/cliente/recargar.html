@@ -8,10 +8,10 @@
 {% include "cliente/_saldo.html" %}
 <form hx-post="/recargar/validar" novalidate hx-target="#recarga" hx-swap="innerHTML show:window:top" hx-disabled-elt="find button">
   <label>Player ID
-    <input name="player_id" inputmode="numeric" pattern="[0-9]{4,20}" maxlength="20"
+    <input name="player_id" inputmode="numeric" pattern="[0-9]{5,15}" maxlength="15"
            placeholder="Solo números" autocomplete="off">
   </label>
-  <div id="mensaje-id"></div>
+  <div id="mensaje-id" class="etiqueta-mensaje"></div>
   <button type="submit">Verificar ID <span class="htmx-indicator">…</span></button>
 </form>
 </div>
