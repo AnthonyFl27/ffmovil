@@ -3,6 +3,9 @@
 :root { --area-tactil: 44px; --color-aviso: #b26a00; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme=light]) { --color-aviso: #f0b24a; } }
 :root[data-theme=dark] { --color-aviso: #f0b24a; }
+/* Escritorio y laptop: Pico sube la letra hasta 131 % según el ancho; aquí se fija en 100 % (16 px).
+   En móvil (< 768 px) se conserva la escala de Pico. Para ajustar el tamaño en escritorio, cambiar solo este valor. */
+@media (min-width: 768px) { :root { --pico-font-size: 100%; } }
 
 /* Íconos de trazo en línea (parciales/iconos.html). */
 .icono { width: 1.1em; height: 1.1em; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: -0.2em; }

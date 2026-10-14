@@ -24,6 +24,7 @@ El avance real está en `sdd/tasks.md` (`[x]` hechas); revisarlo al empezar cada
 **Pendiente de subir (sesiones del 2026-10-12 y 2026-10-14):**
 - `Ajuste` visual de la recarga (columna centrada, paquetes en cuadrícula, aviso de irreversibilidad en caja propia, tarjeta de pedido centrada), commits `ab556d8` y `696534d`: subir si aún no se desplegaron.
 - Mensaje en rojo con el Player ID vacío (`22f8e32`): solo código y plantillas.
+- Escala de letra y botones en escritorio/laptop (≥ 768 px) fijada en 100 % en lugar de la de Pico (solo CSS).
 - Aviso de marcas del pie con la nueva redacción del dueño (spec 0.26.1, CHG-029; solo plantilla).
 - Admin: mensaje de saldo en etiqueta bajo cada operación con botón de copiar, y clave temporal (alta y restablecimiento) en caja con botón de copiar y advertencia subrayada en rojo (solo plantillas, CSS y pruebas).
 - Etiqueta de error de la recarga a todo el ancho y con separación del botón (solo CSS y plantillas; ver el último commit `Ajuste:` de `git log`).
