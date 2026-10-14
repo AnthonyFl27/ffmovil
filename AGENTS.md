@@ -24,6 +24,7 @@ El avance real está en `sdd/tasks.md` (`[x]` hechas); revisarlo al empezar cada
 **Pendiente de subir (sesiones del 2026-10-12 y 2026-10-14):**
 - `Ajuste` visual de la recarga (columna centrada, paquetes en cuadrícula, aviso de irreversibilidad en caja propia, tarjeta de pedido centrada), commits `ab556d8` y `696534d`: subir si aún no se desplegaron.
 - Mensaje en rojo con el Player ID vacío (`22f8e32`): solo código y plantillas.
+- Etiqueta de error de la recarga a todo el ancho y con separación del botón (solo CSS y plantillas; ver el último commit `Ajuste:` de `git log`).
 - **T-130 / CHG-028 (RF-27, spec 0.26.0):** Player ID de 5 a 15 dígitos con un mensaje por caso en etiqueta (`76bde16`). **Trae migración nueva `c9d2e5b7a418`** (recrea el CHECK `ck_pedidos_player_id_formato`). Comprobado el 2026-10-14 en producción: 4 pedidos, todos de 8 a 11 dígitos, ninguno fuera del rango nuevo.
 
 **Comandos (los ejecuta el dueño; antes, `git push origin main` desde el equipo de desarrollo):**
