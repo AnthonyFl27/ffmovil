@@ -247,6 +247,14 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.25.0 → 0.26.0
 - **Motivo:** los IDs reales de Free Fire tienen entre 8 y 11 dígitos; el dueño fijó 5 a 15 y pidió decirle al cliente qué le pasa a su ID (vacío, no numérico, corto o largo) en una etiqueta visible. Comprobado en producción (2026-10-14, solo lectura): 4 pedidos, todos de 8 a 11 dígitos, ninguno fuera del rango nuevo.
 
+### CHG-029 · 2026-10-14 · Nueva redacción del aviso de marcas del pie
+- **Origen:** decisión de negocio
+- **Spec:** RF-58 (texto del aviso, redacción)
+- **Plan:** —
+- **Tareas:** —
+- **Versión spec:** 0.26.0 → 0.26.1
+- **Motivo:** el dueño prefiere dejar explícito que la marca es de Garena y que el sitio opera de forma independiente. Solo cambia la redacción del aviso (patch).
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |
