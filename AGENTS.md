@@ -15,6 +15,38 @@ Si hay conflicto: spec > plan > tasks > código.
 
 El avance real está en `sdd/tasks.md` (`[x]` hechas); revisarlo al empezar cada sesión.
 
+## Pendientes de despliegue en el VPS
+
+**Al empezar cada sesión, recordar al dueño esta lista** (con los comandos de abajo) mientras tenga elementos. Cuando el dueño confirme que desplegó, vaciar la lista y anotar la fecha del último despliegue. Al cerrar una sesión que deje cambios sin desplegar, añadirlos aquí (qué cambia y si trae migración). El LLM no ejecuta nada en el VPS: solo guía al dueño.
+
+**Último despliegue confirmado:** 2026-10-12 (migración `b3f8a1d6c492`).
+
+**Pendiente de subir (sesiones del 2026-10-12 y 2026-10-14):**
+- `Ajuste` visual de la recarga (columna centrada, paquetes en cuadrícula, aviso de irreversibilidad en caja propia, tarjeta de pedido centrada), commits `ab556d8` y `696534d`: subir si aún no se desplegaron.
+- Mensaje en rojo con el Player ID vacío (`22f8e32`): solo código y plantillas.
+- **T-130 / CHG-028 (RF-27, spec 0.26.0):** Player ID de 5 a 15 dígitos con un mensaje por caso en etiqueta (`76bde16`). **Trae migración nueva `c9d2e5b7a418`** (recrea el CHECK `ck_pedidos_player_id_formato`). Comprobado el 2026-10-14 en producción: 4 pedidos, todos de 8 a 11 dígitos, ninguno fuera del rango nuevo.
+
+**Comandos (los ejecuta el dueño; antes, `git push origin main` desde el equipo de desarrollo):**
+
+```bash
+ssh ffmovil
+cd /root/container/ffmovil
+git pull --ff-only
+# 1) Comprobar que ningún Player ID choca con el CHECK nuevo (debe dar 0):
+docker exec postgresql_ffmovil psql -U postgres -d ffmovil -Atc "SELECT count(*) FROM pedidos WHERE player_id !~ '^[0-9]{5,15}\$'"
+# 2) Construir la imagen y migrar ANTES de levantarla:
+docker compose build app
+docker compose run --rm app alembic upgrade head
+# 3) Levantar la app nueva y verificar:
+docker compose up -d app
+docker compose exec app alembic current   # debe decir c9d2e5b7a418 (head)
+curl -s -o /dev/null -w "%{http_code}\n" https://ffmovil.com/health   # 200
+docker compose logs --tail 20 app
+docker stats --no-stream; free -m          # vigilar la memoria del VPS
+```
+
+Si la migración falla en el paso 2, no levantar la imagen nueva: la app vieja sigue funcionando y se revisa el error. Si no hay migraciones pendientes, basta `git pull --ff-only` y `docker compose up -d --build app`.
+
 ## Pedidos del usuario: significativos vs. menores
 
 Antes de actuar, clasificar cada pedido:
@@ -115,9 +147,9 @@ Con `--reload` la app se reinicia sola al cambiar el código `.py`; un cambio so
 
 Las variables de entorno tienen prioridad sobre el `.env`: así la app nunca llama a VentasFF real. La BD de desarrollo ya tiene el admin `admin` (creado por CLI) y un cliente de prueba; el catálogo se llena con "Sincronizar ahora" desde `/gestion/paquetes` (3 paquetes ficticios del simulador, inactivos y sin precio).
 
-### Piezas ya construidas (fases 1 a 8, móvil, recarga en tres pasos, endurecimiento y página pública, HSTS, archivar y filtros de usuarios; spec v0.25.0)
+### Piezas ya construidas (fases 1 a 8, móvil, recarga en tres pasos, endurecimiento y página pública, HSTS, archivar y filtros de usuarios, Player ID de 5 a 15 dígitos; spec v0.26.0)
 
-Detalle de diseño en `sdd/plan.md` (sec. 3 modelo, 4.2 fases A/B/C, 4.2.1 alertas, 4.5 cliente VentasFF, 4.6 transacciones y rutas de recarga, 6 endpoints, 7 seguridad). Migración head: `b3f8a1d6c492` (`usuarios_archivado`, aplicada en desarrollo y en producción el 2026-10-12). Al desplegar, el dueño migra **antes o justo después** de levantar la imagen nueva con `docker compose exec app alembic upgrade head` (o `docker compose run --rm app alembic upgrade head` antes de levantarla) y comprueba con `alembic current`: el 2026-10-12 la app arrancó con el código nuevo y la base sin migrar, y `/health` no lo detecta porque no toca `usuarios`.
+Detalle de diseño en `sdd/plan.md` (sec. 3 modelo, 4.2 fases A/B/C, 4.2.1 alertas, 4.5 cliente VentasFF, 4.6 transacciones y rutas de recarga, 6 endpoints, 7 seguridad). Migración head: `c9d2e5b7a418` (`player_id_5_a_15_digitos`, CHG-028, aplicada en desarrollo el 2026-10-14 y **pendiente en producción**, ver «Pendientes de despliegue»; la anterior, `b3f8a1d6c492` `usuarios_archivado`, está en ambas desde el 2026-10-12). Al desplegar, el dueño migra **antes o justo después** de levantar la imagen nueva con `docker compose exec app alembic upgrade head` (o `docker compose run --rm app alembic upgrade head` antes de levantarla) y comprueba con `alembic current`: el 2026-10-12 la app arrancó con el código nuevo y la base sin migrar, y `/health` no lo detecta porque no toca `usuarios`.
 
 - **Arranque** (`app/main.py`, `lifespan`): `configurar_logs` → verificar BD → `recuperar_pedidos_huerfanos` (RN-09) → `app.state`: `sesiones`, `cookie_secure`, `limitador_login`, `ventasff` (cliente único con límite general 50/min), `limitador_recargas` (8/min), `tareas_recarga`, `crear_cliente_ventasff` → programador APScheduler (sincronización diaria 08:00 UTC). Al apagar espera las recargas en curso (100 s) y cierra el cliente.
 - `app/config.py` (`SecretStr`; `VENTASFF_URL` opcional para apuntar al simulador), `app/db.py`, `app/logs.py` (enmascara API Key, `SECRET_KEY`, clave de BD y `Bearer …`), `app/cli.py` (`python -m app.cli crear-admin <usuario>`).
@@ -130,7 +162,7 @@ Detalle de diseño en `sdd/plan.md` (sec. 3 modelo, 4.2 fases A/B/C, 4.2.1 alert
   - `estados` (máquina de estados), `codigos` (`FF-000123`), `recarga_service` (`validar_jugador`, `crear_pedido` = Fase A, `llamar_proveedor` = Fase B, `resolver_pedido` = Fase C, `procesar_pedido` = B+C+alertas, `resolver_pendiente` = admin), `recuperacion`, `alertas`, `consultas_pedidos` (filtros y paginación comunes).
 - **Rutas** (`app/routers/`): `dependencias.py` (`Bd`, `EnSesion`, `Actual`, `Cliente`, `Admin`; CSRF por cabecera `X-CSRF-Token` en métodos no seguros), `auth` (login, logout, sesión, cambiar-clave), `me` (resumen, fondos, pedidos), `paquetes`, `recargas` (validar y crear; B+C en tarea propia), `admin/` (usuarios, saldos, pedidos + resolver, panel + alertas + config, paquetes + sincronizar, auditoría; `require_admin` a nivel de router).
 - **Web** (`app/web/`, plan sec. 6.1; Q-05 → Jinja2 + HTMX 2 + Pico.css 2, ambos en `app/static`): las rutas HTML llaman a las funciones de las rutas JSON y renderizan sus esquemas (el cliente nunca recibe uno con costo). `plantillas.py` (filtros `usd`, `fecha` → `<time>` que `app.js` pasa a la zona del navegador, `texto`; `render`, `error(..., destino)` con `HX-Retarget`; `Redirigir`/`ErrorWeb`; dependencias `SesionWeb`, `ClienteWeb`, `AdminWeb`), `filtros.py` (día local + `tz` → UTC), `acceso.py` (`/`, `/login`, `/clave`, `/salir`), `cliente.py` (`/inicio`, `/recargar*`, `/historial*`, `/fondos`), `admin.py` (`/gestion*`). CSRF en `<body hx-headers>`; HTMX intercambia también los 4xx y el 502. Plantillas en `app/templates/` (`admin/` solo para el admin). Los estáticos se enlazan con `estatico("archivo")` (añade `?v=<hash>`).
-- **Recarga en tres pasos** (CHG-010, plan sec. 6.1): todo ocurre dentro de `#recarga`. `/recargar` (solo Player ID) → `/recargar/validar` (valida con el paquete activo más barato; `_paso_paquetes.html` = tarjeta del jugador con la inicial y paquetes; errores en `#mensaje-id`) → `/recargar/resumen` (al tocar un paquete; `_confirmacion.html` con el token, sin llamar a VentasFF) → `/recargar/confirmar` (el pedido reemplaza toda la pantalla; errores en `#mensaje-confirmacion`).
+- **Recarga en tres pasos** (CHG-010, plan sec. 6.1; Player ID de 5 a 15 dígitos con un mensaje por caso, CHG-028, `validar_formato_player_id`): todo ocurre dentro de `#recarga`. `/recargar` (solo Player ID) → `/recargar/validar` (valida con el paquete activo más barato; `_paso_paquetes.html` = tarjeta del jugador con la inicial y paquetes; errores en `#mensaje-id`) → `/recargar/resumen` (al tocar un paquete; `_confirmacion.html` con el token, sin llamar a VentasFF) → `/recargar/confirmar` (el pedido reemplaza toda la pantalla; errores en `#mensaje-confirmacion`).
 - **Móvil** (CHG-009, plan sec. 6.2): `app/static/app.css` mobile-first con corte en 768 px: menú plegable (`ul.menu-plegable`), listados `table.tarjetas` con `data-etiqueta` (`td.secundario` se oculta, `td.accion` sin etiqueta), `dl.ficha`, `details.filtros`, áreas de 44 px (`--area-tactil`). Logo en `app/static/logo.png` (más `favicon.png` y `apple-touch-icon.png`).
 - **Endurecimiento** (T-081, T-082, T-110 a T-114; CHG-016, CHG-017; plan sec. 7): middlewares ASGI propios en `app/main.py` (`LimiteCuerpo` 64 KB → 413, RNF-13; `CabecerasSeguridad` con CSP sin nada en línea y `no-store`, RNF-14: no añadir `style=`/`<script>` en línea ni `hx-on`); sin `/docs`, `/redoc` ni `/openapi.json` (RNF-15; `app.openapi()` sigue sirviendo a las pruebas); `ip_cliente` respeta `CLIENT_IP_HEADER` solo con conexión de loopback/RFC 1918 (`REDES_DE_CONFIANZA`, RNF-16); `LimitadorPorUsuario` (10 validaciones/min por cliente, RF-56) en `app.state.limitador_validaciones`; el motor usa `hide_parameters=True`. Pruebas: `test_logs_flujos`, `test_seguridad_rutas` (inventario de rutas: sesión, CSRF y rol; una ruta nueva sin protección la rompe), `test_limites_entrada`, `test_endurecimiento_web`; la prueba de navegador falla ante violaciones de CSP.
 - **Archivar clientes** (CHG-026, RF-60, T-128, spec 0.24.0): `usuarios.archivado` (retiro lógico; no se borra ningún usuario porque `pedidos`, `movimientos` y `auditoria` lo referencian). `POST /admin/usuarios/{id}/archivar` y `/restaurar` (web: `/gestion/usuarios/{id}/archivar|restaurar`, que responden con `HX-Redirect`). Solo clientes con saldo disponible y reservado en cero (409 con el saldo); archivar bloquea y cierra sesiones, restaurar lo deja bloqueado, un archivado no se desbloquea ni recibe abonos o ajustes (409). `usuarios.listar(bd, archivados=False|True|None)`: `None` trae todos (lo usa la ficha web). Listado web con `?archivados=1`.
