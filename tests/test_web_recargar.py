@@ -95,6 +95,9 @@ async def test_resumen_con_token_y_confirmacion(api, sesion_bd, simulador):
 
 async def test_validar_rechazos_bajo_el_campo(api, sesion_bd, simulador):
     http, _, _ = await cliente_web(api, sesion_bd, simulador)
+    vacio = await validar(http, player_id="  ")
+    assert vacio.status_code == 422 and "Escribe tu Player ID" in vacio.text
+    assert vacio.headers["HX-Retarget"] == "#mensaje-id"
     formato = await validar(http, player_id="12a")
     assert formato.status_code == 422 and "de 4 a 20 dígitos" in formato.text
     assert formato.headers["HX-Retarget"] == "#mensaje-id"
