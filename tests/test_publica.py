@@ -399,7 +399,17 @@ async def test_legales_mencionan_a_los_revendedores_del_equipo(api, revendedores
     privacidad = (await api().get("/privacidad")).text
     assert "un revendedor del equipo de FFmovil" in privacidad
     assert "Revendedores del equipo de FFmovil:" in privacidad
+    # Sin choque de palabras: el cliente es «cliente revendedor»; «revendedor» a secas es del equipo.
+    for frase in ("Si eres <strong>cliente revendedor</strong>", "Como cliente revendedor"):
+        assert frase in terminos, frase
+    for frase in ("cuenta de cliente revendedor", "nuestros clientes revendedores"):
+        assert frase in privacidad, frase
     for html in (terminos, privacidad):
+        texto = re.sub(r"<[^>]+>", "", html.split("<footer")[0]).lower()
+        sueltos = re.findall(
+            r"(?<!cliente )(?<!clientes )\brevendedor(?:es)?\b(?! del equipo)", texto
+        )
+        assert not sueltos, sueltos
         assert 'href="/resellers"' in html  # solo si hay revendedores definidos
     app.state.revendedores = []
     for ruta in LEGALES:
