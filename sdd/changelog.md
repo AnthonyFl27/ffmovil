@@ -263,6 +263,14 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.26.1 → 0.26.2
 - **Motivo:** el dueño acorta el aviso a «La marca Free Fire es propiedad exclusiva de Garena. Este sitio opera de manera independiente.» Solo cambia la redacción (patch).
 
+### CHG-031 · 2026-10-15 · Página `/resellers` y contacto de revendedores para pedir usuario
+- **Origen:** decisión de negocio (el alta de usuarios sigue siendo manual; ahora también la hacen los revendedores del equipo, con el usuario de administración)
+- **Spec:** RF-62 (nuevo), RF-58 (sección en la portada, enlace en el pie, paso 1), RF-59 (textos legales), CA-12 (nuevo), alcance
+- **Plan:** sec. 6 (ruta), 6.3 (configuración `RESELLERS`, pie, plantillas)
+- **Tareas:** nuevas T-131, T-132 y T-133
+- **Versión spec:** 0.26.2 → 0.27.0
+- **Motivo:** el cliente que aún no tiene usuario necesita saber a quién pedirlo. Los datos de los revendedores viven fuera del repositorio (`RESELLERS`). No cambia el modelo de datos ni los permisos: el equipo usa el usuario de administración existente.
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |
