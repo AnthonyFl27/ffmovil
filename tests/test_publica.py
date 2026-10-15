@@ -272,7 +272,6 @@ COMPLETO = Revendedor(
     whatsapp="50500000001",
     telegram="ana_prueba",
     foto="revendedor-1.webp",
-    qr_telegram="qr-telegram-1.webp",
 )
 SOLO_WHATSAPP = Revendedor(nombre="Luis Prueba", whatsapp="50500000002")
 MENSAJE_URL = "Hola%2C%20quiero%20abrir%20mi%20usuario%20en%20FFMovil."
@@ -286,7 +285,7 @@ def revendedores():
 
 
 async def test_resellers_muestra_foto_nombre_y_canales(api, revendedores):
-    """RF-62 y CA-12: foto o inicial, nombre, enlaces wa.me (con mensaje) y t.me, y el QR."""
+    """RF-62 y CA-12: foto o inicial, nombre y enlaces wa.me (con mensaje) y t.me."""
     r = await api().get("/resellers", follow_redirects=False)
     assert r.status_code == 200
     html = r.text
@@ -295,24 +294,12 @@ async def test_resellers_muestra_foto_nombre_y_canales(api, revendedores):
     assert "Ana Prueba" in ana and "revendedor-1.webp" in ana  # con foto
     assert f'href="https://wa.me/50500000001?text={MENSAJE_URL}"' in ana
     assert 'href="https://t.me/ana_prueba"' in ana
-    assert "QR de Telegram" in ana and "qr-telegram-1.webp" in ana
+    assert "QR" not in html  # el QR se retiró (CHG-032)
     assert 'rel="noopener noreferrer"' in ana and 'target="_blank"' in ana
-    # Sin foto: la inicial; solo los canales definidos y sin botón del QR.
+    # Sin foto: la inicial; solo los canales definidos.
     assert "Luis Prueba" in luis and "revendedor-foto" not in luis and ">L<" in luis
     assert "wa.me/50500000002" in luis
-    assert "t.me" not in luis and "QR de Telegram" not in luis
-
-
-async def test_el_qr_solo_aparece_con_telegram_y_su_imagen(api):
-    """RF-62: el botón «QR de Telegram» necesita usuario de Telegram y `qr_telegram`."""
-    sin_qr = Revendedor(nombre="Sin Qr", telegram="sin_qr_prueba")
-    solo_qr = Revendedor(nombre="Solo Qr", whatsapp="50500000003", qr_telegram="qr-telegram-1.webp")
-    app.state.revendedores = [sin_qr, solo_qr]
-    try:
-        html = (await api().get("/resellers")).text
-    finally:
-        app.state.revendedores = []
-    assert "t.me/sin_qr_prueba" in html and "QR de Telegram" not in html
+    assert "t.me" not in luis
 
 
 async def test_resellers_sin_revendedores_es_404_y_no_hay_enlaces(api):
@@ -382,8 +369,8 @@ async def test_resellers_cuenta_en_el_tope_anonimo_y_no_usa_datos_del_negocio(
     assert (await http.get("/resellers")).status_code == 429
 
 
-def test_foto_y_qr_de_la_configuracion_deben_existir():
-    """RF-62: un archivo que no existe en `static/inicio/` impide arrancar."""
+def test_la_foto_de_la_configuracion_debe_existir():
+    """RF-62: una foto que no existe en `static/inicio/` impide arrancar."""
     verificar_archivos_revendedores([COMPLETO, SOLO_WHATSAPP])
     with pytest.raises(ErrorConfiguracion, match="no-existe.webp"):
         verificar_archivos_revendedores(

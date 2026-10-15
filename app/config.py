@@ -23,9 +23,8 @@ class Revendedor(BaseModel):
     whatsapp: str | None = Field(default=None, pattern=r"^[0-9]{8,15}$")
     # Usuario de Telegram sin «@» (se usa en https://t.me/<usuario>).
     telegram: str | None = Field(default=None, pattern=r"^[A-Za-z0-9_]{5,32}$")
-    # Nombres de archivos WebP de app/static/inicio/ (foto y QR de Telegram).
+    # Nombre de un archivo WebP de app/static/inicio/ (foto del revendedor).
     foto: str | None = Field(default=None, pattern=r"^[a-z0-9_-]+\.webp$")
-    qr_telegram: str | None = Field(default=None, pattern=r"^[a-z0-9_-]+\.webp$")
 
     @model_validator(mode="after")
     def _al_menos_un_canal(self) -> "Revendedor":

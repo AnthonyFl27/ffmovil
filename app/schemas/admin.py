@@ -1,10 +1,10 @@
 """Esquemas de administración (pueden incluir costo y ganancia; nunca se usan con clientes)."""
 
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
 from app.schemas.cliente import Monto
 
@@ -212,3 +212,26 @@ class ListaAuditoria(BaseModel):
     total: int
     pagina: int
     por_pagina: int
+
+
+Texto = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
+
+
+class Update(BaseModel):
+    """Una novedad de `app/updates.json` para el equipo admin (RF-63)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    fecha: Annotated[str, Field(pattern=r"^\d{4}-\d{2}-\d{2}$")]
+    titulo: Texto
+    puntos: Annotated[list[Texto], Field(min_length=1)]
+
+    @field_validator("fecha")
+    @classmethod
+    def _fecha_real(cls, valor: str) -> str:
+        date.fromisoformat(valor)  # rechaza 2026-13-40
+        return valor
+
+
+class ListaUpdates(BaseModel):
+    updates: list[Update]

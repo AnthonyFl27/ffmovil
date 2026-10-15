@@ -19,13 +19,13 @@ SesionOpcional = Annotated[SesionActual | None, Depends(sesion_opcional)]
 
 
 def verificar_archivos_revendedores(revendedores: list[Revendedor]) -> None:
-    """Falla al arrancar si la foto o el QR de un revendedor no existen en `static/inicio/`."""
+    """Falla al arrancar si la foto de un revendedor no existe en `static/inicio/`."""
     for revendedor in revendedores:
-        for archivo in (revendedor.foto, revendedor.qr_telegram):
-            if archivo and not (DIRECTORIO_ESTATICOS / "inicio" / archivo).is_file():
-                raise ErrorConfiguracion(
-                    f"RESELLERS: no existe app/static/inicio/{archivo} (revendedor «{revendedor.nombre}»)"
-                )
+        archivo = revendedor.foto
+        if archivo and not (DIRECTORIO_ESTATICOS / "inicio" / archivo).is_file():
+            raise ErrorConfiguracion(
+                f"RESELLERS: no existe app/static/inicio/{archivo} (revendedor «{revendedor.nombre}»)"
+            )
 
 
 def render_publica(request: Request, plantilla: str) -> Response:

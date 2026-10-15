@@ -582,27 +582,6 @@ a:focus-visible {
   height: 28px;
 }
 
-.revendedor-qr {
-  margin-top: 14px;
-}
-
-.revendedor-qr summary {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--area-tactil);
-  padding: 0 14px;
-  color: var(--enlace);
-  cursor: pointer;
-}
-
-.revendedor-qr img {
-  display: block;
-  width: 100%;
-  max-width: 260px;
-  height: auto;
-  margin: 8px auto 0;
-}
-
 /* Páginas legales */
 
 .legal {

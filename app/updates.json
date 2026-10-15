@@ -1,0 +1,46 @@
+[
+  {
+    "fecha": "2026-10-15",
+    "titulo": "Nueva sección Updates",
+    "puntos": [
+      "En Auditoría hay un botón «Updates» que lleva a esta página.",
+      "Aquí el equipo ve las novedades de cada actualización de la plataforma, de la más reciente a la más antigua."
+    ]
+  },
+  {
+    "fecha": "2026-10-15",
+    "titulo": "Página para contactar a los revendedores",
+    "puntos": [
+      "Nueva página pública /resellers con la foto, el nombre y los botones de WhatsApp (con el mensaje «Hola, quiero abrir mi usuario en FFMovil.» ya escrito) y Telegram de cada revendedor.",
+      "La portada tiene la sección «¿Aún no tienes usuario?» con el botón «Ver revendedores», y el pie un enlace «Revendedores» bajo el correo.",
+      "Los Términos y Condiciones y la Política de Privacidad mencionan a los revendedores del equipo; quien compra pasa a llamarse «cliente revendedor».",
+      "El aviso de marcas del pie quedó más corto."
+    ]
+  },
+  {
+    "fecha": "2026-10-14",
+    "titulo": "Player ID de 5 a 15 dígitos",
+    "puntos": [
+      "El Player ID acepta de 5 a 15 dígitos.",
+      "Si el ID está vacío, tiene letras, es muy corto o es muy largo, el cliente ve en rojo un mensaje que dice qué corregir."
+    ]
+  },
+  {
+    "fecha": "2026-10-14",
+    "titulo": "Panel admin: copiar mensajes y claves",
+    "puntos": [
+      "Tras cada operación de saldo aparece el mensaje listo para enviar al cliente, con un botón para copiarlo.",
+      "La clave temporal (al crear un usuario o restablecerla) sale en una caja con botón de copiar y una advertencia subrayada en rojo."
+    ]
+  },
+  {
+    "fecha": "2026-10-14",
+    "titulo": "Recarga más clara y letra en escritorio",
+    "puntos": [
+      "La pantalla de recarga queda centrada y los paquetes se ven en cuadrícula.",
+      "El aviso de que la recarga no se puede deshacer va en su propia caja.",
+      "La tarjeta del pedido queda centrada y el mensaje de error ocupa todo el ancho, con espacio antes del botón.",
+      "En computadora y laptop la letra y los botones vuelven al tamaño normal (antes salían demasiado grandes)."
+    ]
+  }
+]

@@ -203,6 +203,7 @@ async def test_pantallas_en_viewport_movil(servidor_web, navegador, api, sesion_
             f"/gestion/usuarios/{archivado.id}",
             "/gestion/paquetes",
             "/gestion/auditoria",
+            "/gestion/updates",
         ],
         problemas,
     )
@@ -299,7 +300,6 @@ async def test_pagina_publica_en_viewport_movil(servidor_web, navegador):
             whatsapp="50500000001",
             telegram="prueba_telegram",
             foto="revendedor-1.webp",
-            qr_telegram="qr-telegram-1.webp",
         )
     ]
     problemas: list[str] = []
@@ -320,10 +320,6 @@ async def test_pagina_publica_en_viewport_movil(servidor_web, navegador):
             await pagina.goto(f"{base}{ruta}")
             await playwright_async.expect(boton).to_be_in_viewport()
             await medir(pagina, ruta, problemas)
-        # RF-62: el QR de Telegram se despliega sin JavaScript y sigue cumpliendo CA-07.
-        await pagina.locator(".revendedor-qr summary").click()
-        await playwright_async.expect(pagina.locator(".revendedor-qr img")).to_be_visible()
-        await medir(pagina, "/resellers (QR desplegado)", problemas)
     finally:
         app.state.correo_contacto = ""
         app.state.revendedores = []

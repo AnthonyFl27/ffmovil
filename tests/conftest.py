@@ -136,6 +136,7 @@ async def api(motor_bd, simulador):
     from app.main import app
     from app.services.limitador import LimitadorPorUsuario, LimitadorTasa
     from app.services.limitador_login import LimitadorLogin
+    from app.services.updates import cargar_updates
     from app.services.ventasff_client import ClienteVentasFF
 
     app.state.motor = motor_bd
@@ -157,6 +158,7 @@ async def api(motor_bd, simulador):
     app.state.tareas_recarga = set()
     app.state.correo_contacto = ""
     app.state.revendedores = []
+    app.state.updates = cargar_updates()
     clientes = []
 
     def nuevo(ip: str = "127.0.0.1") -> httpx.AsyncClient:

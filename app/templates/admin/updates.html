@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% from "parciales/iconos.html" import vacio %}
+{% block titulo %}Updates{% endblock %}
+{% block contenido %}
+<h1>Updates</h1>
+<p><a role="button" class="outline secondary" href="/gestion/auditoria">Volver a Auditoría</a></p>
+{% for u in lista.updates %}
+<article class="update">
+  <header><h2>{{ u.titulo }}</h2><small><time datetime="{{ u.fecha }}">{{ u.fecha[8:] }}/{{ u.fecha[5:7] }}/{{ u.fecha[:4] }}</time></small></header>
+  <ul>
+    {% for punto in u.puntos %}<li>{{ punto }}</li>{% endfor %}
+  </ul>
+</article>
+{% else %}
+{{ vacio("Aún no hay updates.") }}
+{% endfor %}
+{% endblock %}

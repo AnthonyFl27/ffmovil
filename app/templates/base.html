@@ -14,6 +14,8 @@
 </head>
 {% from "parciales/iconos.html" import icono, copiar, vacio %}
 <body{% if csrf %} hx-headers='{{ {"X-CSRF-Token": csrf} | tojson }}'{% endif %}>
+  {#- Updates (RF-63) cuelga de Auditoría: el menú sigue resaltándola. #}
+  {%- set ruta_actual = "/gestion/auditoria" if request.url.path == "/gestion/updates" else request.url.path %}
   {%- if rol == "cliente" %}
   {%- set opciones = [("/inicio", "Inicio", "home"), ("/recargar", "Recargar", "recargar"), ("/historial", "Historial", "historial"), ("/fondos", "Fondos", "fondos")] %}
   {%- elif rol == "admin" %}
@@ -29,7 +31,7 @@
       {% elif csrf %}
       {# En escritorio el menú va en línea; en pantallas angostas, plegado (RNF-12). #}
       <ul class="menu-linea">
-        {% for ruta, etiqueta, ic in opciones %}<li><a href="{{ ruta }}"{% if request.url.path == ruta or (ruta != "/gestion" and request.url.path.startswith(ruta ~ "/")) %} aria-current="page"{% endif %}>{{ icono(ic) }}{{ etiqueta }}</a></li>{% endfor %}
+        {% for ruta, etiqueta, ic in opciones %}<li><a href="{{ ruta }}"{% if ruta_actual == ruta or (ruta != "/gestion" and ruta_actual.startswith(ruta ~ "/")) %} aria-current="page"{% endif %}>{{ icono(ic) }}{{ etiqueta }}</a></li>{% endfor %}
         <li><button class="outline secondary salir" hx-post="/salir">Salir</button></li>
       </ul>
       <ul class="menu-plegable">
@@ -37,7 +39,7 @@
           <details class="dropdown">
             <summary>Menú</summary>
             <ul dir="rtl">
-              {% for ruta, etiqueta, ic in opciones %}<li><a href="{{ ruta }}"{% if request.url.path == ruta or (ruta != "/gestion" and request.url.path.startswith(ruta ~ "/")) %} aria-current="page"{% endif %}>{{ icono(ic) }}{{ etiqueta }}</a></li>{% endfor %}
+              {% for ruta, etiqueta, ic in opciones %}<li><a href="{{ ruta }}"{% if ruta_actual == ruta or (ruta != "/gestion" and ruta_actual.startswith(ruta ~ "/")) %} aria-current="page"{% endif %}>{{ icono(ic) }}{{ etiqueta }}</a></li>{% endfor %}
               <li><button class="outline secondary salir" hx-post="/salir">Salir</button></li>
             </ul>
           </details>

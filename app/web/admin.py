@@ -9,7 +9,7 @@ from typing import Annotated
 from fastapi import APIRouter, Form, HTTPException, Request, status
 from pydantic import ValidationError
 
-from app.routers.admin import auditoria, catalogo, panel, pedidos, saldos, usuarios
+from app.routers.admin import auditoria, catalogo, panel, pedidos, saldos, updates, usuarios
 from app.routers.dependencias import Bd
 from app.schemas.admin import (
     CambioPaquete,
@@ -492,3 +492,11 @@ async def ver_auditoria(
         consulta=filtros.consulta,
         config=await panel.ver_config(bd),
     )
+
+
+# --- Updates del equipo (RF-63) -------------------------------------------------------
+
+
+@router.get("/updates")
+async def ver_updates(request: Request, actual: AdminWeb):
+    return render(request, "admin/updates.html", actual, lista=await updates.listar(request))

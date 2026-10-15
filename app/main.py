@@ -24,6 +24,7 @@ from app.services.limitador import (
 from app.services.limitador_login import LimitadorLogin
 from app.services.recuperacion import recuperar_pedidos_huerfanos
 from app.services.tareas import crear_programador
+from app.services.updates import cargar_updates
 from app.services.ventasff_client import ClienteVentasFF
 from app.web import montar as montar_web
 from app.web.publica import verificar_archivos_revendedores
@@ -55,6 +56,7 @@ async def lifespan(app: FastAPI):
     app.state.correo_contacto = config.contact_email
     verificar_archivos_revendedores(config.resellers)
     app.state.revendedores = config.resellers
+    app.state.updates = cargar_updates()  # RF-63: un updates.json inválido impide arrancar
     # RN-09: pedidos que quedaron en PROCESANDO por un reinicio pasan a revisión.
     async with app.state.sesiones() as sesion:
         await recuperar_pedidos_huerfanos(sesion)

@@ -271,6 +271,22 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.26.2 → 0.27.0
 - **Motivo:** el cliente que aún no tiene usuario necesita saber a quién pedirlo. Los datos de los revendedores viven fuera del repositorio (`RESELLERS`). Cada revendedor puede llevar foto y una imagen de su QR de Telegram (botón desplegable). No cambia el modelo de datos ni los permisos: el equipo usa el usuario de administración existente.
 
+### CHG-032 · 2026-10-15 · Se retira el QR de Telegram de `/resellers`
+- **Origen:** decisión de negocio
+- **Spec:** RF-62 (sin botón «QR de Telegram» ni campo `qr_telegram`), CA-12
+- **Plan:** sec. 6.3 (revendedores e imágenes)
+- **Tareas:** T-131 (texto; sin tareas nuevas)
+- **Versión spec:** 0.27.0 → 0.28.0
+- **Motivo:** el dueño decidió no agregar QR. Cada revendedor se muestra con foto (opcional), nombre y los botones de WhatsApp y Telegram. Se elimina la imagen `qr-telegram-1.webp`.
+
+### CHG-033 · 2026-10-15 · Sección «Updates» (novedades) para el equipo admin
+- **Origen:** decisión de negocio
+- **Spec:** RF-63 (nuevo), CA-13 (nuevo), alcance
+- **Plan:** sec. 2 (estructura), 6 (endpoint), 6.1 (ruta web), 6.4 (nueva: Updates)
+- **Tareas:** nueva T-134
+- **Versión spec:** 0.28.0 → 0.29.0
+- **Motivo:** el equipo comparte el usuario `admin` y necesita ver qué cambia con cada actualización. Decisiones del dueño: es una sección dentro de Auditoría, solo para el admin, y la ruta es `/gestion/updates`. Decisión técnica: las novedades viven en un archivo del repositorio (`app/updates.json`) que viaja con cada despliegue, sin tabla ni migración ni formulario de edición; el equipo sigue compartiendo el usuario `admin` (decisión del dueño, sin cambio de permisos).
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |

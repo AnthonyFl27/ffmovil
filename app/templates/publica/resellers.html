@@ -23,12 +23,6 @@
         <a class="canal canal-telegram" href="https://t.me/{{ r.telegram }}" target="_blank" rel="noopener noreferrer"><img src="{{ estatico("inicio/telegram.webp") }}" alt="" width="28" height="28">Telegram</a>
         {% endif %}
       </div>
-      {% if r.telegram and r.qr_telegram %}
-      <details class="revendedor-qr">
-        <summary>QR de Telegram</summary>
-        <img src="{{ estatico("inicio/" ~ r.qr_telegram) }}" alt="Código QR de Telegram de {{ r.nombre }}" width="420" height="463" loading="lazy">
-      </details>
-      {% endif %}
     </li>
     {% endfor %}
   </ul>
