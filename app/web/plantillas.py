@@ -11,6 +11,7 @@ from decimal import Decimal
 from functools import cache
 from pathlib import Path
 from typing import Annotated
+from urllib.parse import quote
 
 from fastapi import Depends, HTTPException, Request, Response, status
 from fastapi.responses import RedirectResponse
@@ -80,11 +81,20 @@ def estatico(nombre: str) -> str:
     return f"/static/{nombre}?v={hashlib.sha256(contenido).hexdigest()[:10]}"
 
 
+MENSAJE_WHATSAPP = "Hola, quiero abrir mi usuario en FFMovil."
+
+
+def url_whatsapp(numero: str) -> str:
+    """Enlace `wa.me` al número (solo dígitos) con el mensaje de RF-62 ya escrito."""
+    return f"https://wa.me/{numero}?text={quote(MENSAJE_WHATSAPP)}"
+
+
 plantillas = Jinja2Templates(directory=DIRECTORIO_PLANTILLAS)
 plantillas.env.filters["usd"] = usd
 plantillas.env.filters["fecha"] = fecha
 plantillas.env.filters["texto"] = texto
 plantillas.env.filters["etiqueta_alerta"] = etiqueta_alerta
+plantillas.env.filters["url_whatsapp"] = url_whatsapp
 plantillas.env.globals["estatico"] = estatico
 
 

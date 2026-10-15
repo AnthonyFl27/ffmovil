@@ -72,3 +72,38 @@ def test_repr_no_expone_secretos(entorno):
     texto = repr(config) + str(config.model_dump())
     assert "rv_clave_de_prueba" not in texto
     assert "x" * 48 not in texto
+
+
+def test_resellers_vacio_por_defecto(entorno):
+    """RF-62: sin `RESELLERS` no hay revendedores y la app arranca."""
+    entorno.delenv("RESELLERS", raising=False)
+    assert cargar().resellers == []
+
+
+def test_resellers_se_lee_como_json(entorno):
+    """RF-62: `RESELLERS` es un JSON con nombre y al menos un canal."""
+    entorno.setenv(
+        "RESELLERS",
+        '[{"nombre":"Ana","whatsapp":"50588880000","telegram":"ana_ff"},{"nombre":"Luis","telegram":"luis_ff"}]',
+    )
+    ana, luis = cargar().resellers
+    assert (ana.nombre, ana.whatsapp, ana.telegram) == ("Ana", "50588880000", "ana_ff")
+    assert (luis.nombre, luis.whatsapp, luis.telegram) == ("Luis", None, "luis_ff")
+
+
+@pytest.mark.parametrize(
+    "valor",
+    [
+        "no es json",
+        '[{"whatsapp":"50588880000"}]',
+        '[{"nombre":"Ana"}]',
+        '[{"nombre":"Ana","whatsapp":"+505 8888-0000"}]',
+        '[{"nombre":"Ana","telegram":"@ana_ff"}]',
+    ],
+)
+def test_resellers_invalido_impide_arrancar(entorno, valor):
+    """RF-62: un valor inválido da un error claro y no revela lo escrito."""
+    entorno.setenv("RESELLERS", valor)
+    with pytest.raises(ErrorConfiguracion, match="(?i)resellers") as error:
+        cargar()
+    assert "50588880000" not in str(error.value)

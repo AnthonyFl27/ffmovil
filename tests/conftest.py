@@ -33,6 +33,7 @@ def _preparar_entorno() -> None:
         )
     os.environ["DATABASE_URL"] = url
     os.environ["VENTASFF_API_KEY"] = CLAVE_FICTICIA_VENTASFF
+    os.environ["RESELLERS"] = "[]"
 
 
 _preparar_entorno()
@@ -155,6 +156,7 @@ async def api(motor_bd, simulador):
     )
     app.state.tareas_recarga = set()
     app.state.correo_contacto = ""
+    app.state.revendedores = []
     clientes = []
 
     def nuevo(ip: str = "127.0.0.1") -> httpx.AsyncClient:

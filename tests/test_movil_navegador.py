@@ -282,15 +282,26 @@ async def desplazar_hasta_el_final(pagina) -> None:
 
 
 async def test_pagina_publica_en_viewport_movil(servidor_web, navegador):
-    """CA-07 y CA-10 en `/`, `/terminos` y `/privacidad` a 360 × 740, sin violaciones de CSP.
+    """CA-07, CA-10 y CA-12 en `/`, `/terminos`, `/privacidad` y `/resellers` a 360 × 740, sin violaciones de CSP.
 
     Botón «Iniciar sesión» visible sin desplazarse; los `.revelar` aparecen al desplazar
     (RF-58 d, RNF-20). El correo del pie se mide también (área táctil).
     """
+    from app.config import Revendedor
     from app.main import app
 
     base = servidor_web
     app.state.correo_contacto = "contacto-de-prueba-largo@ejemplo.test"
+    # RF-62: con revendedores aparecen la sección de la portada, el enlace del pie y `/resellers`.
+    app.state.revendedores = [
+        Revendedor(
+            nombre="Revendedor de Prueba con un Nombre Largo",
+            whatsapp="50500000001",
+            telegram="prueba_telegram",
+            foto="revendedor-1.webp",
+            qr_telegram="qr-telegram-1.webp",
+        )
+    ]
     problemas: list[str] = []
     try:
         pagina = await nueva_pagina(navegador)
@@ -305,12 +316,17 @@ async def test_pagina_publica_en_viewport_movil(servidor_web, navegador):
         despues = await pagina.evaluate(ESTADO_REVELAR)
         assert all(e["visible"] and e["opacidad"] == "1" for e in despues), despues
         await medir(pagina, "/", problemas)
-        for ruta in ("/terminos", "/privacidad"):
+        for ruta in ("/terminos", "/privacidad", "/resellers"):
             await pagina.goto(f"{base}{ruta}")
             await playwright_async.expect(boton).to_be_in_viewport()
             await medir(pagina, ruta, problemas)
+        # RF-62: el QR de Telegram se despliega sin JavaScript y sigue cumpliendo CA-07.
+        await pagina.locator(".revendedor-qr summary").click()
+        await playwright_async.expect(pagina.locator(".revendedor-qr img")).to_be_visible()
+        await medir(pagina, "/resellers (QR desplegado)", problemas)
     finally:
         app.state.correo_contacto = ""
+        app.state.revendedores = []
     assert not problemas, "Problemas a 360 × 740:\n" + "\n".join(problemas)
     assert not pagina.violaciones_csp, "\n".join(pagina.violaciones_csp)
 

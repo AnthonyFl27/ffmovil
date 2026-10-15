@@ -1,0 +1,36 @@
+{% extends "publica/base_publica.html" %}
+{% block titulo %}Revendedores{% endblock %}
+{% block contenido %}
+{# Contacto de los revendedores del equipo (RF-62, CHG-031). Los datos salen de RESELLERS. #}
+<section class="revendedores contenedor">
+  <a href="/" class="volver">← Volver al inicio</a>
+  <h1>Nuestros revendedores</h1>
+  <p class="revendedores-intro">Escríbele a uno de ellos: te ayuda a crear tu usuario para que empieces a vender diamantes.</p>
+  <ul class="revendedores-lista">
+    {% for r in revendedores %}
+    <li class="revendedor">
+      {% if r.foto %}
+      <img class="revendedor-foto" src="{{ estatico("inicio/" ~ r.foto) }}" alt="Foto de {{ r.nombre }}" width="96" height="96" loading="lazy">
+      {% else %}
+      <span class="revendedor-inicial" aria-hidden="true">{{ r.nombre[:1]|upper }}</span>
+      {% endif %}
+      <h2>{{ r.nombre }}</h2>
+      <div class="revendedor-canales">
+        {% if r.whatsapp %}
+        <a class="canal canal-whatsapp" href="{{ r.whatsapp|url_whatsapp }}" target="_blank" rel="noopener noreferrer"><img src="{{ estatico("inicio/whatsapp.webp") }}" alt="" width="28" height="28">WhatsApp</a>
+        {% endif %}
+        {% if r.telegram %}
+        <a class="canal canal-telegram" href="https://t.me/{{ r.telegram }}" target="_blank" rel="noopener noreferrer"><img src="{{ estatico("inicio/telegram.webp") }}" alt="" width="28" height="28">Telegram</a>
+        {% endif %}
+      </div>
+      {% if r.telegram and r.qr_telegram %}
+      <details class="revendedor-qr">
+        <summary>QR de Telegram</summary>
+        <img src="{{ estatico("inicio/" ~ r.qr_telegram) }}" alt="Código QR de Telegram de {{ r.nombre }}" width="420" height="463" loading="lazy">
+      </details>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}

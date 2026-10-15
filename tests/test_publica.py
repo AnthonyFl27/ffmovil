@@ -1,4 +1,4 @@
-"""T-122 y T-123: página pública `/` y páginas legales (RF-58, RF-59, CA-10, CHG-021).
+"""T-122, T-123 y T-131 a T-133: página pública, legales y `/resellers` (RF-58, RF-59, RF-62, CA-10, CA-12).
 
 Contenido de RF-58, sin precios ni importes, sin código en línea ni recursos de otros
 dominios (RNF-14, RNF-20), correo opcional, redirecciones con sesión (RF-02), tope
@@ -12,7 +12,9 @@ from datetime import UTC, datetime
 import pytest
 from sqlalchemy import event
 
+from app.config import ErrorConfiguracion, Revendedor
 from app.main import app
+from app.web.publica import verificar_archivos_revendedores
 from tests.utilidades_api import CLAVE, crear_usuario_con_clave, iniciar_sesion
 from tests.utilidades_web import htmx_post
 
@@ -261,3 +263,144 @@ async def test_no_leen_datos_del_negocio_ni_llaman_a_ventasff(api, sesion_bd, mo
         app.state.ventasff = real
     for tabla in ("paquetes", "saldos", "pedidos", "movimientos"):
         assert not [s for s in sql if re.search(rf"\b{tabla}\b", s)], tabla
+
+
+# --- T-131 a T-133: contacto de revendedores (RF-62, RF-58, RF-59, CA-12) --------------
+
+COMPLETO = Revendedor(
+    nombre="Ana Prueba",
+    whatsapp="50500000001",
+    telegram="ana_prueba",
+    foto="revendedor-1.webp",
+    qr_telegram="qr-telegram-1.webp",
+)
+SOLO_WHATSAPP = Revendedor(nombre="Luis Prueba", whatsapp="50500000002")
+MENSAJE_URL = "Hola%2C%20quiero%20abrir%20mi%20usuario%20en%20FFMovil."
+
+
+@pytest.fixture
+def revendedores():
+    app.state.revendedores = [COMPLETO, SOLO_WHATSAPP]
+    yield app.state.revendedores
+    app.state.revendedores = []
+
+
+async def test_resellers_muestra_foto_nombre_y_canales(api, revendedores):
+    """RF-62 y CA-12: foto o inicial, nombre, enlaces wa.me (con mensaje) y t.me, y el QR."""
+    r = await api().get("/resellers", follow_redirects=False)
+    assert r.status_code == 200
+    html = r.text
+    assert 'href="/"' in html and "Volver al inicio" in html  # enlace de vuelta
+    ana, luis = html.split('<li class="revendedor">')[1:]
+    assert "Ana Prueba" in ana and "revendedor-1.webp" in ana  # con foto
+    assert f'href="https://wa.me/50500000001?text={MENSAJE_URL}"' in ana
+    assert 'href="https://t.me/ana_prueba"' in ana
+    assert "QR de Telegram" in ana and "qr-telegram-1.webp" in ana
+    assert 'rel="noopener noreferrer"' in ana and 'target="_blank"' in ana
+    # Sin foto: la inicial; solo los canales definidos y sin botón del QR.
+    assert "Luis Prueba" in luis and "revendedor-foto" not in luis and ">L<" in luis
+    assert "wa.me/50500000002" in luis
+    assert "t.me" not in luis and "QR de Telegram" not in luis
+
+
+async def test_el_qr_solo_aparece_con_telegram_y_su_imagen(api):
+    """RF-62: el botón «QR de Telegram» necesita usuario de Telegram y `qr_telegram`."""
+    sin_qr = Revendedor(nombre="Sin Qr", telegram="sin_qr_prueba")
+    solo_qr = Revendedor(nombre="Solo Qr", whatsapp="50500000003", qr_telegram="qr-telegram-1.webp")
+    app.state.revendedores = [sin_qr, solo_qr]
+    try:
+        html = (await api().get("/resellers")).text
+    finally:
+        app.state.revendedores = []
+    assert "t.me/sin_qr_prueba" in html and "QR de Telegram" not in html
+
+
+async def test_resellers_sin_revendedores_es_404_y_no_hay_enlaces(api):
+    """RF-62 y CA-12: sin `RESELLERS`, `/resellers` da 404 y la portada y el pie no lo muestran."""
+    assert (await api().get("/resellers")).status_code == 404
+    html = (await api().get("/")).text
+    assert "/resellers" not in html and "Aún no tienes usuario" not in html
+
+
+async def test_portada_y_pie_enlazan_a_resellers(api, revendedores, correo):
+    """RF-58 (c) y (e): sección bajo los pasos y enlace «Revendedores» bajo el correo del pie."""
+    html = (await api().get("/")).text
+    assert html.index("titulo-pasos") < html.index("¿Aún no tienes usuario?")
+    assert "Contáctate con uno de nuestros revendedores" in html
+    assert 'class="boton">Ver revendedores</a>' in html
+    pie = html[html.index("<footer") :]
+    assert pie.index("mailto:") < pie.index('href="/resellers">Revendedores</a>')
+    assert "Nuestro equipo crea tu cuenta" in html  # paso 1 (RF-58 c)
+    # Sin números ni enlaces de contacto fuera de /resellers.
+    assert "wa.me" not in html and "t.me" not in html and "50500000001" not in html
+
+
+async def test_el_pie_muestra_contacto_solo_con_revendedores_sin_correo(api, revendedores):
+    """RF-58 (e): la columna «Contacto» existe si hay correo o revendedores."""
+    html = (await api().get("/")).text
+    assert ">Contacto<" in html and "mailto:" not in html
+    assert 'href="/resellers">Revendedores</a>' in html
+
+
+async def test_resellers_con_sesion_no_redirige(api, sesion_bd, revendedores):
+    """RF-62: con sesión (cliente, admin o cambio pendiente) también responde 200."""
+    for datos in ({"rol": "cliente"}, {"rol": "admin"}, {"debe_cambiar_clave": True}):
+        usuario = await crear_usuario_con_clave(sesion_bd, **datos)
+        http = api()
+        await iniciar_sesion(http, usuario.usuario)
+        assert (await http.get("/resellers", follow_redirects=False)).status_code == 200
+
+
+async def test_resellers_sin_codigo_en_linea_ni_recursos_externos(api, revendedores):
+    """RNF-14 y RNF-20 en `/resellers`: todo desde /static; solo los enlaces de contacto salen."""
+    html = (await api().get("/resellers")).text
+    assert "style=" not in html and "<style" not in html and "hx-on" not in html
+    assert "<script" not in html.replace('<script src="/static/', "")
+    for etiqueta in re.findall(r"<(?:img|script|link)\b[^>]*>", html):
+        for url in re.findall(r'(?:src|href)="([^"]+)"', etiqueta):
+            assert url.startswith("/static/"), etiqueta
+
+
+async def test_resellers_cuenta_en_el_tope_anonimo_y_no_usa_datos_del_negocio(
+    api, revendedores, motor_bd
+):
+    """RNF-17 y RF-62: cuenta en el tope por IP, no lee la BD (salvo la sesión) ni llama a VentasFF."""
+    from app.services.limitador import LimitadorPorUsuario
+
+    real = app.state.ventasff
+    app.state.ventasff = SinVentasFF()
+    try:
+        with consultas_sql(motor_bd) as sql:
+            assert (await api().get("/resellers")).status_code == 200
+    finally:
+        app.state.ventasff = real
+    for tabla in ("paquetes", "saldos", "pedidos", "movimientos"):
+        assert not any(tabla in s for s in sql), tabla
+    app.state.limitador_anonimo = LimitadorPorUsuario(1)
+    http = api("203.0.113.41")
+    assert (await http.get("/resellers")).status_code == 200
+    assert (await http.get("/resellers")).status_code == 429
+
+
+def test_foto_y_qr_de_la_configuracion_deben_existir():
+    """RF-62: un archivo que no existe en `static/inicio/` impide arrancar."""
+    verificar_archivos_revendedores([COMPLETO, SOLO_WHATSAPP])
+    with pytest.raises(ErrorConfiguracion, match="no-existe.webp"):
+        verificar_archivos_revendedores(
+            [Revendedor(nombre="X", whatsapp="50500000004", foto="no-existe.webp")]
+        )
+
+
+async def test_legales_mencionan_a_los_revendedores_del_equipo(api, revendedores):
+    """RF-59 (CHG-031): las cuentas las crea FFmovil o su equipo; se piden por correo o `/resellers`."""
+    terminos = (await api().get("/terminos")).text
+    assert "revendedores del equipo de FFmovil" in terminos
+    assert "o los <strong>revendedores del equipo de FFmovil</strong> que autorizamos" in terminos
+    privacidad = (await api().get("/privacidad")).text
+    assert "un revendedor del equipo de FFmovil" in privacidad
+    assert "Revendedores del equipo de FFmovil:" in privacidad
+    for html in (terminos, privacidad):
+        assert 'href="/resellers"' in html  # solo si hay revendedores definidos
+    app.state.revendedores = []
+    for ruta in LEGALES:
+        assert 'href="/resellers"' not in (await api().get(ruta)).text

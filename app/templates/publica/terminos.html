@@ -5,7 +5,7 @@
 <article class="contenedor legal">
   <a href="/" class="volver">← Volver al inicio</a>
   <h1>Términos y Condiciones</h1>
-  <p class="actualizado">Última actualización: 11 de octubre de 2026</p>
+  <p class="actualizado">Última actualización: 15 de octubre de 2026</p>
   <p>Al acceder a este sitio y, en particular, al completar cualquier compra, declaras haber leído, comprendido y aceptado íntegramente estos Términos y Condiciones, incluidas nuestra Política de Privacidad y nuestra Política de Reembolsos, que forman parte de este documento y se describen más abajo. Si no estás de acuerdo con alguna de estas condiciones, te pedimos que no utilices el servicio.</p>
   <section>
     <h2>1. Qué es FFmovil</h2>
@@ -15,7 +15,7 @@
     <h2>2. Quién puede usar el servicio</h2>
     <ul>
       <li>Debes tener al menos <strong>16 años</strong> y contar con <strong>cédula de identidad nicaragüense</strong>.</li>
-      <li>El servicio es solo para <strong>clientes revendedores</strong> que nos contactan y son aprobados por nosotros.</li>
+      <li>El servicio es solo para <strong>clientes revendedores</strong> que nos contactan, por el correo de contacto o a través de uno de los <strong>revendedores del equipo de FFmovil</strong>, y son aprobados por nosotros.</li>
       <li>Por ahora el servicio está disponible <strong>solo desde Nicaragua</strong>. Más adelante podríamos hacer excepciones.</li>
       <li>Podemos pedirte verificación de identidad cuando lo consideremos necesario.</li>
     </ul>
@@ -23,7 +23,7 @@
   <section>
     <h2>3. Tu cuenta</h2>
     <ul>
-      <li>Las cuentas las creamos nosotros. Recibes un usuario y una contraseña temporal que debes cambiar en tu primer ingreso.</li>
+      <li>Las cuentas las creamos nosotros o los <strong>revendedores del equipo de FFmovil</strong> que autorizamos para crear usuarios. Recibes un usuario y una contraseña temporal que debes cambiar en tu primer ingreso.</li>
       <li>Tu usuario y tu contraseña son personales. <strong>No los compartas ni los transfieras.</strong></li>
       <li>Eres responsable de la actividad realizada con tu cuenta.</li>
       <li>Si olvidas tu contraseña, contáctanos y la restablecemos.</li>
@@ -108,6 +108,7 @@
     <h2>14. Contacto y horario de atención</h2>
     <ul>
       {% if correo %}<li><strong>Correo:</strong> <a href="mailto:{{ correo }}">{{ correo }}</a></li>{% endif %}
+      {% if revendedores %}<li><strong>Revendedores del equipo:</strong> para solicitar tu usuario, <a href="/resellers">consulta sus contactos</a>.</li>{% endif %}
       <li><strong>WhatsApp:</strong> próximamente.</li>
       <li><strong>Horario de atención:</strong> 8:00 a.m. a 5:00 p.m. (hora de Nicaragua).</li>
     </ul>

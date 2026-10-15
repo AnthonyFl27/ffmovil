@@ -12,11 +12,12 @@
           <li><a href="/privacidad">Política de Privacidad</a></li>
         </ul>
       </nav>
-      {% if correo %}
+      {% if correo or revendedores %}
       <div class="pie-columna">
         <h2>Contacto</h2>
         <ul>
-          <li><a href="mailto:{{ correo }}" class="pie-correo">{{ correo }}</a></li>
+          {% if correo %}<li><a href="mailto:{{ correo }}" class="pie-correo">{{ correo }}</a></li>{% endif %}
+          {% if revendedores %}<li><a href="/resellers">Revendedores</a></li>{% endif %}
         </ul>
       </div>
       {% endif %}

@@ -22,7 +22,7 @@
         <img src="{{ estatico("inicio/maletin.webp") }}" alt="" width="384" height="169" loading="lazy">
         <span class="paso-numero">1</span>
         <h3>Recibe tu cuenta</h3>
-        <p>El administrador crea tu cuenta y te entrega tu usuario y una contraseña temporal.</p>
+        <p>Nuestro equipo crea tu cuenta y te entrega tu usuario y una contraseña temporal.</p>
       </li>
       <li class="paso revelar">
         <img src="{{ estatico("inicio/cofre.webp") }}" alt="" width="469" height="295" loading="lazy">
@@ -39,6 +39,18 @@
     </ol>
   </div>
 </section>
+
+{% if revendedores %}
+<section class="sin-usuario" aria-labelledby="titulo-sin-usuario">
+  <div class="contenedor">
+    <div class="sin-usuario-caja revelar">
+      <h2 id="titulo-sin-usuario">¿Aún no tienes usuario?</h2>
+      <p>Contáctate con uno de nuestros revendedores: te ayudan a crear tu usuario y a empezar a vender diamantes.</p>
+      <a href="/resellers" class="boton">Ver revendedores</a>
+    </div>
+  </div>
+</section>
+{% endif %}
 
 <section class="destacado">
   <div class="contenedor destacado-fila">

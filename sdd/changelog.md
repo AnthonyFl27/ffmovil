@@ -269,7 +269,7 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Plan:** sec. 6 (ruta), 6.3 (configuración `RESELLERS`, pie, plantillas)
 - **Tareas:** nuevas T-131, T-132 y T-133
 - **Versión spec:** 0.26.2 → 0.27.0
-- **Motivo:** el cliente que aún no tiene usuario necesita saber a quién pedirlo. Los datos de los revendedores viven fuera del repositorio (`RESELLERS`). No cambia el modelo de datos ni los permisos: el equipo usa el usuario de administración existente.
+- **Motivo:** el cliente que aún no tiene usuario necesita saber a quién pedirlo. Los datos de los revendedores viven fuera del repositorio (`RESELLERS`). Cada revendedor puede llevar foto y una imagen de su QR de Telegram (botón desplegable). No cambia el modelo de datos ni los permisos: el equipo usa el usuario de administración existente.
 
 ## Decisiones resueltas
 

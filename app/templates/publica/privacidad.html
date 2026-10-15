@@ -5,7 +5,7 @@
 <article class="contenedor legal">
   <a href="/" class="volver">← Volver al inicio</a>
   <h1>Política de Privacidad</h1>
-  <p class="actualizado">Última actualización: 11 de octubre de 2026</p>
+  <p class="actualizado">Última actualización: 15 de octubre de 2026</p>
   <p>Esta política explica qué datos personales recogemos en FFmovil, para qué los usamos y cuáles son tus derechos. Forma parte de nuestros Términos y Condiciones.</p>
   <section>
     <h2>1. Responsable del tratamiento</h2>
@@ -15,7 +15,7 @@
     <h2>2. Qué datos recogemos</h2>
     <ul>
       <li><strong>Datos de tu cuenta:</strong> nombre de usuario y contraseña. La contraseña se guarda protegida (con hash), nunca en texto plano.</li>
-      <li><strong>Datos de contacto y de pago:</strong> los que nos facilites al contactarnos para solicitar tu cuenta o un abono (por ejemplo, tu nombre, tu número de WhatsApp o el comprobante de tu pago), y la nota de cada abono (método de pago y referencia).</li>
+      <li><strong>Datos de contacto y de pago:</strong> los que nos facilites a nosotros o a un revendedor del equipo de FFmovil al contactarnos para solicitar tu cuenta o un abono (por ejemplo, tu nombre, tu número de WhatsApp o el comprobante de tu pago), y la nota de cada abono (método de pago y referencia).</li>
       <li><strong>Datos de identidad:</strong> tu cédula de identidad nicaragüense, cuando te la solicitemos para verificar tu identidad.</li>
       <li><strong>Datos del pedido:</strong> Player ID, nickname asociado, paquete adquirido, importe, estado del pedido y su referencia.</li>
       <li><strong>Datos de saldo:</strong> tu saldo y el registro de tus movimientos (abonos, ajustes, cobros y liberaciones).</li>
@@ -26,7 +26,7 @@
   <section>
     <h2>3. Para qué los usamos</h2>
     <ul>
-      <li>Crear y administrar tu cuenta de revendedor.</li>
+      <li>Crear y administrar tu cuenta de revendedor, que crea FFmovil o un revendedor del equipo autorizado para ello.</li>
       <li>Procesar tus pedidos y entregar la recarga en el Player ID indicado.</li>
       <li>Acreditar tus abonos y mantener tu historial y tu saldo.</li>
       <li>Atender consultas, incidencias y reclamaciones.</li>
@@ -44,6 +44,7 @@
     <ul>
       <li><strong>Nuestro proveedor de recargas:</strong> recibe el Player ID necesario para acreditar los diamantes.</li>
       <li><strong>Proveedores de infraestructura:</strong> alojamiento y protección del sitio, que procesan el tráfico para que el servicio funcione de forma segura.</li>
+      <li><strong>Revendedores del equipo de FFmovil:</strong> personas de nuestro equipo autorizadas para crear usuarios; ven los datos necesarios para crear y administrar tu cuenta.</li>
       <li><strong>Autoridades competentes,</strong> cuando exista una obligación legal.</li>
     </ul>
     <p>Tus datos se almacenan de forma privada y confidencial en nuestra base de datos. No vendemos ni cedemos tus datos a terceros con fines publicitarios.</p>
@@ -81,6 +82,7 @@
     <h2>11. Contacto</h2>
     <ul>
       {% if correo %}<li><strong>Correo:</strong> <a href="mailto:{{ correo }}">{{ correo }}</a></li>{% endif %}
+      {% if revendedores %}<li><strong>Revendedores del equipo:</strong> para solicitar tu usuario, <a href="/resellers">consulta sus contactos</a>.</li>{% endif %}
       <li><strong>WhatsApp:</strong> próximamente.</li>
       <li><strong>Horario de atención:</strong> 8:00 a.m. a 5:00 p.m. (hora de Nicaragua).</li>
     </ul>

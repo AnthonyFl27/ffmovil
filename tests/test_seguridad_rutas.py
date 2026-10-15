@@ -22,6 +22,8 @@ PUBLICAS = {
     "/",
     "/terminos",
     "/privacidad",
+    # Contacto de revendedores (RF-62): GET sin efectos; 404 si no hay revendedores definidos.
+    "/resellers",
 }
 
 
