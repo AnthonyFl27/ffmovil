@@ -255,6 +255,14 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.26.0 → 0.26.1
 - **Motivo:** el dueño prefiere dejar explícito que la marca es de Garena y que el sitio opera de forma independiente. Solo cambia la redacción del aviso (patch).
 
+### CHG-030 · 2026-10-15 · Aviso de marcas del pie abreviado
+- **Origen:** decisión de negocio
+- **Spec:** RF-58 (texto del aviso, redacción)
+- **Plan:** —
+- **Tareas:** —
+- **Versión spec:** 0.26.1 → 0.26.2
+- **Motivo:** el dueño acorta el aviso a «La marca Free Fire es propiedad exclusiva de Garena. Este sitio opera de manera independiente.» Solo cambia la redacción (patch).
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |

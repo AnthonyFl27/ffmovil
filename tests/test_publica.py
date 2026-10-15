@@ -24,8 +24,7 @@ TEXTO_PORTADA = (
     "y nuestra plataforma."
 )
 AVISO_MARCAS = (
-    "La marca Free Fire es propiedad exclusiva de Garena. "
-    "Este sitio opera de manera independiente, no está patrocinado ni avalado por Garena."
+    "La marca Free Fire es propiedad exclusiva de Garena. Este sitio opera de manera independiente."
 )
 CORREO = "contacto@ejemplo.test"
 

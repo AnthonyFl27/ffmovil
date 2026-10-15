@@ -25,7 +25,7 @@ El avance real está en `sdd/tasks.md` (`[x]` hechas); revisarlo al empezar cada
 - `Ajuste` visual de la recarga (columna centrada, paquetes en cuadrícula, aviso de irreversibilidad en caja propia, tarjeta de pedido centrada), commits `ab556d8` y `696534d`: subir si aún no se desplegaron.
 - Mensaje en rojo con el Player ID vacío (`22f8e32`): solo código y plantillas.
 - Escala de letra y botones en escritorio/laptop (≥ 768 px) fijada en 100 % en lugar de la de Pico (solo CSS).
-- Aviso de marcas del pie con la nueva redacción del dueño (spec 0.26.1, CHG-029; solo plantilla).
+- Aviso de marcas del pie con la nueva redacción del dueño (spec 0.26.2, CHG-029 y CHG-030; solo plantilla).
 - Admin: mensaje de saldo en etiqueta bajo cada operación con botón de copiar, y clave temporal (alta y restablecimiento) en caja con botón de copiar y advertencia subrayada en rojo (solo plantillas, CSS y pruebas).
 - Etiqueta de error de la recarga a todo el ancho y con separación del botón (solo CSS y plantillas; ver el último commit `Ajuste:` de `git log`).
 - **T-130 / CHG-028 (RF-27, spec 0.26.0):** Player ID de 5 a 15 dígitos con un mensaje por caso en etiqueta (`76bde16`). **Trae migración nueva `c9d2e5b7a418`** (recrea el CHECK `ck_pedidos_player_id_formato`). Comprobado el 2026-10-14 en producción: 4 pedidos, todos de 8 a 11 dígitos, ninguno fuera del rango nuevo.
@@ -151,7 +151,7 @@ Con `--reload` la app se reinicia sola al cambiar el código `.py`; un cambio so
 
 Las variables de entorno tienen prioridad sobre el `.env`: así la app nunca llama a VentasFF real. La BD de desarrollo ya tiene el admin `admin` (creado por CLI) y un cliente de prueba; el catálogo se llena con "Sincronizar ahora" desde `/gestion/paquetes` (3 paquetes ficticios del simulador, inactivos y sin precio).
 
-### Piezas ya construidas (fases 1 a 8, móvil, recarga en tres pasos, endurecimiento y página pública, HSTS, archivar y filtros de usuarios, Player ID de 5 a 15 dígitos; spec v0.26.1)
+### Piezas ya construidas (fases 1 a 8, móvil, recarga en tres pasos, endurecimiento y página pública, HSTS, archivar y filtros de usuarios, Player ID de 5 a 15 dígitos; spec v0.26.2)
 
 Detalle de diseño en `sdd/plan.md` (sec. 3 modelo, 4.2 fases A/B/C, 4.2.1 alertas, 4.5 cliente VentasFF, 4.6 transacciones y rutas de recarga, 6 endpoints, 7 seguridad). Migración head: `c9d2e5b7a418` (`player_id_5_a_15_digitos`, CHG-028, aplicada en desarrollo el 2026-10-14 y **pendiente en producción**, ver «Pendientes de despliegue»; la anterior, `b3f8a1d6c492` `usuarios_archivado`, está en ambas desde el 2026-10-12). Al desplegar, el dueño migra **antes o justo después** de levantar la imagen nueva con `docker compose exec app alembic upgrade head` (o `docker compose run --rm app alembic upgrade head` antes de levantarla) y comprueba con `alembic current`: el 2026-10-12 la app arrancó con el código nuevo y la base sin migrar, y `/health` no lo detecta porque no toca `usuarios`.
 
