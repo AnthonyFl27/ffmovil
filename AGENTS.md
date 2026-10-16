@@ -19,21 +19,9 @@ El avance real está en `sdd/tasks.md` (`[x]` hechas); revisarlo al empezar cada
 
 **Al empezar cada sesión, recordar al dueño esta lista** (con los comandos de abajo) mientras tenga elementos. Cuando el dueño confirme que desplegó, vaciar la lista y anotar la fecha del último despliegue. Al cerrar una sesión que deje cambios sin desplegar, añadirlos aquí (qué cambia y si trae migración). El LLM no ejecuta nada en el VPS: solo guía al dueño.
 
-**Último despliegue confirmado:** 2026-10-12 (migración `b3f8a1d6c492`).
+**Último despliegue confirmado:** 2026-10-15 (commit `00bf41b`, migración `c9d2e5b7a418`; el dueño lo ejecutó y el LLM verificó `/health`, `/resellers`, `alembic current` y los logs).
 
-**Pendiente de subir (sesiones del 2026-10-12, 2026-10-14 y 2026-10-15; el último commit es `9df4789`):**
-- Portada: se quita el segundo botón «Iniciar sesión» de la sección «Pensada para el celular»; queda solo el del encabezado (solo plantilla; cambio menor).
-- **T-135 / CHG-034 (RF-62, spec 0.30.0):** canal «Sitio web» de los revendedores (campo `web` de `RESELLERS`, botón con `web.webp`). **Sin migración. Antes de levantar la imagen, el dueño añade a `RESELLERS` del `.env` del VPS al segundo revendedor, Centerunlock** (`{"nombre":"Centerunlock","whatsapp":"50584562064","web":"https://www.centerunlock.com/"}`; el `.env` local ya lo tiene). La imagen vieja ignora `web`, así que el botón solo aparece con la imagen nueva.
-- **T-134 / CHG-033 (RF-63, spec 0.29.0):** sección «Updates» del admin (`/gestion/updates`, botón en Auditoría) que lee `app/updates.json`. **Sin migración ni variables nuevas**; viaja en la imagen. Un `updates.json` inválido impide arrancar (error en `docker compose logs app`).
-- **CHG-032 (spec 0.28.0):** se retira el QR de Telegram de `/resellers` (ya no existe `qr_telegram`; si el `.env` del VPS lo trae en `RESELLERS`, quitarlo antes de levantar la imagen, o la app no arranca).
-- `Ajuste` visual de la recarga (columna centrada, paquetes en cuadrícula, aviso de irreversibilidad en caja propia, tarjeta de pedido centrada), commits `ab556d8` y `696534d`: subir si aún no se desplegaron.
-- Mensaje en rojo con el Player ID vacío (`22f8e32`): solo código y plantillas.
-- Escala de letra y botones en escritorio/laptop (≥ 768 px) fijada en 100 % en lugar de la de Pico (solo CSS).
-- Aviso de marcas del pie con la nueva redacción del dueño (spec 0.26.2, CHG-029 y CHG-030; solo plantilla).
-- Admin: mensaje de saldo en etiqueta bajo cada operación con botón de copiar, y clave temporal (alta y restablecimiento) en caja con botón de copiar y advertencia subrayada en rojo (solo plantillas, CSS y pruebas).
-- Etiqueta de error de la recarga a todo el ancho y con separación del botón (solo CSS y plantillas; ver el último commit `Ajuste:` de `git log`).
-- **T-131 a T-133 / CHG-031 y CHG-032 (RF-62, spec 0.28.0):** página pública `/resellers` (foto, WhatsApp con el mensaje «Hola, quiero abrir mi usuario en FFMovil.» ya escrito y Telegram; el QR se retiró en CHG-032), sección «¿Aún no tienes usuario?» en la portada con el botón «Ver revendedores», enlace «Revendedores» bajo el correo del pie y textos legales con los revendedores del equipo (`terminos.html` y `privacidad.html`, fecha 15 de octubre de 2026; el cliente pasa a llamarse «cliente revendedor» para no chocar con los revendedores del equipo, también en el pie). **Sin migración.** **Antes de levantar la imagen, el dueño añade `RESELLERS` al `.env` del VPS** (`nano .env`; una línea con JSON entre comillas simples, con el mismo formato que el `.env` local y que `.env.example`; `compose.yml` lo lee con `env_file`). Sin `RESELLERS` la sección, el enlace y la página no aparecen; con un valor inválido o un archivo de foto que no exista, la app no arranca y el error sale en `docker compose logs app`. Las imágenes (logos y foto del primer revendedor) viajan en el repo con `git pull`. Un revendedor nuevo se agrega al JSON y su foto a `app/static/inicio/`, con commit y despliegue (ni el número de WhatsApp ni el usuario de Telegram están en ningún archivo del repo).
-- **T-130 / CHG-028 (RF-27, spec 0.26.0):** Player ID de 5 a 15 dígitos con un mensaje por caso en etiqueta (`76bde16`). **Trae migración nueva `c9d2e5b7a418`** (recrea el CHECK `ck_pedidos_player_id_formato`). Comprobado el 2026-10-14 en producción: 4 pedidos, todos de 8 a 11 dígitos, ninguno fuera del rango nuevo.
+**Pendiente de subir:** nada. Al cerrar una sesión con cambios sin desplegar, añadirlos aquí (qué cambia y si trae migración).
 
 **Comandos (los ejecuta el dueño; antes, `git push origin main` desde el equipo de desarrollo):**
 
@@ -42,10 +30,12 @@ ssh ffmovil
 cd /root/container/ffmovil
 git pull --ff-only
 # 1) Comprobar que ningún Player ID choca con el CHECK nuevo (debe dar 0):
-docker exec postgresql_ffmovil psql -U postgres -d ffmovil -Atc "SELECT count(*) FROM pedidos WHERE player_id !~ '^[0-9]{5,15}\$'"
+docker exec postgresql_ffmovil psql -U <rol_superusuario> -d ffmovil -Atc "SELECT count(*) FROM pedidos WHERE player_id NOT SIMILAR TO '[0-9]{5,15}'"
 # 1b) Añadir RESELLERS al .env del VPS (una línea; ver .env.example):  nano .env
-# 2) Construir la imagen y migrar ANTES de levantarla:
+# 2) Construir la imagen, validar RESELLERS (debe imprimir el número de revendedores; con la
+#    imagen vieja falla) y migrar ANTES de levantarla:
 docker compose build app
+docker compose run --rm app python -c "from app.config import cargar_configuracion as c; print(len(c().resellers))"
 docker compose run --rm app alembic upgrade head
 # 3) Levantar la app nueva y verificar:
 docker compose up -d app
@@ -160,7 +150,7 @@ Las variables de entorno tienen prioridad sobre el `.env`: así la app nunca lla
 
 ### Piezas ya construidas (fases 1 a 8, móvil, recarga en tres pasos, endurecimiento y página pública, HSTS, archivar y filtros de usuarios, Player ID de 5 a 15 dígitos, contacto de revendedores con WhatsApp, Telegram y sitio web, Updates del admin; spec v0.30.0)
 
-Detalle de diseño en `sdd/plan.md` (sec. 3 modelo, 4.2 fases A/B/C, 4.2.1 alertas, 4.5 cliente VentasFF, 4.6 transacciones y rutas de recarga, 6 endpoints, 7 seguridad). Migración head: `c9d2e5b7a418` (`player_id_5_a_15_digitos`, CHG-028, aplicada en desarrollo el 2026-10-14 y **pendiente en producción**, ver «Pendientes de despliegue»; la anterior, `b3f8a1d6c492` `usuarios_archivado`, está en ambas desde el 2026-10-12). Al desplegar, el dueño migra **antes o justo después** de levantar la imagen nueva con `docker compose exec app alembic upgrade head` (o `docker compose run --rm app alembic upgrade head` antes de levantarla) y comprueba con `alembic current`: el 2026-10-12 la app arrancó con el código nuevo y la base sin migrar, y `/health` no lo detecta porque no toca `usuarios`.
+Detalle de diseño en `sdd/plan.md` (sec. 3 modelo, 4.2 fases A/B/C, 4.2.1 alertas, 4.5 cliente VentasFF, 4.6 transacciones y rutas de recarga, 6 endpoints, 7 seguridad). Migración head: `c9d2e5b7a418` (`player_id_5_a_15_digitos`, CHG-028, aplicada en desarrollo el 2026-10-14 y en producción el 2026-10-15; la anterior, `b3f8a1d6c492` `usuarios_archivado`, está en ambas desde el 2026-10-12). Al desplegar, el dueño migra **antes o justo después** de levantar la imagen nueva con `docker compose exec app alembic upgrade head` (o `docker compose run --rm app alembic upgrade head` antes de levantarla) y comprueba con `alembic current`: el 2026-10-12 la app arrancó con el código nuevo y la base sin migrar, y `/health` no lo detecta porque no toca `usuarios`.
 
 - **Arranque** (`app/main.py`, `lifespan`): `configurar_logs` → verificar BD → `recuperar_pedidos_huerfanos` (RN-09) → `app.state`: `sesiones`, `cookie_secure`, `limitador_login`, `ventasff` (cliente único con límite general 50/min), `limitador_recargas` (8/min), `tareas_recarga`, `crear_cliente_ventasff` → programador APScheduler (sincronización diaria 08:00 UTC). Al apagar espera las recargas en curso (100 s) y cierra el cliente.
 - `app/config.py` (`SecretStr`; `VENTASFF_URL` opcional para apuntar al simulador), `app/db.py`, `app/logs.py` (enmascara API Key, `SECRET_KEY`, clave de BD y `Bearer …`), `app/cli.py` (`python -m app.cli crear-admin <usuario>`).
