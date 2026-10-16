@@ -73,11 +73,11 @@ def _pie_completo(html: str) -> None:
 
 
 async def test_sin_sesion_muestra_la_presentacion(api):
-    """RF-58 (a) a (e) y CA-10: botón a /login, portada, tres pasos y pie completo."""
+    """RF-58 (a) a (e) y CA-10: botón a /login (solo en el encabezado), portada, tres pasos y pie completo."""
     r = await api().get("/", follow_redirects=False)
     assert r.status_code == 200
     html = r.text
-    assert html.count('href="/login"') >= 2  # encabezado y última sección
+    assert html.count('href="/login"') == 1  # solo el botón del encabezado
     assert "Iniciar sesión" in html and "FFMovil" in html
     assert TEXTO_PORTADA in html
     assert "inicio/diamantes.webp" in html and "inicio/cofre.webp" in html

@@ -22,6 +22,7 @@ El avance real está en `sdd/tasks.md` (`[x]` hechas); revisarlo al empezar cada
 **Último despliegue confirmado:** 2026-10-12 (migración `b3f8a1d6c492`).
 
 **Pendiente de subir (sesiones del 2026-10-12, 2026-10-14 y 2026-10-15; el último commit es `9df4789`):**
+- Portada: se quita el segundo botón «Iniciar sesión» de la sección «Pensada para el celular»; queda solo el del encabezado (solo plantilla; cambio menor).
 - **T-135 / CHG-034 (RF-62, spec 0.30.0):** canal «Sitio web» de los revendedores (campo `web` de `RESELLERS`, botón con `web.webp`). **Sin migración. Antes de levantar la imagen, el dueño añade a `RESELLERS` del `.env` del VPS al segundo revendedor, Centerunlock** (`{"nombre":"Centerunlock","whatsapp":"50584562064","web":"https://www.centerunlock.com/"}`; el `.env` local ya lo tiene). La imagen vieja ignora `web`, así que el botón solo aparece con la imagen nueva.
 - **T-134 / CHG-033 (RF-63, spec 0.29.0):** sección «Updates» del admin (`/gestion/updates`, botón en Auditoría) que lee `app/updates.json`. **Sin migración ni variables nuevas**; viaja en la imagen. Un `updates.json` inválido impide arrancar (error en `docker compose logs app`).
 - **CHG-032 (spec 0.28.0):** se retira el QR de Telegram de `/resellers` (ya no existe `qr_telegram`; si el `.env` del VPS lo trae en `RESELLERS`, quitarlo antes de levantar la imagen, o la app no arranca).
