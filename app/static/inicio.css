@@ -535,6 +535,17 @@ a:focus-visible {
   object-fit: cover;
 }
 
+.revendedor-logo {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #fff;
+}
+
 .revendedor-inicial {
   display: flex;
   align-items: center;

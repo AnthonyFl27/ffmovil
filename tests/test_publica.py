@@ -318,6 +318,19 @@ async def test_resellers_muestra_el_boton_sitio_web(api, revendedores):
     assert "wa.me" not in marta and "t.me" not in marta  # solo los canales definidos
 
 
+async def test_resellers_foto_con_prefijo_logo_se_muestra_como_logo(api, revendedores):
+    """RF-62: `foto` que empieza por `logo-` va como logo sin recorte circular (CHG-034)."""
+    app.state.revendedores = [
+        COMPLETO,
+        Revendedor(nombre="Negocio Web", whatsapp="50500000003", foto="logo-centerunlock.webp"),
+    ]
+    html = (await api().get("/resellers")).text
+    ana, negocio = html.split('<li class="revendedor">')[1:]
+    assert "revendedor-foto" in ana and "revendedor-logo" not in ana
+    assert 'class="revendedor-logo"' in negocio and "revendedor-foto" not in negocio
+    assert 'alt="Logo de Negocio Web"' in negocio and "logo-centerunlock.webp" in negocio
+
+
 async def test_resellers_sin_revendedores_es_404_y_no_hay_enlaces(api):
     """RF-62 y CA-12: sin `RESELLERS`, `/resellers` da 404 y la portada y el pie no lo muestran."""
     assert (await api().get("/resellers")).status_code == 404

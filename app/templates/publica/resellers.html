@@ -9,7 +9,9 @@
   <ul class="revendedores-lista">
     {% for r in revendedores %}
     <li class="revendedor">
-      {% if r.foto %}
+      {% if r.foto and r.foto.startswith("logo-") %}
+      <img class="revendedor-logo" src="{{ estatico("inicio/" ~ r.foto) }}" alt="Logo de {{ r.nombre }}" width="137" height="46" loading="lazy">
+      {% elif r.foto %}
       <img class="revendedor-foto" src="{{ estatico("inicio/" ~ r.foto) }}" alt="Foto de {{ r.nombre }}" width="96" height="96" loading="lazy">
       {% else %}
       <span class="revendedor-inicial" aria-hidden="true">{{ r.nombre[:1]|upper }}</span>
