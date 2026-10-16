@@ -287,6 +287,14 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.28.0 → 0.29.0
 - **Motivo:** el equipo comparte el usuario `admin` y necesita ver qué cambia con cada actualización. Decisiones del dueño: es una sección dentro de Auditoría, solo para el admin, y la ruta es `/gestion/updates`. Decisión técnica: las novedades viven en un archivo del repositorio (`app/updates.json`) que viaja con cada despliegue, sin tabla ni migración ni formulario de edición; el equipo sigue compartiendo el usuario `admin` (decisión del dueño, sin cambio de permisos).
 
+### CHG-034 · 2026-10-15 · Canal «Sitio web» para los revendedores
+- **Origen:** decisión de negocio (el segundo revendedor atiende por WhatsApp y por su sitio web, sin Telegram)
+- **Spec:** RF-62 (campo `web` y botón «Sitio web»), CA-12
+- **Plan:** sec. 6.3 (revendedores e imágenes)
+- **Tareas:** nueva T-135
+- **Versión spec:** 0.29.0 → 0.30.0
+- **Motivo:** no todos los revendedores usan Telegram. Decisiones del dueño: el sitio se muestra como un botón más, sin QR; la dirección solo puede ser `https://`; el botón se llama «Sitio web» con un ícono de globo; el revendedor sin foto muestra su inicial. Los datos reales siguen solo en `RESELLERS` del `.env`.
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |

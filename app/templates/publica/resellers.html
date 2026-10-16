@@ -22,6 +22,9 @@
         {% if r.telegram %}
         <a class="canal canal-telegram" href="https://t.me/{{ r.telegram }}" target="_blank" rel="noopener noreferrer"><img src="{{ estatico("inicio/telegram.webp") }}" alt="" width="28" height="28">Telegram</a>
         {% endif %}
+        {% if r.web %}
+        <a class="canal canal-web" href="{{ r.web }}" target="_blank" rel="noopener noreferrer"><img src="{{ estatico("inicio/web.webp") }}" alt="" width="28" height="28">Sitio web</a>
+        {% endif %}
       </div>
     </li>
     {% endfor %}

@@ -274,6 +274,7 @@ COMPLETO = Revendedor(
     foto="revendedor-1.webp",
 )
 SOLO_WHATSAPP = Revendedor(nombre="Luis Prueba", whatsapp="50500000002")
+SOLO_WEB = Revendedor(nombre="Marta Web", web="https://www.ejemplo-web.test/tienda")
 MENSAJE_URL = "Hola%2C%20quiero%20abrir%20mi%20usuario%20en%20FFMovil."
 
 
@@ -300,6 +301,21 @@ async def test_resellers_muestra_foto_nombre_y_canales(api, revendedores):
     assert "Luis Prueba" in luis and "revendedor-foto" not in luis and ">L<" in luis
     assert "wa.me/50500000002" in luis
     assert "t.me" not in luis
+
+
+async def test_resellers_muestra_el_boton_sitio_web(api, revendedores):
+    """RF-62 y CA-12 (CHG-034): «Sitio web» solo con `web`, en pestaña nueva y sin Telegram."""
+    app.state.revendedores = [COMPLETO, SOLO_WEB]
+    html = (await api().get("/resellers")).text
+    ana, marta = html.split('<li class="revendedor">')[1:]
+    assert "Sitio web" not in ana and "web.webp" not in ana  # Ana no tiene web
+    assert "Marta Web" in marta and ">M<" in marta  # sin foto: la inicial
+    assert (
+        '<a class="canal canal-web" href="https://www.ejemplo-web.test/tienda" '
+        'target="_blank" rel="noopener noreferrer">'
+    ) in marta
+    assert "Sitio web</a>" in marta and "web.webp" in marta
+    assert "wa.me" not in marta and "t.me" not in marta  # solo los canales definidos
 
 
 async def test_resellers_sin_revendedores_es_404_y_no_hay_enlaces(api):

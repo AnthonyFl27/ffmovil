@@ -23,13 +23,18 @@ class Revendedor(BaseModel):
     whatsapp: str | None = Field(default=None, pattern=r"^[0-9]{8,15}$")
     # Usuario de Telegram sin «@» (se usa en https://t.me/<usuario>).
     telegram: str | None = Field(default=None, pattern=r"^[A-Za-z0-9_]{5,32}$")
+    # Dirección https:// del sitio del revendedor (botón «Sitio web»), sin espacios ni
+    # usuario y clave.
+    web: str | None = Field(
+        default=None, max_length=200, pattern=r"^https://[A-Za-z0-9.-]+(:[0-9]{1,5})?([/?#]\S*)?$"
+    )
     # Nombre de un archivo WebP de app/static/inicio/ (foto del revendedor).
     foto: str | None = Field(default=None, pattern=r"^[a-z0-9_-]+\.webp$")
 
     @model_validator(mode="after")
     def _al_menos_un_canal(self) -> "Revendedor":
-        if not self.whatsapp and not self.telegram:
-            raise ValueError("cada revendedor necesita whatsapp o telegram")
+        if not (self.whatsapp or self.telegram or self.web):
+            raise ValueError("cada revendedor necesita whatsapp, telegram o web")
         return self
 
 

@@ -1,6 +1,14 @@
 [
   {
     "fecha": "2026-10-15",
+    "titulo": "Nuevo revendedor: Centerunlock",
+    "puntos": [
+      "En /resellers aparece Centerunlock con su botón de WhatsApp y el nuevo botón «Sitio web», que abre su página.",
+      "Los revendedores ahora pueden tener WhatsApp, Telegram, sitio web o cualquier combinación."
+    ]
+  },
+  {
+    "fecha": "2026-10-15",
     "titulo": "Nueva sección Updates",
     "puntos": [
       "En Auditoría hay un botón «Updates» que lleva a esta página.",

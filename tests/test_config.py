@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from app.config import ErrorConfiguracion, cargar_configuracion
@@ -89,6 +91,36 @@ def test_resellers_se_lee_como_json(entorno):
     ana, luis = cargar().resellers
     assert (ana.nombre, ana.whatsapp, ana.telegram) == ("Ana", "50588880000", "ana_ff")
     assert (luis.nombre, luis.whatsapp, luis.telegram) == ("Luis", None, "luis_ff")
+
+
+def test_resellers_web_es_un_canal_https(entorno):
+    """RF-62 (CHG-034): `web` basta como único canal y se guarda tal cual."""
+    entorno.setenv("RESELLERS", '[{"nombre":"Marta","web":"https://www.ejemplo.test/tienda?a=1"}]')
+    (marta,) = cargar().resellers
+    assert (marta.web, marta.whatsapp, marta.telegram) == (
+        "https://www.ejemplo.test/tienda?a=1",
+        None,
+        None,
+    )
+
+
+@pytest.mark.parametrize(
+    "web",
+    [
+        "http://www.ejemplo.test/",
+        "www.ejemplo.test",
+        "javascript:alert(1)",
+        "https://usuario:clave@ejemplo.test/",
+        "https://ejemplo.test/con espacio",
+        "https://",
+        "https://ejemplo.test/" + "a" * 200,
+    ],
+)
+def test_resellers_web_invalida_impide_arrancar(entorno, web):
+    """RF-62 (CHG-034): solo `https://`, sin espacios ni usuario y clave, hasta 200 caracteres."""
+    entorno.setenv("RESELLERS", json.dumps([{"nombre": "Marta", "web": web}]))
+    with pytest.raises(ErrorConfiguracion, match="(?i)resellers"):
+        cargar()
 
 
 @pytest.mark.parametrize(

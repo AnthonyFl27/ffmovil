@@ -300,7 +300,8 @@ async def test_pagina_publica_en_viewport_movil(servidor_web, navegador):
             whatsapp="50500000001",
             telegram="prueba_telegram",
             foto="revendedor-1.webp",
-        )
+        ),
+        Revendedor(nombre="Revendedor Solo Web", web="https://www.ejemplo-de-prueba.test/"),
     ]
     problemas: list[str] = []
     try:
