@@ -1,5 +1,5 @@
 {% from "parciales/iconos.html" import icono, copiar %}
-{% set texto %}{% if movimiento.tipo == "abono" %}Recarga de saldo de {{ movimiento.monto | usd }} registrada{% else %}Ajuste de {{ movimiento.monto | usd }} registrado{% endif %}. Saldo disponible: {{ movimiento.saldo_disponible_resultante | usd }}.{% endset %}
+{% set texto %}{% if movimiento.tipo == "abono" %}Su recarga de {{ movimiento.monto | usd }} se acreditó exitosamente{% else %}Ajuste de {{ movimiento.monto | usd }} registrado{% endif %}. Saldo disponible: {{ movimiento.saldo_disponible_resultante | usd }}.{% endset %}
 <p class="mensaje exito mensaje-copiable" role="status"><span>{{ texto }}</span>{{ copiar(texto | trim, "mensaje") }}</p>
 {# El mensaje de la otra operación se limpia: solo se ve el de la última. #}
 <div id="mensaje-{{ 'ajuste' if movimiento.tipo == 'abono' else 'abono' }}" class="etiqueta-mensaje" hx-swap-oob="true"></div>

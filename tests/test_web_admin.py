@@ -135,7 +135,7 @@ async def test_abono_y_ajuste(api, sesion_bd):
 
     abono = await htmx_post(http, f"{ruta}/abono", {"monto": "12.50", "nota": "Pago móvil 123"})
     assert abono.status_code == 200
-    assert "Recarga de saldo de 12.50 USD registrada" in abono.text
+    assert "Su recarga de 12.50 USD se acreditó exitosamente" in abono.text
     assert '<strong id="saldo-disponible">12.50 USD</strong>' in abono.text
 
     ajuste = await htmx_post(http, f"{ruta}/ajuste", {"monto": "-2.50", "nota": "Corrección"})
@@ -309,7 +309,7 @@ async def test_mensaje_de_saldo_bajo_cada_operacion_con_copiar(api, sesion_bd):
     assert 'hx-target="#mensaje-ajuste"' in pagina and 'id="mensaje-ajuste"' in pagina
 
     abono = await htmx_post(http, f"{ficha}/saldo/abono", {"monto": "10.00", "nota": "Pago"})
-    texto = "Recarga de saldo de 10.00 USD registrada. Saldo disponible: 10.00 USD."
+    texto = "Su recarga de 10.00 USD se acreditó exitosamente. Saldo disponible: 10.00 USD."
     assert abono.status_code == 200 and f'data-copiar="{texto}"' in abono.text
     assert 'class="mensaje exito mensaje-copiable"' in abono.text
     assert '<div id="mensaje-ajuste" class="etiqueta-mensaje" hx-swap-oob="true"></div>' in (

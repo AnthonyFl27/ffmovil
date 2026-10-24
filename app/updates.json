@@ -1,6 +1,14 @@
 [
   {
     "fecha": "2026-10-24",
+    "titulo": "Mensaje de recarga listo para el cliente",
+    "puntos": [
+      "Al registrar una recarga de saldo, el mensaje ahora está redactado para enviárselo al cliente: «Su recarga de 10.00 USD se acreditó exitosamente. Saldo disponible: …».",
+      "El botón de copiar sigue copiando ese mismo texto."
+    ]
+  },
+  {
+    "fecha": "2026-10-24",
     "titulo": "Nueva página de inicio",
     "puntos": [
       "La página principal estrena diseño: una tarjeta azul con el personaje, el diamante en su mano y el aviso para quien aún no tiene usuario, y debajo un diamante animado hecho de puntos.",
