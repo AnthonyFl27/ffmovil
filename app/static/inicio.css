@@ -535,6 +535,11 @@ a:focus-visible {
   border-radius: 16px;
   background: var(--superficie);
   text-align: center;
+  /* Fila fija de 96 px para la foto, el logo o la inicial: así el nombre y los botones
+     quedan a la misma altura en todas las tarjetas, sea cual sea el alto de la imagen. */
+  display: grid;
+  grid-template-rows: 96px auto 1fr;
+  justify-items: center;
 }
 
 .revendedor-foto,
@@ -542,7 +547,7 @@ a:focus-visible {
   display: block;
   width: 96px;
   height: 96px;
-  margin: 0 auto 12px;
+  margin: 0;
   border-radius: 50%;
   object-fit: cover;
 }
@@ -552,7 +557,8 @@ a:focus-visible {
   width: auto;
   max-width: 100%;
   height: auto;
-  margin: 0 auto 12px;
+  align-self: center;
+  margin: 0;
   padding: 8px 12px;
   border-radius: 10px;
   background: #fff;
@@ -569,11 +575,12 @@ a:focus-visible {
 }
 
 .revendedor h2 {
-  margin: 0 0 16px;
+  margin: 12px 0 16px;
   font-size: 1.3rem;
 }
 
 .revendedor-canales {
+  align-self: start;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
