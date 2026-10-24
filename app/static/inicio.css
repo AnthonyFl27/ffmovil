@@ -346,6 +346,8 @@ a:focus-visible {
 
 .mundo {
   position: relative;
+  /* Las bandas de puntos de 1320 px en adelante pueden salirse por los lados; sin esto aparece scroll horizontal. */
+  overflow-x: clip;
   padding: 40px 0 8px;
   text-align: center;
 }
@@ -812,13 +814,14 @@ a:focus-visible {
     border-right: 3px solid var(--azul);
   }
 
+  /* Las dos notas van en la franja baja: la órbita de las insignias pasa por arriba y no las tapa. */
   .nota-a {
-    top: 58%;
+    top: 70%;
     left: 0;
   }
 
   .nota-b {
-    top: 14%;
+    top: 70%;
     right: 0;
     border-right: 1px dashed rgba(143, 176, 255, 0.35);
     border-left: 3px solid var(--azul);

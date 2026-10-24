@@ -247,7 +247,7 @@
 
     function dibujar(ms) {
       if (!ancho || !alto) return;
-      var giro = reducido ? 0.7 : (ms / 1000) * 0.42;
+      var giro = reducido ? 0.7 : (ms / 1000) * 0.2;
       var cosY = Math.cos(giro);
       var senY = Math.sin(giro);
       var escala = Math.min(ancho * 0.29, alto * 0.4);
@@ -308,7 +308,7 @@
       var rx = Math.min(escala * 2.1, ancho / 2 - escala * 0.35);
       var ry = escala * 0.62;
       for (var n = 0; n < 3; n++) {
-        var orbita = (reducido ? 0 : (ms / 1000) * 0.32) + n * 2.094 + 0.4;
+        var orbita = (reducido ? 0 : (ms / 1000) * 0.15) + n * 2.094 + 0.4;
         var profundidad = Math.sin(orbita);
         var bx = ox + Math.cos(orbita) * rx;
         var by = oy - escala * 0.2 + Math.sin(orbita) * ry;
