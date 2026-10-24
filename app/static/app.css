@@ -7,6 +7,36 @@
    En móvil (< 768 px) se conserva la escala de Pico. Para ajustar el tamaño en escritorio, cambiar solo este valor. */
 @media (min-width: 768px) { :root { --pico-font-size: 100%; } }
 
+/* Paleta «Grafito y diamante» (elegida por el dueño el 2026-10-24) con tema oscuro fijo
+   (data-theme="dark" en base.html): fondo grafito y acento celeste del rombo del logo. */
+[data-theme=dark] {
+  --pico-background-color: #0c0e13; --pico-card-background-color: #151922; --pico-card-sectioning-background-color: #11141b; --pico-muted-border-color: #262c38;
+  --pico-form-element-background-color: #11141b; --pico-form-element-border-color: #2e3543; --pico-muted-color: #9aa3b4; --pico-color: #e8ebf1;
+  --pico-primary: #6cc4ff; --pico-primary-background: #4fb3ff; --pico-primary-border: #4fb3ff; --pico-primary-underline: rgba(108, 196, 255, 0.5);
+  --pico-primary-hover: #9ddcff; --pico-primary-hover-background: #7cc4ff; --pico-primary-hover-border: #7cc4ff; --pico-primary-hover-underline: #9ddcff;
+  --pico-primary-focus: rgba(79, 179, 255, 0.3); --pico-primary-inverse: #06131f;
+  --pico-secondary-background: #262c38; --pico-secondary-border: #262c38; --pico-secondary-hover-background: #323a4a; --pico-secondary-hover-border: #323a4a; --pico-secondary-inverse: #fff;
+}
+
+/* Botones del menú en azul oscuro y «Recargar» en naranja tostado al pasar o pulsar: colores
+   sólidos y sin brillo (el dueño pidió nada chillón). Texto blanco con contraste ≥ 4.5:1. */
+:root { --azul-menu: #2547b8; --naranja-recargar: #b9520b; }
+
+/* Paneles (cliente y admin): franja azul a celeste pareja en la parte baja y, encima, el campo de caracteres
+   de fondo.js (sin interacción). La franja va en <html> y el body queda transparente para que el lienzo (z-index -1)
+   se vea entre ambos. Las tarjetas son algo translúcidas para que el fondo se intuya detrás. */
+html:has(nav.nav-cliente, nav.nav-admin) {
+  background:
+    radial-gradient(ellipse 100% 40% at 0% 100%, rgba(37, 71, 184, 0.16), transparent),
+    radial-gradient(ellipse 100% 40% at 100% 100%, rgba(79, 179, 255, 0.07), transparent),
+    linear-gradient(to top, rgba(37, 90, 190, 0.07), transparent 30%),
+    linear-gradient(to bottom, #0c0e13, #0e1119);
+  background-attachment: fixed;
+}
+html:has(nav.nav-cliente, nav.nav-admin) body { background: transparent; }
+canvas.fondo-ascii { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+html:has(nav.nav-cliente, nav.nav-admin) main article { background: rgba(21, 25, 34, 0.88); border: 1px solid rgba(255, 255, 255, 0.06); }
+
 /* Íconos de trazo en línea (parciales/iconos.html). */
 .icono { width: 1.1em; height: 1.1em; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: -0.2em; }
 .angosto { max-width: 28rem; margin-inline: auto; }
@@ -33,6 +63,8 @@
 /* Marca: logo y nombre; lleva al inicio del rol. */
 nav a.marca { display: inline-flex; align-items: center; gap: 0.5rem; color: inherit; text-decoration: none; }
 nav a.marca img { width: 40px; height: 40px; }
+/* Nombre en trazos (design/logo): blanco con tema oscuro y azul marino con tema claro (<picture>). */
+nav a.marca img.marca-nombre { width: auto; height: 22px; }
 .logo-entrar { display: block; margin: 0.75rem auto 1rem; }
 nav button.salir { padding: 0.25rem 0.75rem; margin: 0; min-height: var(--area-tactil); }
 /* Salir: se rellena en rojo al pasar el cursor, al enfocar o al pulsar. */
@@ -67,12 +99,34 @@ nav ul.menu-linea a {
   border-radius: var(--pico-border-radius);
   text-decoration: none;
   font-weight: 500;
-  transition: background-color 0.15s, color 0.15s;
+  transition: background-color 0.15s, color 0.25s;
 }
-nav ul.menu-linea a:hover { background: var(--pico-primary-focus); }
-nav ul.menu-linea a[aria-current=page] {
-  background: var(--pico-primary-background);
-  color: var(--pico-primary-inverse);
+/* Sin JS: la opción bajo el cursor y la página actual se pintan en azul («Recargar», en naranja). */
+nav ul.menu-linea:not(.con-indicador) a:hover, nav ul.menu-linea:not(.con-indicador) a[aria-current=page] { background: var(--azul-menu); color: #fff; }
+nav ul.menu-linea:not(.con-indicador) a[href="/recargar"]:is(:hover, :active, [aria-current=page]) { background: var(--naranja-recargar); }
+/* Con JS (app.js): un solo indicador se desliza hasta la opción bajo el cursor o el foco y vuelve a
+   la página actual al salir; sobre «Recargar» cambia a naranja. */
+nav ul.menu-linea.con-indicador { position: relative; }
+nav ul.menu-linea.con-indicador li { position: relative; z-index: 1; }
+nav ul.menu-linea.con-indicador a.encendido { color: #fff; }
+nav ul.menu-linea li.indicador {
+  position: absolute; z-index: 0; top: var(--y, 0); left: 0; width: var(--w, 0); height: var(--h, 0); padding: 0;
+  transform: translateX(var(--x, 0)); border-radius: var(--pico-border-radius); pointer-events: none; opacity: 0;
+  background: var(--azul-menu);
+  transition: transform 0.35s cubic-bezier(0.22, 0.9, 0.3, 1), width 0.35s cubic-bezier(0.22, 0.9, 0.3, 1), opacity 0.2s, background-color 0.25s;
+}
+nav ul.menu-linea li.indicador.visible { opacity: 1; }
+nav ul.menu-linea li.indicador.quieto { transition: none; }
+nav ul.menu-linea li.indicador.naranja { background: var(--naranja-recargar); }
+/* Menú plegado: los mismos colores al pasar o pulsar una opción. */
+nav .menu-plegable details.dropdown > ul li a { transition: background-color 0.15s, color 0.15s; }
+nav .menu-plegable details.dropdown > ul li a:is(:hover, :active, :focus-visible) { background: var(--azul-menu); color: #fff; }
+nav .menu-plegable details.dropdown > ul li a[href="/recargar"]:is(:hover, :active, :focus-visible) { background: var(--naranja-recargar); }
+/* Botón «Recargar» del contenido (inicio, historial vacío): naranja al pasar o pulsar. */
+main a[role=button][href="/recargar"] { transition: background-color 0.2s, border-color 0.2s, color 0.2s; }
+main a[role=button][href="/recargar"]:is(:hover, :active, :focus-visible) { background: var(--naranja-recargar); border-color: var(--naranja-recargar); color: #fff; }
+@media (prefers-reduced-motion: reduce) {
+  nav ul.menu-linea li.indicador { transition: none; }
 }
 nav ul.menu-linea button.salir { margin-left: 0.5rem; }
 @media (min-width: 768px) {

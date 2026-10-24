@@ -19,6 +19,65 @@ function prepararFragmento(raiz) {
 htmx.onLoad(prepararFragmento);
 
 document.addEventListener("DOMContentLoaded", function () {
+  // Menú en línea: un indicador azul se desliza hasta la opción bajo el cursor o el foco
+  // y vuelve a la página actual al salir; sobre «Recargar» se vuelve naranja (estilos en app.css).
+  // Las medidas van en variables CSS por CSSOM, que la CSP permite (no hay estilos en línea).
+  document.querySelectorAll("nav ul.menu-linea").forEach(function (menu) {
+    var indicador = document.createElement("li");
+    indicador.className = "indicador quieto";
+    indicador.setAttribute("aria-hidden", "true");
+    menu.prepend(indicador);
+    menu.classList.add("con-indicador");
+    var actual = menu.querySelector("a[aria-current=page]");
+    var encendido = null;
+    function mover(enlace) {
+      if (encendido) encendido.classList.remove("encendido");
+      encendido = enlace;
+      if (!enlace || !enlace.offsetWidth) {
+        indicador.classList.remove("visible");
+        return;
+      }
+      var m = menu.getBoundingClientRect();
+      var r = enlace.getBoundingClientRect();
+      indicador.style.setProperty("--x", r.left - m.left + "px");
+      indicador.style.setProperty("--y", r.top - m.top + "px");
+      indicador.style.setProperty("--w", r.width + "px");
+      indicador.style.setProperty("--h", r.height + "px");
+      indicador.classList.toggle("naranja", enlace.getAttribute("href") === "/recargar");
+      indicador.classList.add("visible");
+      enlace.classList.add("encendido");
+    }
+    function enlaceDe(e) {
+      return e.target.closest ? e.target.closest("a") : null;
+    }
+    menu.addEventListener("mouseover", function (e) {
+      if (enlaceDe(e)) mover(enlaceDe(e));
+    });
+    menu.addEventListener("focusin", function (e) {
+      if (enlaceDe(e)) mover(enlaceDe(e));
+    });
+    menu.addEventListener("mouseleave", function () {
+      mover(actual);
+    });
+    menu.addEventListener("focusout", function (e) {
+      if (!menu.contains(e.relatedTarget)) mover(actual);
+    });
+    window.addEventListener("resize", function () {
+      indicador.classList.add("quieto");
+      mover(encendido || actual);
+      requestAnimationFrame(function () {
+        indicador.classList.remove("quieto");
+      });
+    });
+    // La primera vez aparece sin deslizarse desde la izquierda.
+    mover(actual);
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        indicador.classList.remove("quieto");
+      });
+    });
+  });
+
   // Un formulario con data-limpia="#id" vacía ese elemento al cambiar sus datos.
   document.addEventListener("input", function (e) {
     var form = e.target.closest("[data-limpia]");

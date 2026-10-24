@@ -1,5 +1,6 @@
 <!doctype html>
-<html lang="es">
+{#- Tema oscuro fijo (decisión del dueño, 2026-10-24): no sigue el tema del sistema. #}
+<html lang="es" data-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,6 +12,7 @@
   <link rel="apple-touch-icon" href="{{ estatico("apple-touch-icon.png") }}">
   <script src="{{ estatico("htmx.min.js") }}" defer></script>
   <script src="{{ estatico("app.js") }}" defer></script>
+  <script src="{{ estatico("fondo.js") }}" defer></script>
 </head>
 {% from "parciales/iconos.html" import icono, copiar, vacio %}
 <body{% if csrf %} hx-headers='{{ {"X-CSRF-Token": csrf} | tojson }}'{% endif %}>
@@ -25,7 +27,7 @@
   {%- endif %}
   {% block cabecera %}<header class="container">
     <nav class="nav-{{ rol or "anonimo" }}">
-      <ul><li><a href="/" class="marca"><img src="{{ estatico("logo.png") }}" alt="" width="40" height="40"><strong>FFmovil</strong></a></li></ul>
+      <ul><li><a href="/" class="marca"><img src="{{ estatico("logo.png") }}" alt="" width="40" height="40"><img src="{{ estatico("nombre.svg") }}" alt="FFmovil" class="marca-nombre" width="74" height="22"></a></li></ul>
       {% if csrf and not opciones %}
       <ul><li><button class="outline secondary salir" hx-post="/salir">Salir</button></li></ul>
       {% elif csrf %}

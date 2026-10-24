@@ -114,9 +114,10 @@ a:focus-visible {
   height: 40px;
 }
 
-.marca span {
-  font-size: 1.2rem;
-  white-space: nowrap;
+/* Nombre en trazos (design/logo): a la altura de las F del logo. */
+.marca .marca-nombre {
+  width: auto;
+  height: 22px;
 }
 
 /* Encabezado */

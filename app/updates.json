@@ -1,5 +1,24 @@
 [
   {
+    "fecha": "2026-10-24",
+    "titulo": "Nuevos colores en el panel",
+    "puntos": [
+      "El panel y el inicio de sesión estrenan colores: siempre en modo oscuro, con fondo grafito y detalles en celeste, como el diamante del logo.",
+      "El fondo del panel tiene un brillo azul muy suave abajo, con caracteres y unas nubes de luz que se desplazan despacio y, de vez en cuando, sueltan un rayo.",
+      "En el menú, el botón azul se desliza hasta la opción por la que pasas el cursor y vuelve a la página en la que estás.",
+      "Los botones de «Recargar» se encienden en naranja al pasar el cursor o al pulsarlos."
+    ]
+  },
+  {
+    "fecha": "2026-10-24",
+    "titulo": "Logo nuevo",
+    "puntos": [
+      "La web estrena logo: dos letras F en cursiva, que dan idea de velocidad, y un diamante azul.",
+      "En la página principal, en el pie y en la cabecera del panel, el nombre aparece como «ffmovil» con una gema en el punto de la «i».",
+      "El ícono de la pestaña del navegador y el de acceso directo en el celular también cambiaron. Si sigues viendo el anterior, recarga la página."
+    ]
+  },
+  {
     "fecha": "2026-10-15",
     "titulo": "Nuevo revendedor: Centerunlock",
     "puntos": [
