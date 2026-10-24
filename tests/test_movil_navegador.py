@@ -353,6 +353,64 @@ async def test_pagina_publica_sin_movimiento_ni_javascript(servidor_web, navegad
         await contexto.close()
 
 
+LIENZOS = """
+() => [...document.querySelectorAll('canvas[aria-hidden=true]')].map(c => {
+  const caja = c.getBoundingClientRect();
+  const datos = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+  let pintados = 0;
+  for (let i = 3; i < datos.length; i += 4) if (datos[i] > 0) pintados++;
+  return {id: c.id, ancho: caja.width, alto: caja.height, pintados, puntos: Number(c.dataset.puntos || 0)};
+})
+"""
+
+
+async def test_portada_con_canvas_pintados_y_sin_desbordar_en_movil_y_escritorio(
+    servidor_web, navegador
+):
+    """RF-58, RNF-20, CA-07, CHG-035: el campo de caracteres y el diamante se pintan, sin violar la CSP.
+
+    A 360 × 740 y a 1280 × 800 y 1725 × 1030 la portada no se desborda; el diamante usa a lo
+    sumo 10 000 puntos (la mitad en pantallas angostas).
+    """
+    from app.config import Revendedor
+    from app.main import app
+
+    app.state.revendedores = [Revendedor(nombre="Ana Prueba", whatsapp="50500000001")]
+    problemas: list[str] = []
+    tamanos = [VIEWPORT, {"width": 1280, "height": 800}, {"width": 1725, "height": 1030}]
+    try:
+        puntos_por_ancho = {}
+        for tamano in tamanos:
+            contexto = await navegador.new_context(viewport=tamano)
+            pagina = await contexto.new_page()
+            violaciones: list[str] = []
+            pagina.on(
+                "console",
+                lambda m, v=violaciones: (
+                    v.append(m.text) if "Content Security Policy" in m.text else None
+                ),
+            )
+            await pagina.goto(f"{servidor_web}/")
+            await pagina.wait_for_load_state("networkidle")
+            await pagina.wait_for_timeout(400)
+            lienzos = {c["id"]: c for c in await pagina.evaluate(LIENZOS)}
+            assert set(lienzos) == {"fondo-ascii", "diamante"}, lienzos
+            for c in lienzos.values():
+                assert c["ancho"] > 100 and c["alto"] > 100 and c["pintados"] > 0, c
+            puntos_por_ancho[tamano["width"]] = lienzos["diamante"]["puntos"]
+            assert 0 < lienzos["diamante"]["puntos"] <= 10_000, lienzos["diamante"]
+            await registrar(pagina, f"/ a {tamano['width']} px", problemas)
+            for ruta in ("/resellers", "/terminos"):
+                await pagina.goto(f"{servidor_web}{ruta}")
+                await registrar(pagina, f"{ruta} a {tamano['width']} px", problemas)
+            assert not violaciones, "\n".join(violaciones)
+            await contexto.close()
+        assert puntos_por_ancho[360] < puntos_por_ancho[1280]  # la mitad en pantallas angostas
+    finally:
+        app.state.revendedores = []
+    assert not problemas, "Problemas:\n" + "\n".join(problemas)
+
+
 async def test_filtros_plegados_tambien_en_escritorio(api, sesion_bd, servidor_web, navegador):
     """RNF-12, RF-61: ningún listado arranca con «Filtros» desplegado, ni en escritorio."""
     admin = await crear_usuario_con_clave(sesion_bd, rol="admin")

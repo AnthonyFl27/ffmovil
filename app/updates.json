@@ -1,6 +1,16 @@
 [
   {
     "fecha": "2026-10-24",
+    "titulo": "Nueva página de inicio",
+    "puntos": [
+      "La página principal estrena diseño: una tarjeta azul con el personaje, el diamante en su mano y el aviso para quien aún no tiene usuario, y debajo un diamante animado hecho de puntos.",
+      "Los pasos para recargar pasaron a una franja de tres columnas, separada del resto con líneas discontinuas.",
+      "Las páginas de revendedores, Términos y Condiciones y Política de Privacidad usan el mismo diseño, con una tarjeta de título.",
+      "El fondo es un azul más oscuro y el contenido aprovecha mejor las pantallas anchas."
+    ]
+  },
+  {
+    "fecha": "2026-10-24",
     "titulo": "Nuevos colores en el panel",
     "puntos": [
       "El panel y el inicio de sesión estrenan colores: siempre en modo oscuro, con fondo grafito y detalles en celeste, como el diamante del logo.",

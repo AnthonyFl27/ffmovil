@@ -1,83 +1,71 @@
 {% extends "publica/base_publica.html" %}
 {#- El nombre primero: la pestaña corta el final del título. #}
 {% block titulo_completo %}FFMovil{% endblock %}
+{% block scripts %}<script src="{{ estatico("portada.js") }}" defer></script>{% endblock %}
 {% block contenido %}
+{# Tarjeta principal (RF-58 b, CHG-035). El botón «Iniciar sesión» queda solo en el encabezado fijo (CHG-024). #}
 <section class="portada">
-  <div class="contenedor portada-fila">
-    <div class="portada-texto">
-      <img class="logo-juego" src="{{ estatico("inicio/freefire-blanco.webp") }}" alt="Free Fire" width="640" height="145">
-      <h1>Ya puedes vender diamantes a tus propios clientes usando nuestros precios y nuestra plataforma.</h1>
-    </div>
-    {# El botón «Iniciar sesión» queda solo en el encabezado fijo (CHG-024). #}
-    <div class="portada-imagenes">
-      <img class="portada-personaje" src="{{ estatico("inicio/personaje-2.webp") }}" alt="Personaje de Free Fire" width="800" height="834">
-      <img class="flotar" src="{{ estatico("inicio/diamantes.webp") }}" alt="Diamantes de Free Fire en su mano" width="332" height="180">
-    </div>
-  </div>
-</section>
-
-<section class="pasos" aria-labelledby="titulo-pasos">
   <div class="contenedor">
-    <h2 id="titulo-pasos">Recargar es así de simple</h2>
-    <ol class="pasos-lista">
-      <li class="paso revelar">
-        <img src="{{ estatico("inicio/maletin.webp") }}" alt="" width="384" height="169" loading="lazy">
-        <span class="paso-numero">1</span>
-        <h3>Recibe tu cuenta</h3>
-        <p>Nuestro equipo crea tu cuenta y te entrega tu usuario y una contraseña temporal.</p>
-      </li>
-      <li class="paso revelar">
-        <img src="{{ estatico("inicio/cofre.webp") }}" alt="" width="469" height="295" loading="lazy">
-        <span class="paso-numero">2</span>
-        <h3>Ten saldo abonado</h3>
-        <p>Tu cuenta es prepago: el administrador abona el saldo que usarás en tus recargas.</p>
-      </li>
-      <li class="paso revelar">
-        <img src="{{ estatico("inicio/diamantes.webp") }}" alt="" width="332" height="180" loading="lazy">
-        <span class="paso-numero">3</span>
-        <h3>Recarga con el Player ID</h3>
-        <p>Escribe el Player ID del jugador, comprueba su nombre, elige el paquete y confirma.</p>
-      </li>
-    </ol>
+    <div class="tarjeta portada-tarjeta">
+      <canvas class="fondo-ascii" id="fondo-ascii" aria-hidden="true"></canvas>
+      <div class="portada-fila">
+        <div class="portada-texto">
+          <h1>Ya puedes <em>vender diamantes</em> a tus propios clientes usando nuestros precios y nuestra plataforma.</h1>
+          <p class="portada-apoyo">Cuenta prepago, recarga con el Player ID y tus pedidos siempre a la vista, desde el celular.</p>
+          {% if revendedores %}
+          <div class="sin-usuario-caja">
+            <div>
+              <h2>¿Aún no tienes usuario?</h2>
+              <p>Contáctate con uno de nuestros revendedores: te ayudan a crear tu usuario y a empezar a vender diamantes.</p>
+            </div>
+            <a href="/resellers" class="boton boton-claro">Ver revendedores</a>
+          </div>
+          {% endif %}
+        </div>
+        <div class="portada-imagenes">
+          <img class="portada-personaje" src="{{ estatico("inicio/personaje-2.webp") }}" alt="Personaje de Free Fire" width="800" height="834">
+          <img class="flotar" src="{{ estatico("inicio/diamantes.webp") }}" alt="Diamantes de Free Fire en su mano" width="332" height="180">
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
-{% if revendedores %}
-<section class="sin-usuario" aria-labelledby="titulo-sin-usuario">
+<div class="divisor" aria-hidden="true"></div>
+
+<section class="mundo" aria-labelledby="titulo-mundo">
   <div class="contenedor">
-    <div class="sin-usuario-caja revelar">
-      <h2 id="titulo-sin-usuario">¿Aún no tienes usuario?</h2>
-      <p>Contáctate con uno de nuestros revendedores: te ayudan a crear tu usuario y a empezar a vender diamantes.</p>
-      <a href="/resellers" class="boton">Ver revendedores</a>
-    </div>
-  </div>
-</section>
-{% endif %}
-
-<section class="destacado">
-  <div class="contenedor destacado-fila">
-    <img class="personaje revelar desde-izquierda" src="{{ estatico("inicio/personaje-1.webp") }}" alt="Personaje de Free Fire" width="800" height="620" loading="lazy">
-    <div class="destacado-texto revelar">
-      <h2>Tus pedidos, siempre a la vista</h2>
-      <p>Consulta el estado de cada recarga y los movimientos de tu saldo desde tu cuenta.</p>
+    <p class="sobre revelar">Diamantes</p>
+    <h2 id="titulo-mundo" class="revelar">Diamantes de Free Fire, sin complicaciones</h2>
+    <p class="mundo-apoyo revelar">Una plataforma prepago pensada para quien vende recargas todos los días.</p>
+    <div class="escena">
+      <canvas class="diamante" id="diamante" aria-hidden="true"></canvas>
+      <p class="nota nota-a"><b>Recarga con Player ID</b>Comprueba el nombre del jugador antes de confirmar.</p>
+      <p class="nota nota-b"><b>Saldo prepago</b>Recargas con el saldo que te abona nuestro equipo.</p>
     </div>
   </div>
 </section>
 
-<section class="destacado destacado-invertido">
-  <div class="contenedor destacado-fila">
-    <img class="personaje personaje-alto revelar desde-derecha" src="{{ estatico("inicio/personaje-3.webp") }}" alt="Personaje de Free Fire" width="640" height="883" loading="lazy">
-    <div class="destacado-texto revelar">
-      <h2>Pensada para el celular</h2>
-      <p>Recarga desde tu teléfono, donde estés, con la misma cuenta que usas en la computadora.</p>
-    </div>
-  </div>
-</section>
+<div class="divisor" aria-hidden="true"></div>
 
-<section class="armas" aria-label="Armas de Free Fire">
-  <div class="contenedor armas-fila">
-    <figure class="arma arma-izquierda revelar desde-izquierda"><img src="{{ estatico("inicio/arma-1.webp") }}" alt="Arma de Free Fire" width="511" height="195" loading="lazy"></figure>
-    <figure class="arma arma-derecha revelar desde-derecha"><img src="{{ estatico("inicio/arma-2.webp") }}" alt="Arma de Free Fire" width="512" height="208" loading="lazy"></figure>
-  </div>
+<section class="pasos contenedor" aria-labelledby="titulo-pasos">
+  <h2 id="titulo-pasos" class="solo-lectores">Recargar es así de simple</h2>
+  <ol class="franja revelar">
+    <li class="paso">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+      <h3>Recibe tu cuenta</h3>
+      <p>Nuestro equipo crea tu cuenta y te entrega tu usuario y una contraseña temporal.</p>
+    </li>
+    <li class="paso">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg>
+      <h3>Ten saldo abonado</h3>
+      <p>Tu cuenta es prepago: el administrador abona el saldo que usarás en tus recargas.</p>
+    </li>
+    <li class="paso">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+      <h3>Recarga con el Player ID</h3>
+      <p>Escribe el Player ID del jugador, comprueba su nombre, elige el paquete y confirma.</p>
+    </li>
+  </ol>
 </section>
 {% endblock %}

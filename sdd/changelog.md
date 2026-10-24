@@ -295,6 +295,14 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.29.0 → 0.30.0
 - **Motivo:** no todos los revendedores usan Telegram. Decisiones del dueño: el sitio se muestra como un botón más, sin QR; la dirección solo puede ser `https://`; el botón se llama «Sitio web» con un ícono de globo; el revendedor sin foto muestra su inicial. Los datos reales siguen solo en `RESELLERS` del `.env`.
 
+### CHG-035 · 2026-10-24 · Rediseño de la página pública (tarjeta, diamante de puntos y divisores)
+- **Origen:** decisión de negocio (el dueño pidió un rediseño de la portada inspirado en la presentación de Cloudflare, con los colores de FFMovil, y el mismo tema en `/resellers`, `/terminos` y `/privacidad`)
+- **Spec:** RF-58 (b) a (d) reescritos (tarjeta principal con el diamante en la mano y la sección de revendedores dentro, sección «Diamantes de Free Fire, sin complicaciones» con un diamante animado y dos notas, franja con los tres pasos, divisores y guías discontinuas; se retiran las secciones de personajes y la franja de armas), RF-59 y RF-62 (mismo tema visual), RNF-20 (canvas decorativos permitidos con sus límites)
+- **Plan:** sec. 6.3 (estructura, tema más oscuro, tarjeta, canvas, divisores y guías, páginas legales y de revendedores)
+- **Tareas:** nueva T-136
+- **Versión spec:** 0.30.0 → 0.31.0
+- **Motivo:** rediseño de marca de la página pública. Decisiones del dueño: fondo azul más oscuro y diseño más simple que el primer prototipo; tarjeta principal azul con textura de puntos y brillo inferior (como la de Cloudflare, con nuestros colores) y el diamante flotando sobre la mano del personaje; sin el contorno de diamantes hecho de caracteres alrededor del personaje; líneas discontinuas horizontales y verticales; contenedor más ancho en escritorio. Los textos nuevos los propuso el asistente y el dueño los aprobó con el prototipo. Las imágenes que ya no se usan (personajes 1 y 3, armas, maletín y cofre) quedan en `app/static/inicio/`.
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |

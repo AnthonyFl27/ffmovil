@@ -10,6 +10,7 @@
   <link rel="icon" type="image/png" href="{{ estatico("favicon.png") }}">
   <link rel="apple-touch-icon" href="{{ estatico("apple-touch-icon.png") }}">
   <script src="{{ estatico("inicio.js") }}"></script>
+  {% block scripts %}{% endblock %}
 </head>
 <body class="publica">
   <header class="cabecera">
@@ -18,8 +19,9 @@
       <a href="/login" class="boton">Iniciar sesión</a>
     </div>
   </header>
-  <main>
+  <main class="marco">
     {% block contenido %}{% endblock %}
+    <div class="divisor" aria-hidden="true"></div>
   </main>
   {% include "publica/_pie.html" %}
 </body>

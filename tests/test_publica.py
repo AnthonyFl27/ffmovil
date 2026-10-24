@@ -31,6 +31,11 @@ AVISO_MARCAS = (
 CORREO = "contacto@ejemplo.test"
 
 
+def _texto(html: str) -> str:
+    """Texto visible: sin etiquetas (el título lleva `<em>`) y con los espacios normalizados."""
+    return " ".join(re.sub(r"<[^>]+>", " ", html).split())
+
+
 class SinVentasFF:
     """Sustituto del cliente VentasFF: cualquier uso hace fallar la prueba."""
 
@@ -73,31 +78,64 @@ def _pie_completo(html: str) -> None:
 
 
 async def test_sin_sesion_muestra_la_presentacion(api):
-    """RF-58 (a) a (e) y CA-10: botón a /login (solo en el encabezado), portada, tres pasos y pie completo."""
+    """RF-58 (a) a (e) y CA-10: botón a /login (solo en el encabezado), tarjeta, diamante, tres pasos y pie."""
     r = await api().get("/", follow_redirects=False)
     assert r.status_code == 200
     html = r.text
     assert html.count('href="/login"') == 1  # solo el botón del encabezado
     assert "Iniciar sesión" in html and "FFMovil" in html
-    assert TEXTO_PORTADA in html
-    assert "inicio/diamantes.webp" in html and "inicio/cofre.webp" in html
+    assert TEXTO_PORTADA in _texto(html)
+    assert "inicio/personaje-2.webp" in html and "inicio/diamantes.webp" in html
     assert len(re.findall(r'class="paso[ "]', html)) == 3
     for paso in ("Recibe tu cuenta", "Ten saldo abonado", "Recarga con el Player ID"):
         assert paso in html
-    for imagen in ("personaje-1", "personaje-2", "personaje-3", "arma-1", "arma-2"):
-        assert f"inicio/{imagen}.webp" in html, imagen
+    # CHG-035: las secciones de personajes 1 y 3, la franja de armas y las fotos de los pasos se retiraron.
+    for imagen in ("personaje-1", "personaje-3", "arma-1", "arma-2", "cofre", "maletin"):
+        assert f"inicio/{imagen}.webp" not in html, imagen
     assert "revelar" in html
     _pie_completo(html)
+
+
+async def test_la_portada_tiene_tarjeta_diamante_notas_y_divisores(api):
+    """RF-58 (b) a (d), CHG-035: tarjeta con apoyo, sección del diamante con sus notas y divisores."""
+    html = (await api().get("/")).text
+    assert 'class="tarjeta portada-tarjeta"' in html and 'id="fondo-ascii"' in html
+    assert (
+        "Cuenta prepago, recarga con el Player ID y tus pedidos siempre a la vista, desde el celular."
+        in html
+    )
+    assert "Diamantes de Free Fire, sin complicaciones" in html
+    assert "Una plataforma prepago pensada para quien vende recargas todos los días." in html
+    assert 'id="diamante"' in html and 'aria-hidden="true"' in html
+    assert "<b>Recarga con Player ID</b>Comprueba el nombre del jugador antes de confirmar." in html
+    assert "<b>Saldo prepago</b>Recargas con el saldo que te abona nuestro equipo." in html
+    # Divisores: tras la tarjeta, tras el diamante y al final del contenido.
+    assert html.count('class="divisor"') == 3
+    assert '<main class="marco">' in html
+    # Los canvas son solo decoración: el JavaScript propio se carga de /static, solo en la portada.
+    assert "/static/portada.js" in html
+    for ruta in ("/terminos", "/privacidad"):
+        assert "portada.js" not in (await api().get(ruta)).text, ruta
+
+
+@pytest.mark.parametrize("ruta", ["/terminos", "/privacidad"])
+async def test_las_legales_usan_el_tema_de_la_portada(api, ruta):
+    """RF-59, CHG-035: tarjeta de título con el enlace de vuelta, divisores y el mismo marco."""
+    html = (await api().get(ruta)).text
+    assert 'class="tarjeta tarjeta-pagina"' in html and '<main class="marco">' in html
+    assert html.index('class="volver"') < html.index("<h1>") < html.index('class="divisor"')
+    assert html.count('class="divisor"') == 2
 
 
 async def test_la_portada_lleva_el_personaje_con_el_diamante_y_no_repite_el_boton(api):
     """RF-58 (b), CHG-024: el botón queda solo en el encabezado; personaje y diamante."""
     html = (await api().get("/")).text
     portada = html[html.index('<section class="portada">') : html.index("</section>")]
-    assert TEXTO_PORTADA in portada
+    assert TEXTO_PORTADA in _texto(portada)
     assert "/login" not in portada
     assert "inicio/personaje-2.webp" in portada and "inicio/diamantes.webp" in portada
     assert 'class="flotar"' in portada and "inicio/cofre.webp" not in portada
+    assert "Cuenta prepago, recarga con el Player ID" in portada
     cabecera = html[html.index('<header class="cabecera">') : html.index("</header>")]
     assert 'href="/login"' in cabecera
 
@@ -290,6 +328,7 @@ async def test_resellers_muestra_foto_nombre_y_canales(api, revendedores):
     r = await api().get("/resellers", follow_redirects=False)
     assert r.status_code == 200
     html = r.text
+    assert 'class="tarjeta tarjeta-pagina"' in html and 'class="divisor"' in html  # CHG-035
     assert 'href="/"' in html and "Volver al inicio" in html  # enlace de vuelta
     ana, luis = html.split('<li class="revendedor">')[1:]
     assert "Ana Prueba" in ana and "revendedor-1.webp" in ana  # con foto
@@ -339,11 +378,13 @@ async def test_resellers_sin_revendedores_es_404_y_no_hay_enlaces(api):
 
 
 async def test_portada_y_pie_enlazan_a_resellers(api, revendedores, correo):
-    """RF-58 (c) y (e): sección bajo los pasos y enlace «Revendedores» bajo el correo del pie."""
+    """RF-58 (b) y (e): sección dentro de la tarjeta principal y enlace «Revendedores» bajo el correo del pie."""
     html = (await api().get("/")).text
-    assert html.index("titulo-pasos") < html.index("¿Aún no tienes usuario?")
+    portada = html[html.index('<section class="portada">') : html.index("</section>")]
+    assert "¿Aún no tienes usuario?" in portada  # dentro de la tarjeta, no más abajo
+    assert html.index("¿Aún no tienes usuario?") < html.index("titulo-mundo")
     assert "Contáctate con uno de nuestros revendedores" in html
-    assert 'class="boton">Ver revendedores</a>' in html
+    assert 'class="boton boton-claro">Ver revendedores</a>' in html
     pie = html[html.index("<footer") :]
     assert pie.index("mailto:") < pie.index('href="/resellers">Revendedores</a>')
     assert "Nuestro equipo crea tu cuenta" in html  # paso 1 (RF-58 c)
