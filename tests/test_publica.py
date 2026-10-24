@@ -449,13 +449,13 @@ def test_la_foto_de_la_configuracion_debe_existir():
 
 
 async def test_legales_mencionan_a_los_revendedores_del_equipo(api, revendedores):
-    """RF-59 (CHG-031): las cuentas las crea FFmovil o su equipo; se piden por correo o `/resellers`."""
+    """RF-59 (CHG-031): las cuentas las crea FFMovil o su equipo; se piden por correo o `/resellers`."""
     terminos = (await api().get("/terminos")).text
-    assert "revendedores del equipo de FFmovil" in terminos
-    assert "o los <strong>revendedores del equipo de FFmovil</strong> que autorizamos" in terminos
+    assert "revendedores del equipo de FFMovil" in terminos
+    assert "o los <strong>revendedores del equipo de FFMovil</strong> que autorizamos" in terminos
     privacidad = (await api().get("/privacidad")).text
-    assert "un revendedor del equipo de FFmovil" in privacidad
-    assert "Revendedores del equipo de FFmovil:" in privacidad
+    assert "un revendedor del equipo de FFMovil" in privacidad
+    assert "Revendedores del equipo de FFMovil:" in privacidad
     # Sin choque de palabras: el cliente es «cliente revendedor»; «revendedor» a secas es del equipo.
     for frase in ("Si eres <strong>cliente revendedor</strong>", "Como cliente revendedor"):
         assert frase in terminos, frase

@@ -53,7 +53,7 @@ Todos los trazados y colores están en `generar.py` (única fuente de verdad: ed
 - Cabecera y pie de las páginas públicas (siempre oscuras): `nombre.svg` (blanco); estilo en `.marca .marca-nombre` de `inicio.css`.
 - Cabecera de la app (`base.html`, cliente y admin): también `nombre.svg`, porque la app usa siempre el tema oscuro (`data-theme="dark"`); el estilo está en `nav a.marca img.marca-nombre` de `app.css`. `ffmovil-nombre-claro.svg` queda en `design/` para fondos claros fuera de la web.
 
-Los títulos y textos siguen escribiendo «FFMovil» (parte pública) o «FFmovil» (app). El título de la portada es solo «FFMovil» (decisión del dueño: los títulos largos se cortan en la pestaña).
+Los títulos y textos escriben siempre «FFMovil» (parte pública, app y página «Próximamente»; unificado el 2026-10-24). El título de la portada es solo «FFMovil» (decisión del dueño: los títulos largos se cortan en la pestaña).
 
 ## Archivos
 
