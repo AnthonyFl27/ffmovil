@@ -303,6 +303,14 @@ Cada cambio a `spec.md` se registra aquí antes (o junto con) de modificar `plan
 - **Versión spec:** 0.30.0 → 0.31.0
 - **Motivo:** rediseño de marca de la página pública. Decisiones del dueño: fondo azul más oscuro y diseño más simple que el primer prototipo; tarjeta principal azul con textura de puntos y brillo inferior (como la de Cloudflare, con nuestros colores) y el diamante flotando sobre la mano del personaje; sin el contorno de diamantes hecho de caracteres alrededor del personaje; líneas discontinuas horizontales y verticales; contenedor más ancho en escritorio. Los textos nuevos los propuso el asistente y el dueño los aprobó con el prototipo. Las imágenes que ya no se usan (personajes 1 y 3, armas, maletín y cofre) quedan en `app/static/inicio/`.
 
+### CHG-036 · 2026-10-24 · Nombre de la marca en texto: «FFmovil»
+- **Origen:** decisión de negocio (el dueño pidió que, en texto plano, el nombre se escriba «FFmovil»)
+- **Spec:** solo redacción: «FFMovil» → «FFmovil» en RF-58, RF-62 y el resto de menciones; sin cambio de comportamiento
+- **Plan:** mismas menciones (sec. de imágenes y de páginas legales)
+- **Tareas:** T-133 (redacción); sin tareas nuevas
+- **Versión spec:** 0.31.0 → 0.31.1
+- **Motivo:** unificar la escritura de la marca. Se aplica a plantillas, textos legales, mensaje de WhatsApp, página «Próximamente» y títulos de los SVG del logo; el nombre dibujado en trazos («ffmovil», `nombre.svg`) no cambia, ni tampoco el dominio, los identificadores ni las entradas históricas.
+
 ## Decisiones resueltas
 
 | Q | Decisión | Fecha | CHG |

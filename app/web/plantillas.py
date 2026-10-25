@@ -81,7 +81,7 @@ def estatico(nombre: str) -> str:
     return f"/static/{nombre}?v={hashlib.sha256(contenido).hexdigest()[:10]}"
 
 
-MENSAJE_WHATSAPP = "Hola, quiero abrir mi usuario en FFMovil."
+MENSAJE_WHATSAPP = "Hola, quiero abrir mi usuario en FFmovil."
 
 
 def url_whatsapp(numero: str) -> str:

@@ -1,4 +1,4 @@
-"""Genera los SVG y PNG del logo de FFMovil. Fuente única: este archivo.
+"""Genera los SVG y PNG del logo de FFmovil. Fuente única: este archivo.
 
 Uso (desde la raíz del repo; solo biblioteca estándar, los PNG usan ImageMagick con librsvg):
 
@@ -151,7 +151,7 @@ def icono(variante: str) -> str:
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {ANCHO} {ALTO}" '
         f'width="{ANCHO * 4}" height="{ALTO * 4}" role="img">'
-        f"<title>FFMovil</title>{_cuerpo(variante)}</svg>"
+        f"<title>FFmovil</title>{_cuerpo(variante)}</svg>"
     )
 
 
@@ -174,7 +174,7 @@ def app(redondeado: bool) -> str:
         fondo = f'<rect width="100" height="100" fill="{FONDO_APP}"/>'
     return (
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="512" height="512" role="img">'
-        f"<title>FFMovil</title>{fondo}{_centrado(ESCALA_APP)}</svg>"
+        f"<title>FFmovil</title>{fondo}{_centrado(ESCALA_APP)}</svg>"
     )
 
 
@@ -182,7 +182,7 @@ def favicon() -> str:
     """Favicon (32 x 32): el mismo ícono más grande y sin borde, que a 32 px se vuelve un halo."""
     return (
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="32" height="32" role="img">'
-        f'<title>FFMovil</title><rect width="100" height="100" rx="20" fill="{FONDO_APP}"/>'
+        f'<title>FFmovil</title><rect width="100" height="100" rx="20" fill="{FONDO_APP}"/>'
         f"{_centrado(ESCALA_FAVICON)}</svg>"
     )
 
@@ -193,7 +193,7 @@ def nombre_svg(variante: str) -> str:
     trazos, fin = _nombre("ffmovil", 0, variante)
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 10 {fin} 80" '
-        f'width="{fin * 3}" height="240" role="img"><title>FFMovil</title>{trazos}</svg>'
+        f'width="{fin * 3}" height="240" role="img"><title>FFmovil</title>{trazos}</svg>'
     )
 
 

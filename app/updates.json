@@ -1,6 +1,14 @@
 [
   {
     "fecha": "2026-10-24",
+    "titulo": "El nombre se escribe «FFmovil»",
+    "puntos": [
+      "La portada ahora muestra el logo de Free Fire sobre el título.",
+      "En todos los textos de la web (portada, términos, privacidad, revendedores, títulos de las pestañas y mensaje de WhatsApp) el nombre aparece ahora como «FFmovil»."
+    ]
+  },
+  {
+    "fecha": "2026-10-24",
     "titulo": "Mensaje de recarga listo para el cliente",
     "puntos": [
       "Al registrar una recarga de saldo, el mensaje ahora está redactado para enviárselo al cliente: «Su recarga de 10.00 USD se acreditó exitosamente. Saldo disponible: …».",
@@ -56,7 +64,7 @@
     "fecha": "2026-10-15",
     "titulo": "Página para contactar a los revendedores",
     "puntos": [
-      "Nueva página pública /resellers con la foto, el nombre y los botones de WhatsApp (con el mensaje «Hola, quiero abrir mi usuario en FFMovil.» ya escrito) y Telegram de cada revendedor.",
+      "Nueva página pública /resellers con la foto, el nombre y los botones de WhatsApp (con el mensaje «Hola, quiero abrir mi usuario en FFmovil.» ya escrito) y Telegram de cada revendedor.",
       "La portada tiene la sección «¿Aún no tienes usuario?» con el botón «Ver revendedores», y el pie un enlace «Revendedores» bajo el correo.",
       "Los Términos y Condiciones y la Política de Privacidad mencionan a los revendedores del equipo; quien compra pasa a llamarse «cliente revendedor».",
       "El aviso de marcas del pie quedó más corto."

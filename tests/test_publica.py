@@ -68,7 +68,7 @@ def correo():
 def _pie_completo(html: str) -> None:
     assert 'href="/terminos"' in html and "Términos y Condiciones" in html
     assert 'href="/privacidad"' in html and "Política de Privacidad" in html
-    assert f"© {datetime.now(UTC).year} FFMovil • Todos los derechos reservados" in html
+    assert f"© {datetime.now(UTC).year} FFmovil • Todos los derechos reservados" in html
     assert AVISO_MARCAS in html
     assert 'alt="Protected by Cloudflare"' in html
     assert 'href="https://www.cloudflare.com/"' in html
@@ -83,7 +83,7 @@ async def test_sin_sesion_muestra_la_presentacion(api):
     assert r.status_code == 200
     html = r.text
     assert html.count('href="/login"') == 1  # solo el botón del encabezado
-    assert "Iniciar sesión" in html and "FFMovil" in html
+    assert "Iniciar sesión" in html and "FFmovil" in html
     assert TEXTO_PORTADA in _texto(html)
     assert "inicio/personaje-2.webp" in html and "inicio/diamantes.webp" in html
     assert len(re.findall(r'class="paso[ "]', html)) == 3
@@ -313,7 +313,7 @@ COMPLETO = Revendedor(
 )
 SOLO_WHATSAPP = Revendedor(nombre="Luis Prueba", whatsapp="50500000002")
 SOLO_WEB = Revendedor(nombre="Marta Web", web="https://www.ejemplo-web.test/tienda")
-MENSAJE_URL = "Hola%2C%20quiero%20abrir%20mi%20usuario%20en%20FFMovil."
+MENSAJE_URL = "Hola%2C%20quiero%20abrir%20mi%20usuario%20en%20FFmovil."
 
 
 @pytest.fixture
@@ -449,13 +449,13 @@ def test_la_foto_de_la_configuracion_debe_existir():
 
 
 async def test_legales_mencionan_a_los_revendedores_del_equipo(api, revendedores):
-    """RF-59 (CHG-031): las cuentas las crea FFMovil o su equipo; se piden por correo o `/resellers`."""
+    """RF-59 (CHG-031): las cuentas las crea FFmovil o su equipo; se piden por correo o `/resellers`."""
     terminos = (await api().get("/terminos")).text
-    assert "revendedores del equipo de FFMovil" in terminos
-    assert "o los <strong>revendedores del equipo de FFMovil</strong> que autorizamos" in terminos
+    assert "revendedores del equipo de FFmovil" in terminos
+    assert "o los <strong>revendedores del equipo de FFmovil</strong> que autorizamos" in terminos
     privacidad = (await api().get("/privacidad")).text
-    assert "un revendedor del equipo de FFMovil" in privacidad
-    assert "Revendedores del equipo de FFMovil:" in privacidad
+    assert "un revendedor del equipo de FFmovil" in privacidad
+    assert "Revendedores del equipo de FFmovil:" in privacidad
     # Sin choque de palabras: el cliente es «cliente revendedor»; «revendedor» a secas es del equipo.
     for frase in ("Si eres <strong>cliente revendedor</strong>", "Como cliente revendedor"):
         assert frase in terminos, frase
