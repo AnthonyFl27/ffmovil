@@ -1,6 +1,6 @@
 {% extends "publica/base_publica.html" %}
 {#- El nombre primero: la pestaña corta el final del título. #}
-{% block titulo_completo %}FFMovil{% endblock %}
+{% block titulo_completo %}FFmovil{% endblock %}
 {% block scripts %}<script src="{{ estatico("portada.js") }}" defer></script>{% endblock %}
 {% block contenido %}
 {# Tarjeta principal (RF-58 b, CHG-035). El botón «Iniciar sesión» queda solo en el encabezado fijo (CHG-024). #}
@@ -10,6 +10,7 @@
       <canvas class="fondo-ascii" id="fondo-ascii" aria-hidden="true"></canvas>
       <div class="portada-fila">
         <div class="portada-texto">
+          <img class="portada-juego" src="{{ estatico("inicio/freefire-blanco.webp") }}" alt="Free Fire" width="639" height="144">
           <h1>Ya puedes <em>vender diamantes</em> a tus propios clientes usando nuestros precios y nuestra plataforma.</h1>
           <p class="portada-apoyo">Cuenta prepago, recarga con el Player ID y tus pedidos siempre a la vista, desde el celular.</p>
           {% if revendedores %}

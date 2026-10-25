@@ -267,6 +267,14 @@ a:focus-visible {
   padding-bottom: 8px;
 }
 
+/* Logo de Free Fire sobre el título de la portada. */
+.portada-juego {
+  display: block;
+  width: 168px;
+  height: auto;
+  margin: 0 0 18px;
+}
+
 .portada h1 {
   margin: 0 0 16px;
   font-size: clamp(1.75rem, 1rem + 1.6vw, 2.8rem);
@@ -873,6 +881,11 @@ a:focus-visible {
 
   .portada-texto {
     padding-bottom: 32px;
+  }
+
+  .portada-juego {
+    width: 220px;
+    margin-bottom: 22px;
   }
 }
 
